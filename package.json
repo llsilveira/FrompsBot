@@ -1,0 +1,35 @@
+{
+  "name": "fromps-bot",
+  "version": "0.0.1",
+  "description": "A bot for the Randomizer Brasil community.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "repository": "https://github.com/llsilveira/fromps-bot.git",
+  "author": "Luciano L Silveira <llsilveira@llsilveira.com>",
+  "license": "BSD-3-Clause",
+  "private": false,
+  "dependencies": {
+    "commander": "^9.1.0",
+    "dotenv": "^16.0.0",
+    "module-alias": "^2.2.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.17.6",
+    "@babel/core": "^7.17.8",
+    "@babel/eslint-parser": "^7.17.0",
+    "@babel/node": "^7.16.8",
+    "@babel/plugin-proposal-decorators": "^7.17.8",
+    "@babel/preset-env": "^7.16.11",
+    "eslint": "^8.11.0",
+    "nodemon": "^2.0.15"
+  },
+  "scripts": {
+    "start": "babel-node .",
+    "watch": "nodemon babel-node .",
+    "debug": "babel-node --inspect .",
+    "build": "babel src -d build --copy-files --no-copy-ignored --source-maps",
+    "build_start": "node build",
+    "build_debug": "node build --inspect",
+    "build_clean": "rm -rf build"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "presets": [
+    "@babel/preset-env"
+  ],
+  "targets": "node 16",
+  "plugins": [
+    ["@babel/plugin-proposal-decorators", { "version": "legacy" }]
+  ]
+}
