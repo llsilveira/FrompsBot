@@ -21,6 +21,7 @@
     "@babel/plugin-proposal-decorators": "^7.17.8",
     "@babel/preset-env": "^7.16.11",
     "eslint": "^8.11.0",
+    "jsdoc": "^3.6.10",
     "nodemon": "^2.0.15"
   },
   "scripts": {
