@@ -1,7 +1,6 @@
 "use strict";
 
-require("dotenv").config();
-require("./alias");
+require("./setup");
 
 const process = require("process");
 
