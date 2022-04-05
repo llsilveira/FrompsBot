@@ -1,7 +1,7 @@
 "use strict";
 
 const { AsyncLocalStorage } = require("async_hooks");
-const { ApplicationError } = require("./ApplicationError");
+const { ApplicationError } = require("./errors");
 
 module.exports = class ApplicationContext {
   constructor() {
