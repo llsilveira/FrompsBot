@@ -1,6 +1,6 @@
 "use strict";
 
-const { ApplicationContext } = require("./context");
+const ApplicationContext = require("./ApplicationContext");
 
 module.exports = class Application {
   constructor() {
