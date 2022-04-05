@@ -2,4 +2,10 @@
 
 const pathLoad = require("./pathLoad");
 
-module.exports = pathLoad(module.path);
+const modules = pathLoad(module.path, { ignoreList: ["pathLoad.js"] });
+
+module.exports = {
+  pathLoad,
+  ...modules
+};
+
