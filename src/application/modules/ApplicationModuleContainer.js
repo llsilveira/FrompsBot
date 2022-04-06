@@ -39,7 +39,7 @@ module.exports = class ApplicationModuleContainer {
 
     const loaded = {};
     for (const moduleName of modules) {
-      loaded[moduleName] = this.#modules[moduleName].getInstance(this.#app);
+      loaded[moduleName] = this.#modules.get(moduleName).getInstance(this.#app);
     }
     return loaded;
   }
@@ -69,7 +69,7 @@ class ModuleSpec {
   constructor(name, config, container) {
     this.#name = name;
 
-    if (arrayIntersection(config.keys(), ["type", "require"]).length !== 1) {
+    if (arrayIntersection(Object.keys(config), ["type", "require"]).length !== 1) {
       throw new ApplicationError(
         `Configuration for module '${name}' must have a 'type' or 'require' property (but not both).`);
     }
