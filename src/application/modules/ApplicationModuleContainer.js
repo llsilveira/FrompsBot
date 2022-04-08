@@ -4,9 +4,6 @@ const { arrayIntersection } = require("@fromps-bot/common/helpers");
 
 const { ApplicationError } = require("../errors");
 
-const symbols = require("./symbols");
-
-
 module.exports = class ApplicationModuleContainer {
   constructor(app) {
     this.#app = app;
@@ -114,8 +111,7 @@ class ModuleSpec {
           this.#dependencies[dependency].getInstance(app);
       }
 
-      this.#instance = new (this.#type)(app, this.#config, dependencies);
-      this.#instance[symbols.moduleName] = this.#name;
+      this.#instance = new (this.#type)(app, this.#name, this.#config, dependencies);
     }
 
     return this.#instance;

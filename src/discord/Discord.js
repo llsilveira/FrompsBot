@@ -10,8 +10,8 @@ const { Application } = require("@fromps-bot/application");
 const slashCommands = require("./slash_commands");
 
 module.exports = class Discord extends Application.Module {
-  constructor(app, { token, clientId, guildId }) {
-    super(app);
+  constructor(app, name, { token, clientId, guildId }) {
+    super(app, name);
 
     this.token = token;
     this.clientId = clientId;

@@ -3,9 +3,7 @@
 const { ApplicationError } = require("./errors");
 const LoggerFactory = require("./LoggerFactory");
 const { Database } = require("./database");
-const {
-  ApplicationModule, ApplicationModuleContainer, symbols: moduleSymbols
-} = require("./modules");
+const { ApplicationModule, ApplicationModuleContainer } = require("./modules");
 const ApplicationContext = require("./ApplicationContext");
 
 const { structuredClone } = require("@fromps-bot/common/helpers");
@@ -48,7 +46,7 @@ module.exports = class Application {
   getLogger(ident) {
     let source;
     if (ident instanceof Application.Module) {
-      source = "module " + ident[moduleSymbols.moduleName];
+      source = "module " + ident.name;
     } else {
       switch (typeof ident) {
       case "function": {
