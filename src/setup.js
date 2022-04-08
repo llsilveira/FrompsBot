@@ -1,4 +1,8 @@
 "use strict";
 
 require("dotenv").config();
-require("./alias");
+
+const path = require("path");
+const moduleAlias = require("module-alias");
+
+moduleAlias.addAlias("@fromps-bot", path.resolve(module.path));
