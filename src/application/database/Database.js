@@ -67,6 +67,23 @@ class Database {
     return this.#namespace.get("transaction");
   }
 
+  @transactional(obj => obj)
+  async migrate() {
+    const sequelize = this.#sequelize;
+    const migrationsPath = path.resolve(module.path, "migrations");
+
+    const { Umzug, SequelizeStorage } = require("umzug");
+    const umzug = new Umzug({
+      migrations: { glob: migrationsPath + "/*.js" },
+      context: sequelize.getQueryInterface(),
+      storage: new SequelizeStorage({ sequelize }),
+      logger: console,
+    });
+
+    await umzug.up();
+  }
+
+
   #registerModels() {
     const models = require("./models");
 
