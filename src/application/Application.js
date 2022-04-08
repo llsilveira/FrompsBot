@@ -49,7 +49,10 @@ module.exports = class Application {
         source = "unknown object";
         break;
       }
-      case "string":
+      case "string": {
+        source = "#" + ident;
+        break;
+      }
       case "number":
       case "boolean":
       case "bigint": {
