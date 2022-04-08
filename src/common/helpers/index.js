@@ -1,11 +1,5 @@
 "use strict";
 
-const pathLoad = require("./pathLoad");
+const pathLoad = require("@fromps-bot/common/pathLoad");
 
-const modules = pathLoad(module.path, { ignoreList: ["pathLoad.js"] });
-
-module.exports = {
-  pathLoad,
-  ...modules
-};
-
+module.exports = pathLoad(module.path);

@@ -11,7 +11,7 @@ const fs = require("fs");
  *
  * @param {string} loadPath - Path for the files to be loaded.
  * @param {Object} options - An object with options to the function.
- * @param {Array[string]} options.ignoreList - List of filenames to ignore. The
+ * @param {Array[string]} options.ignore - List of filenames to ignore. The
  * names included here must not contain any path prepended to them.
  * @param {boolean} options.ignoreIndex - Ignore the 'index.js' file.
  *
@@ -20,15 +20,15 @@ const fs = require("fs");
  */
 module.exports = function pathLoad(
   loadPath, {
-    ignoreList = [],
+    ignore = [],
     ignoreIndex = true
   } = {}
 ) {
-  if (ignoreIndex && !ignoreList.includes("index.js")) {
-    ignoreList.push("index.js");
+  if (ignoreIndex && !ignore.includes("index.js")) {
+    ignore.push("index.js");
   }
   const files = fs.readdirSync(loadPath).filter(file => {
-    return file.endsWith(".js") && !ignoreList.includes(file);
+    return file.endsWith(".js") && !ignore.includes(file);
   });
   const exported = {};
   files.forEach(file => {
