@@ -7,10 +7,15 @@ module.exports = class ApplicationModule {
   constructor(app, name) {
     this.#app = app;
     this.#name = name;
+    this.#logger = this.#app.getLogger(this);
   }
 
   get app() {
     return this.#app;
+  }
+
+  get logger() {
+    return this.#logger;
   }
 
   get name() {
@@ -18,5 +23,6 @@ module.exports = class ApplicationModule {
   }
 
   #app;
+  #logger;
   #name;
 };
