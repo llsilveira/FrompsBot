@@ -5,6 +5,9 @@ const path = require("path");
 const cls = require("cls-hooked");
 const { Sequelize } = require("sequelize");
 
+const transactional = require("./transactional");
+
+
 const namespace = cls.createNamespace("fromps-bot-database");
 Sequelize.useCLS(namespace);
 
@@ -12,6 +15,8 @@ Sequelize.useCLS(namespace);
  * Manages the database connection
  */
 class Database {
+  static transactional = transactional;
+
   constructor(app, config) {
     this.#namespace = namespace;
 
