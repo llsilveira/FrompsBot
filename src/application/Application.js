@@ -1,11 +1,12 @@
 "use strict";
 
-const ApplicationContext = require("./ApplicationContext");
+const { ApplicationError } = require("./errors");
 const LoggerFactory = require("./LoggerFactory");
+const { Database } = require("./database");
 const {
   ApplicationModule, ApplicationModuleContainer, symbols: moduleSymbols
 } = require("./modules");
-const { ApplicationError } = require("./errors");
+const ApplicationContext = require("./ApplicationContext");
 
 const { structuredClone } = require("@fromps-bot/common/helpers");
 
@@ -16,15 +17,24 @@ module.exports = class Application {
 
   constructor(config, modules) {
     this.#config = structuredClone(config);
+
     this.#loggerFactory = new LoggerFactory(this.#config.logging);
     this.#logger = this.#loggerFactory.getLogger("application");
+
+    this.#db = new Database(this, this.#config.database);
+
     this.#context = new ApplicationContext(this);
+
     this.#modules = new ApplicationModuleContainer(this);
     this.#modules.registerModules(modules);
   }
 
   get context() {
     return this.#context;
+  }
+
+  get db() {
+    return this.#db;
   }
 
   run(callback, ...args) {
@@ -70,7 +80,8 @@ module.exports = class Application {
 
   #config;
   #context;
-  #modules;
+  #db;
   #logger;
   #loggerFactory;
+  #modules;
 };
