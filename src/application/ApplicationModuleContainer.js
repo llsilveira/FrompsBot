@@ -2,7 +2,7 @@
 
 const { arrayIntersection } = require("@fromps-bot/common/helpers");
 
-const { ApplicationError } = require("../errors");
+const { ApplicationError } = require("./errors");
 
 module.exports = class ApplicationModuleContainer {
   constructor(app) {

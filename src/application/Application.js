@@ -1,10 +1,11 @@
 "use strict";
 
-const { ApplicationError } = require("./errors");
-const LoggerFactory = require("./LoggerFactory");
-const { Database } = require("./database");
-const { ApplicationModule, ApplicationModuleContainer } = require("./modules");
 const ApplicationContext = require("./ApplicationContext");
+const ApplicationModule = require("./ApplicationModule");
+const ApplicationModuleContainer = require("./ApplicationModuleContainer");
+const LoggerFactory = require("./LoggerFactory");
+const { ApplicationError } = require("./errors");
+const { Database } = require("./database");
 
 const { structuredClone } = require("@fromps-bot/common/helpers");
 
