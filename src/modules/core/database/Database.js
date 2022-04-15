@@ -17,11 +17,10 @@ Sequelize.useCLS(namespace);
 class Database {
   static transactional = transactional;
 
-  constructor(app, config) {
+  constructor({ config, logger }) {
     this.#namespace = namespace;
 
-    this.#app = app;
-    this.#logger = this.#app.getLogger("Database");
+    this.#logger = logger.getLogger("Database");
 
     const { database, username, password, host, port } = config;
     const options = {
@@ -92,7 +91,6 @@ class Database {
     }
   }
 
-  #app;
   #logger;
   #namespace;
   #sequelize;

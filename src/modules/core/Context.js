@@ -1,14 +1,13 @@
 "use strict";
 
 const { AsyncLocalStorage } = require("async_hooks");
-const { ApplicationError } = require("./errors");
 
 module.exports = class ApplicationContext {
   constructor() {
     this.#asyncStorage = new AsyncLocalStorage();
   }
 
-  run(callback, args) {
+  run(callback, ...args) {
     this.#asyncStorage.run(new Map(), callback, ...args);
   }
 
@@ -31,7 +30,7 @@ module.exports = class ApplicationContext {
   #getStore() {
     const store = this.#asyncStorage.getStore();
     if (!store) {
-      throw new ApplicationError("Context store is not available.");
+      throw new Error("Context store is not available.");
     }
     return store;
   }

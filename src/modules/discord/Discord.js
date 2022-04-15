@@ -5,17 +5,19 @@ const { Client, Collection, Intents } = require("discord.js");
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v9");
 
-const { Application } = require("@fromps-bot/application");
-
 const slashCommands = require("./slash_commands");
 
-module.exports = class Discord extends Application.Module {
-  constructor(app, name, { token, clientId, guildId }) {
-    super(app, name);
+module.exports = class Discord {
+  constructor({ config, context, logger }) {
+
+    const { token, clientId, guildId } = config;
 
     this.token = token;
     this.clientId = clientId;
     this.guildId = guildId;
+
+    this.context = context;
+    this.logger = logger.getLogger("Discord");
 
     this.client = new Client({
       intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
@@ -60,7 +62,7 @@ module.exports = class Discord extends Application.Module {
     if (!command) return;
 
     try {
-      await this.app.run(
+      await this.context.run(
         async () => {
           if (!command.anonymous) {
             // TODO: Login with user credentials from interaction

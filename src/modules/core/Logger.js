@@ -6,10 +6,10 @@ const { structuredClone } = require("@fromps-bot/common/helpers");
 
 
 module.exports = class LoggerFactory {
-  constructor(settings) {
+  constructor({ config }) {
     this.#cache = {};
 
-    const defaultSettings = structuredClone(settings);
+    const defaultSettings = structuredClone(config);
     const loggers = defaultSettings.loggers || [{}];
     delete defaultSettings.loggers;
 

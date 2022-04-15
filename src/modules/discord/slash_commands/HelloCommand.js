@@ -3,7 +3,7 @@
 const BaseCommand = require("./BaseCommand");
 
 
-module.exports = class NicknameCommand extends BaseCommand {
+module.exports = class HelloCommand extends BaseCommand {
   constructor() {
     super("ola", "Diz 'olá' a um usuario.");
 
