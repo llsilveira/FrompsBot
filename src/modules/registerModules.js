@@ -1,7 +1,7 @@
 "use strict";
 
 const awilix = require("awilix");
-const { loadConfig } = require("@fromps-bot/common/helpers");
+const { loadConfig } = require("@fromps/common/helpers");
 
 const config = loadConfig();
 

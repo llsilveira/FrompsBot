@@ -2,7 +2,7 @@
 
 
 const winston = require("winston");
-const { structuredClone } = require("@fromps-bot/common/helpers");
+const { structuredClone } = require("@fromps/common/helpers");
 
 
 module.exports = class LoggerFactory {

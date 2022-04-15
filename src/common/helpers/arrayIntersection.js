@@ -1,6 +1,6 @@
 "use strict";
 
-const { EnhancedSet } = require("@fromps-bot/common/types");
+const { EnhancedSet } = require("@fromps/common/types");
 
 module.exports = function arrayIntersection(array1, array2) {
   return Array.from(
