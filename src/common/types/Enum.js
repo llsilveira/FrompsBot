@@ -1,6 +1,7 @@
 "use strict";
 
-const { isIterable, namedPropertyIterator } = require("@frompsbot/common/helpers");
+const isIterable = require("@frompsbot/common/helpers/isIterable");
+const namedPropertyIterator = require("@frompsbot/common/helpers/namedPropertyIterator");
 
 module.exports = class Enum {
 
