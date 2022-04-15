@@ -28,6 +28,12 @@ module.exports = async function cli(args) {
     .description("update discord slash commands")
     .action(() => discordUpdate(container));
 
+  program
+    .command("db:migrate")
+    .description("update the database to the specified version")
+    .argument("[version]", "target version (default: latest)")
+    .action(() => dbMigrate(container));
+
   await program.parseAsync(args);
 };
 
@@ -41,7 +47,7 @@ async function discordUpdate(container) {
   await discord.updateCommands();
 }
 
-async function wip() {
-  console.log("This is a work in progress and the requested operation was not implemented yet.");
-  return -1;
+async function dbMigrate(container) {
+  const db = container.resolve("database");
+  await db.migrate();
 }
