@@ -1,5 +1,5 @@
 "use strict";
 
-const pathLoad = require("@fromps/common/pathLoad");
+const pathLoad = require("@frompsbot/common/pathLoad");
 
 module.exports = pathLoad(module.path, { ignore: ["BaseModel.js"] });
