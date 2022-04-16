@@ -7,6 +7,14 @@ const config = loadConfig();
 
 module.exports = function registerModules(container) {
   container.register({
+    container: awilix.asValue(container),
+
+    app: awilix.asClass(
+      require("./core/ApplicationFacade"), {
+        lifetime: awilix.Lifetime.SINGLETON
+      }
+    ),
+
     logger: awilix.asClass(
       require("./core/Logger"), {
         lifetime: awilix.Lifetime.SINGLETON,
