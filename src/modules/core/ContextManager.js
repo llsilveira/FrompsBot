@@ -2,13 +2,9 @@
 
 const { AsyncLocalStorage } = require("async_hooks");
 
-module.exports = class ApplicationContext {
+module.exports = class ContextManager {
   constructor() {
     this.#asyncStorage = new AsyncLocalStorage();
-  }
-
-  run(callback, ...args) {
-    this.#asyncStorage.run(new Map(), callback, ...args);
   }
 
   get(key, defaultValue) {
@@ -33,6 +29,10 @@ module.exports = class ApplicationContext {
       throw new Error("Context store is not available.");
     }
     return store;
+  }
+
+  run(callback, ...args) {
+    this.#asyncStorage.run(new Map(), callback, ...args);
   }
 
   #asyncStorage;

@@ -8,47 +8,49 @@ const { Routes } = require("discord-api-types/v9");
 const slashCommands = require("./slash_commands");
 
 module.exports = class Discord {
-  constructor({ config, context, logger }) {
+  constructor({ app }) {
+    this.#app = app;
 
-    const { token, clientId, guildId } = config;
+    const { token, clientId, guildId } = this.#app.config.get("discord");
 
-    this.token = token;
-    this.clientId = clientId;
-    this.guildId = guildId;
+    this.#token = token;
+    this.#clientId = clientId;
+    this.#guildId = guildId;
 
-    this.context = context;
-    this.logger = logger.getLogger("Discord");
-
-    this.client = new Client({
+    this.#client = new Client({
       intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
     });
-    this.commands = new Collection();
+    this.#commands = new Collection();
 
-    this.client.on("interactionCreate", async interaction => {
+    this.#client.on("interactionCreate", async interaction => {
       this.#resolveInteraction(interaction);
     });
 
-    this.client.once("ready", () => {
+    this.#client.once("ready", () => {
       console.log("Ready!");
     });
 
     this.#registerSlashCommands();
   }
 
+  get app() {
+    return this.#app;
+  }
+
   start() {
-    return this.client.login(this.token);
+    return this.#client.login(this.#token);
   }
 
   async updateCommands() {
     const commands = [];
-    for (const command of this.commands) {
+    for (const command of this.#commands) {
       commands.push(command[1].definition);
     }
 
-    const rest = new REST({ version: "9" }).setToken(this.token);
+    const rest = new REST({ version: "9" }).setToken(this.#token);
 
     return await rest.put(
-      Routes.applicationGuildCommands(this.clientId, this.guildId),
+      Routes.applicationGuildCommands(this.#clientId, this.#guildId),
       { body: commands }
     );
   }
@@ -58,11 +60,11 @@ module.exports = class Discord {
     // TODO: Set discord client error handling to log unhandled errors instead of crashing.
     if (!interaction.isCommand()) return;
 
-    const command = this.commands.get(interaction.commandName);
+    const command = this.#commands.get(interaction.commandName);
     if (!command) return;
 
     try {
-      await this.context.run(
+      await this.#app.context.run(
         async () => {
           if (!command.anonymous) {
             // TODO: Login with user credentials from interaction
@@ -83,8 +85,15 @@ module.exports = class Discord {
 
   #registerSlashCommands() {
     for (const command in slashCommands) {
-      const instance = new slashCommands[command]();
-      this.commands.set(instance.name, instance);
+      const instance = new slashCommands[command](this);
+      this.#commands.set(instance.name, instance);
     }
   }
+
+  #app;
+  #client;
+  #commands;
+  #token;
+  #clientId;
+  #guildId;
 };

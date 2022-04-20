@@ -5,8 +5,7 @@ const path = require("path");
 const cls = require("cls-hooked");
 const { Sequelize } = require("sequelize");
 
-const transactional = require("./transactional");
-
+const { transactional } = require("@frompsbot/common/decorators");
 
 const namespace = cls.createNamespace("fromps-bot-database");
 Sequelize.useCLS(namespace);
@@ -14,15 +13,15 @@ Sequelize.useCLS(namespace);
 /**
  * Manages the database connection
  */
-class Database {
-  static transactional = transactional;
+module.exports = class Database {
+  constructor({ app }) {
+    this.#app = app;
+    this.#config = this.#app.config.get("database");
+    this.#logger = this.#app.logger.getLogger(this);
 
-  constructor({ config, logger }) {
     this.#namespace = namespace;
 
-    this.#logger = logger.getLogger("Database");
-
-    const { database, username, password, host, port } = config;
+    const { database, username, password, host, port } = this.#config;
     const options = {
       dialect: "postgres",
       host: host || "localhost",
@@ -38,6 +37,10 @@ class Database {
     this.#sequelize = new Sequelize(database, username, password, options);
 
     this.#registerModels();
+  }
+
+  get app() {
+    return this.#app;
   }
 
   // TODO: create method to test connection with:
@@ -66,7 +69,7 @@ class Database {
     return this.#namespace.get("transaction");
   }
 
-  @transactional(obj => obj)
+  @transactional()
   async migrate() {
     const sequelize = this.#sequelize;
     const migrationsPath = path.resolve(module.path, "migrations");
@@ -91,10 +94,9 @@ class Database {
     }
   }
 
+  #app;
+  #config;
   #logger;
   #namespace;
   #sequelize;
-}
-
-
-module.exports = Database;
+};

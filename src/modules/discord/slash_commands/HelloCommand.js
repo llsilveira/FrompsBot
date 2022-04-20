@@ -4,8 +4,8 @@ const BaseCommand = require("./BaseCommand");
 
 
 module.exports = class HelloCommand extends BaseCommand {
-  constructor() {
-    super("ola", "Diz 'olá' a um usuario.");
+  constructor(discord) {
+    super(discord, "ola", "Diz 'olá' a um usuário.");
 
     this.builder.addUserOption(option =>
       option.setName("usuario")
