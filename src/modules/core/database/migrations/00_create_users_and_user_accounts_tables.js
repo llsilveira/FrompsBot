@@ -1,7 +1,7 @@
 "use strict";
 
 const { Sequelize } = require("sequelize");
-const { UserStatus, AccountProvider } = require("@frompsbot/common/types");
+const { UserStatus, AccountProvider } = require("@frompsbot/common/values");
 
 async function up({ context: queryInterface }) {
   await queryInterface.createTable("users", {
@@ -11,8 +11,8 @@ async function up({ context: queryInterface }) {
     },
     name: { field: "name", type: Sequelize.STRING(32), allowNull: false },
     status: {
-      field: "status", type: Sequelize.ENUM, values: UserStatus.names(),
-      defaultValue: UserStatus.ACTIVE.name, allowNull: false,
+      field: "status", type: Sequelize.ENUM, values: Object.keys(UserStatus),
+      defaultValue: UserStatus.ACTIVE, allowNull: false,
     },
     createdAt: {
       field: "created_at", type: Sequelize.DATE, allowNull: false
@@ -25,7 +25,7 @@ async function up({ context: queryInterface }) {
   await queryInterface.createTable("user_accounts", {
     provider: {
       field: "provider", type: Sequelize.ENUM,
-      values: AccountProvider.names(), primaryKey: true,
+      values: Object.keys(AccountProvider), primaryKey: true,
     },
     providerId: {
       field: "provider_id", type: Sequelize.STRING(32), primaryKey: true,

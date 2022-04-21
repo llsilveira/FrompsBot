@@ -5,7 +5,7 @@ const { DataTypes } = require("sequelize");
 const BaseModel = require("./BaseModel");
 const User = require("./User");
 
-const { AccountProvider } = require("@frompsbot/common/types");
+const { AccountProvider } = require("@frompsbot/common/values");
 
 
 module.exports = class UserAccount extends BaseModel {
@@ -13,7 +13,7 @@ module.exports = class UserAccount extends BaseModel {
     const model = super.init(sequelize, "user_accounts", {
       provider: {
         field: "provider", type: DataTypes.ENUM,
-        values: AccountProvider.names(), primaryKey: true,
+        values: Object.keys(AccountProvider), primaryKey: true,
       },
       providerId: {
         field: "provider_id", type: DataTypes.STRING(32), primaryKey: true,

@@ -5,7 +5,7 @@ const { DataTypes } = require("sequelize");
 
 const BaseModel = require("./BaseModel");
 
-const { UserStatus } = require("@frompsbot/common/types");
+const { UserStatus } = require("@frompsbot/common/values");
 
 
 module.exports = class User extends BaseModel {
@@ -17,8 +17,8 @@ module.exports = class User extends BaseModel {
       },
       name: { field: "name", type: DataTypes.STRING(32), allowNull: false },
       status: {
-        field: "status", type: DataTypes.ENUM, values: UserStatus.names(),
-        defaultValue: UserStatus.ACTIVE.name, allowNull: false,
+        field: "status", type: DataTypes.ENUM, values: Object.keys(UserStatus),
+        defaultValue: UserStatus.ACTIVE, allowNull: false,
       },
     }, {
       timestamps: true,
