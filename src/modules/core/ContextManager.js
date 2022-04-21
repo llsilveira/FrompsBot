@@ -2,8 +2,11 @@
 
 const { AsyncLocalStorage } = require("async_hooks");
 
-module.exports = class ContextManager {
-  constructor() {
+const BaseModule = require("@frompsbot/modules/BaseModule");
+
+module.exports = class ContextManager extends BaseModule {
+  constructor({ app }) {
+    super ({ app });
     this.#asyncStorage = new AsyncLocalStorage();
   }
 

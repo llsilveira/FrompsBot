@@ -7,11 +7,12 @@ const { Routes } = require("discord-api-types/v9");
 
 const slashCommands = require("./slash_commands");
 
-module.exports = class Discord {
-  constructor({ app }) {
-    this.#app = app;
+const BaseModule = require("@frompsbot/modules/BaseModule");
 
-    const { token, clientId, guildId } = this.#app.config.get("discord");
+module.exports = class Discord extends BaseModule {
+  constructor({ app }) {
+    super({ app });
+    const { token, clientId, guildId } = this.app.config.get("discord");
 
     this.#token = token;
     this.#clientId = clientId;
@@ -31,10 +32,6 @@ module.exports = class Discord {
     });
 
     this.#registerSlashCommands();
-  }
-
-  get app() {
-    return this.#app;
   }
 
   start() {
@@ -64,7 +61,7 @@ module.exports = class Discord {
     if (!command) return;
 
     try {
-      await this.#app.context.run(
+      await this.app.context.run(
         async () => {
           if (!command.anonymous) {
             // TODO: Login with user credentials from interaction
@@ -90,7 +87,6 @@ module.exports = class Discord {
     }
   }
 
-  #app;
   #client;
   #commands;
   #token;

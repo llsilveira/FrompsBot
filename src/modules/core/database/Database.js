@@ -7,17 +7,19 @@ const { Sequelize } = require("sequelize");
 
 const { transactional } = require("@frompsbot/common/decorators");
 
+const BaseModule = require("@frompsbot/modules/BaseModule");
+
 const namespace = cls.createNamespace("fromps-bot-database");
 Sequelize.useCLS(namespace);
 
 /**
  * Manages the database connection
  */
-module.exports = class Database {
+module.exports = class Database extends BaseModule {
   constructor({ app }) {
-    this.#app = app;
-    this.#config = this.#app.config.get("database");
-    this.#logger = this.#app.logger.getLogger(this);
+    super({ app });
+    this.#config = this.app.config.get("database");
+    this.#logger = this.app.logger.getLogger(this);
 
     this.#namespace = namespace;
 
@@ -37,10 +39,6 @@ module.exports = class Database {
     this.#sequelize = new Sequelize(database, username, password, options);
 
     this.#registerModels();
-  }
-
-  get app() {
-    return this.#app;
   }
 
   // TODO: create method to test connection with:
@@ -94,7 +92,6 @@ module.exports = class Database {
     }
   }
 
-  #app;
   #config;
   #logger;
   #namespace;

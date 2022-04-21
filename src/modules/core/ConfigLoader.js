@@ -3,19 +3,17 @@
 const path = require("path");
 const { structuredClone } = require("@frompsbot/common/helpers");
 
-module.exports = class ConfigLoader {
-  constructor({ app }) {
-    this.#app = app;
-    this.#cache = new Map();
-  }
+const BaseModule = require("@frompsbot/modules/BaseModule");
 
-  get app() {
-    return this.#app;
+module.exports = class ConfigLoader extends BaseModule {
+  constructor({ app }) {
+    super({ app });
+    this.#cache = new Map();
   }
 
   get(name = "config", overrides = {}) {
     if (!this.#cache.has(name)) {
-      const configPath = path.resolve(this.#app.instancePath, "config");
+      const configPath = path.resolve(this.app.instancePath, "config");
 
       const configFile = path.resolve(configPath, name);
       const config = require(configFile);
@@ -28,6 +26,5 @@ module.exports = class ConfigLoader {
     return config;
   }
 
-  #app;
   #cache;
 };

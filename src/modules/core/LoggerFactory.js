@@ -3,8 +3,11 @@
 const winston = require("winston");
 const { structuredClone } = require("@frompsbot/common/helpers");
 
-module.exports = class LoggerFactory {
-  constructor({ config }) {
+const BaseModule = require("@frompsbot/modules/BaseModule");
+
+module.exports = class LoggerFactory extends BaseModule {
+  constructor({ app, config }) {
+    super({ app });
     this.#cache = new Map();
     this.#minLevel = 10;
 
