@@ -6,8 +6,9 @@ const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v9");
 
 const slashCommands = require("./slash_commands");
-
 const BaseModule = require("@frompsbot/modules/BaseModule");
+
+const { AccountProvider } = require("@frompsbot/common/values");
 
 module.exports = class Discord extends BaseModule {
   constructor({ app }) {
@@ -63,18 +64,26 @@ module.exports = class Discord extends BaseModule {
     try {
       await this.app.context.run(
         async () => {
-          if (!command.anonymous) {
-            // TODO: Login with user credentials from interaction
+          try {
+            if (!command.anonymous) {
+              await this.app.auth.login(AccountProvider.DISCORD, interaction.user.id);
+            }
+            await command.execute(interaction, this);
+          } catch (e) {
+            if (e instanceof Error) {
+              interaction.reply({
+                content: "Você deve registrar-se para usar este comando.",
+                ephemeral: true
+              });
+            }
           }
-
-          await command.execute(interaction, this);
         }
       );
     } catch (error) {
       // TODO: REWRITE
       console.error(error);
       await interaction.reply({
-        content: "There was an error while executing this command!",
+        content: "Ocorreu um erro ao executar este comando!",
         ephemeral: true
       });
     }
