@@ -12,18 +12,18 @@ module.exports = class ContextManager extends BaseModule {
 
   get(key, defaultValue) {
     const store = this.#getStore();
-    if (store.public.has(key)) {
-      return store.public.get(key);
+    if (store.has(key)) {
+      return store.get(key);
     }
     return defaultValue;
   }
 
   set(key, value) {
-    this.#getStore().public.set(key, value);
+    this.#getStore().set(key, value);
   }
 
   delete(key) {
-    return this.#getStore().public.delete(key);
+    return this.#getStore().delete(key);
   }
 
   #getStore() {
