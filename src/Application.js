@@ -43,6 +43,18 @@ module.exports = class Application {
           lifetime: awilix.Lifetime.SINGLETON
         }
       ),
+
+      user: awilix.asClass(
+        require("./modules/core/UserController"), {
+          lifetime: awilix.Lifetime.SINGLETON
+        }
+      ),
+
+      auth: awilix.asClass(
+        require("./modules/core/AuthController"), {
+          lifetime: awilix.Lifetime.SINGLETON
+        }
+      ),
     });
 
     // Registering external modules
@@ -85,12 +97,25 @@ module.exports = class Application {
     return this.#logger;
   }
 
+  get user() {
+    if (!this.#user) { this.#user = this.#container.resolve("user"); }
+    return this.#user;
+  }
+
+  get auth() {
+    if (!this.#auth) { this.#auth = this.#container.resolve("auth"); }
+    return this.#auth;
+  }
+
+
   #name;
   #instancePath;
   #container;
 
+  #auth;
   #config;
   #context;
   #db;
   #logger;
+  #user;
 };
