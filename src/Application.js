@@ -34,7 +34,7 @@ module.exports = class Application {
       ),
 
       db: awilix.asClass(
-        require("./modules/core/database/Database"), {
+        require("./modules/core/Database"), {
           lifetime: awilix.Lifetime.SINGLETON
         }
       ),
