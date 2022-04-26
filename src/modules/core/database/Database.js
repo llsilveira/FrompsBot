@@ -70,7 +70,7 @@ module.exports = class Database extends BaseModule {
   @transactional()
   async migrate() {
     const sequelize = this.#sequelize;
-    const migrationsPath = path.resolve(module.path, "migrations");
+    const migrationsPath = path.resolve(this.app.applicationRoot, "migrations");
 
     const { Umzug, SequelizeStorage } = require("umzug");
     const umzug = new Umzug({
@@ -85,7 +85,7 @@ module.exports = class Database extends BaseModule {
 
 
   #registerModels() {
-    const models = require("@frompsbot/common/models");
+    const models = require("@frompsbot/models");
 
     for (const modelName in models) {
       this.registerModel(models[modelName]);

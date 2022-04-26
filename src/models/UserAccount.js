@@ -10,26 +10,36 @@ const { AccountProvider } = require("@frompsbot/common/values");
 
 module.exports = class UserAccount extends BaseModel {
   static init(sequelize) {
+    User.init(sequelize);
     const model = super.init(sequelize, "user_accounts", {
       provider: {
-        field: "provider", type: DataTypes.ENUM,
-        values: Object.keys(AccountProvider), primaryKey: true,
+        field: "provider",
+        type: DataTypes.ENUM,
+        values: Object.keys(AccountProvider),
+        primaryKey: true,
       },
+
       providerId: {
-        field: "provider_id", type: DataTypes.STRING(32), primaryKey: true,
+        field: "provider_id",
+        type: DataTypes.STRING(32),
+        primaryKey: true,
       },
+
       userId: {
-        field: "user__id", type: DataTypes.INTEGER, allowNull: false,
-        onDelete: "RESTRICT", onUpdate: "CASCADE",
+        field: "user_id",
+        type: DataTypes.INTEGER,
+        allowNull: false,
         references: {
           model: User,
-          key: "id"
+          key: "id",
+          onDelete: "RESTRICT",
+          onUpdate: "CASCADE"
         }
       }
     }, {
       timestamps: true,
       indexes: [
-        { unique: true, fields: ["provider", "user__id"] },
+        { unique: true, fields: ["provider", "user_id"] },
       ],
     });
 

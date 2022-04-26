@@ -7,6 +7,7 @@ module.exports = class Application {
   constructor(name, instancePath) {
     this.#name = name;
     this.#instancePath = instancePath;
+    this.#applicationRoot = module.path;
 
     this.#container = awilix.createContainer({
       injectionMode: awilix.InjectionMode.PROXY
@@ -73,6 +74,10 @@ module.exports = class Application {
     return this.#instancePath;
   }
 
+  get applicationRoot() {
+    return this.#applicationRoot;
+  }
+
   get container() {
     return this.#container;
   }
@@ -110,6 +115,7 @@ module.exports = class Application {
 
   #name;
   #instancePath;
+  #applicationRoot;
   #container;
 
   #auth;
