@@ -85,7 +85,7 @@ module.exports = class Database extends BaseModule {
 
 
   #registerModels() {
-    const models = require("./models");
+    const models = require("@frompsbot/common/models");
 
     for (const modelName in models) {
       this.registerModel(models[modelName]);
