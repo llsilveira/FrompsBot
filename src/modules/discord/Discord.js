@@ -35,6 +35,33 @@ module.exports = class Discord extends BaseModule {
     this.#registerSlashCommands();
   }
 
+  async getDiscordId(user) {
+    const provider =
+      await this.app.user.getProvider(user, AccountProvider.DISCORD);
+    return provider?.providerId;
+  }
+
+  async getGuild(guildId) {
+    const guild = this.#client.guilds.resolve(guildId);
+    if (!guild.available) {
+      await guild.fetch();
+    }
+    return guild;
+  }
+
+  async getMainGuild() {
+    return await this.getGuild(this.#guildId);
+  }
+
+  async getMemberFromId(userDiscordId) {
+    return (await this.getMainGuild()).members.resolve(userDiscordId);
+  }
+
+  async getMemberFromUser(user) {
+    const id = await this.getDiscordId(user);
+    return await this.getMemberFromId(id);
+  }
+
   start() {
     return this.#client.login(this.#token);
   }
@@ -61,32 +88,23 @@ module.exports = class Discord extends BaseModule {
     const command = this.#commands.get(interaction.commandName);
     if (!command) return;
 
-    try {
-      await this.app.context.run(
-        async () => {
-          try {
-            if (!command.anonymous) {
-              await this.app.auth.login(AccountProvider.DISCORD, interaction.user.id);
-            }
-            await command.execute(interaction, this);
-          } catch (e) {
-            if (e instanceof Error) {
-              interaction.reply({
-                content: "Você deve registrar-se para usar este comando.",
-                ephemeral: true
-              });
-            }
+    await this.app.context.run(
+      async () => {
+        try {
+          if (!command.anonymous) {
+            await this.app.auth.login(AccountProvider.DISCORD, interaction.user.id);
+          }
+          await command.execute(interaction, this);
+        } catch (e) {
+          if (e instanceof Error) {
+            interaction.reply({
+              content: "Você deve registrar-se para usar este comando.",
+              ephemeral: true
+            });
           }
         }
-      );
-    } catch (error) {
-      // TODO: REWRITE
-      console.error(error);
-      await interaction.reply({
-        content: "Ocorreu um erro ao executar este comando!",
-        ephemeral: true
-      });
-    }
+      }
+    );
   }
 
   #registerSlashCommands() {

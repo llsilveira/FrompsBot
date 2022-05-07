@@ -18,6 +18,15 @@ module.exports = class UserController extends BaseModule {
     return (accounts.length <= 0) ? undefined : accounts[0]?.user;
   }
 
+  async getProvider(user, provider) {
+    return await this.UserAccount.findOne({
+      where: {
+        provider: provider,
+        userId: user.id
+      }
+    });
+  }
+
   async searchByName(name) {
     return await this.User.findAll({
       where: { name },

@@ -9,13 +9,13 @@ module.exports = class GameMode extends BaseModel {
   static init(sequelize) {
     Game.init(sequelize);
     const model = super.init(sequelize, "game_modes", {
-      gameId: {
-        field: "game_id",
-        type: DataTypes.INTEGER,
+      gameCode: {
+        field: "game_code",
+        type: DataTypes.STRING(16),
         primaryKey: true,
         references: {
           model: Game,
-          key: "id"
+          key: "code"
         },
         onDelete: "RESTRICT",
         onUpdate: "CASCADE"
@@ -23,24 +23,26 @@ module.exports = class GameMode extends BaseModel {
 
       name: {
         field: "name",
-        type: DataTypes.STRING(32),
+        type: DataTypes.STRING(24),
         primaryKey: true,
       },
 
-      description: {
-        field: "description",
-        type: DataTypes.TEXT
-      },
+      data: {
+        field: "data",
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: {}
+      }
     });
 
     Game.hasMany(GameMode, {
       as: "modes",
-      foreignKey: { name: "gameId" }
+      foreignKey: { name: "gameCode" }
     });
 
     GameMode.belongsTo(Game, {
       as: "game",
-      foreignKey: { name: "gameId" }
+      foreignKey: { name: "gameCode" }
     });
 
     return model;

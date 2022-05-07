@@ -7,9 +7,9 @@ const BaseModel = require("./BaseModel");
 module.exports = class Game extends BaseModel {
   static init(sequelize) {
     return super.init(sequelize, "games", {
-      id: {
-        field: "id",
-        type: DataTypes.INTEGER,
+      code: {
+        field: "code",
+        type: DataTypes.STRING(16),
         autoIncrement: true,
         primaryKey: true
       },
@@ -17,7 +17,8 @@ module.exports = class Game extends BaseModel {
       name: {
         field: "name",
         type: DataTypes.STRING(64),
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
 
       shortName: {
@@ -25,12 +26,12 @@ module.exports = class Game extends BaseModel {
         type: DataTypes.STRING(32)
       },
 
-      description: {
-        field: "description",
-        type: DataTypes.TEXT
-      },
-    }, {
-      timestamps: true,
+      data: {
+        field: "data",
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: {}
+      }
     });
   }
 };
