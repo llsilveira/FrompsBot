@@ -5,7 +5,7 @@ const { DataTypes } = require("sequelize");
 const BaseModel = require("./BaseModel");
 const User = require("./User");
 
-const { AccountProvider } = require("@frompsbot/common/values");
+const { AccountProvider } = require("@frompsbot/common/constants");
 
 
 module.exports = class UserAccount extends BaseModel {

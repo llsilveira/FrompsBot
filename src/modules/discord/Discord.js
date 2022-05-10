@@ -8,7 +8,7 @@ const { Routes } = require("discord-api-types/v9");
 const slashCommands = require("./slash_commands");
 const BaseModule = require("@frompsbot/modules/BaseModule");
 
-const { AccountProvider } = require("@frompsbot/common/values");
+const { AccountProvider } = require("@frompsbot/common/constants");
 
 module.exports = class Discord extends BaseModule {
   constructor({ app }) {

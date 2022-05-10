@@ -1,7 +1,7 @@
 "use strict";
 
 const { Sequelize } = require("sequelize");
-const { AccountProvider } = require("@frompsbot/common/values");
+const { AccountProvider } = require("@frompsbot/common/constants");
 
 async function up({ context: queryInterface }) {
   await queryInterface.createTable("users", {
