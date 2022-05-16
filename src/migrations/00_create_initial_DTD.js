@@ -95,7 +95,7 @@ async function up({ context: queryInterface }) {
 
     data: {
       field: "data",
-      type: Sequelize.json,
+      type: Sequelize.JSON,
       allowNull: false,
       defaultValue: {}
     }
@@ -122,7 +122,7 @@ async function up({ context: queryInterface }) {
 
     data: {
       field: "data",
-      type: Sequelize.json,
+      type: Sequelize.JSON,
       allowNull: false,
       defaultValue: {}
     }
