@@ -4,12 +4,12 @@ module.exports = check;
 
 const { CheckError } = require("@frompsbot/common/errors");
 
-function check(callback, paramMapper = (args) => args) {
+function check(constraint, paramMapper = (args) => args) {
   return function check_decorator(target, key, descriptor) {
     const { value: original } = descriptor;
 
     async function check_wrapper(...args) {
-      await doCheck(callback, this, paramMapper(args));
+      await doCheck(constraint, this, paramMapper(args));
       return original.apply(this, args);
     }
 
@@ -20,43 +20,43 @@ function check(callback, paramMapper = (args) => args) {
   };
 }
 
-check.all = function(...conditions) {
-  return check(checkAllCallback(conditions));
+check.all = function(...constraints) {
+  return check(checkAllCallback(constraints));
 };
 
-check.any = function(...conditions) {
-  return check(checkAnyCallback(conditions));
+check.any = function(...constraints) {
+  return check(checkAnyCallback(constraints));
 };
 
-async function doCheck(condition, thisArg, parameters) {
-  const value = await condition(thisArg, ...parameters);
+async function doCheck(constraints, thisArg, parameters) {
+  const value = await constraints(thisArg, ...parameters);
   if (!value) {
-    throw new CheckError(`Check failed: ${condition.name}`);
+    throw new CheckError(`Check failed: ${constraints.name}`);
   }
 }
 
-function checkAllCallback(conditions) {
+function checkAllCallback(constraints) {
   return async function(thisArg, ...args) {
-    for (const conditionSpec of conditions) {
-      if (Array.isArray(conditionSpec)) {
-        await doCheck(conditionSpec[0], thisArg, conditionSpec[1](args));
+    for (const constraintSpec of constraints) {
+      if (Array.isArray(constraintSpec)) {
+        await doCheck(constraintSpec[0], thisArg, constraintSpec[1](args));
       } else {
-        await doCheck(conditionSpec, thisArg, args);
+        await doCheck(constraintSpec, thisArg, args);
       }
     }
     return true;
   };
 }
 
-function checkAnyCallback(conditions) {
+function checkAnyCallback(constraints) {
   return async function(thisArg, ...args) {
     let first;
-    for (const conditionSpec of conditions) {
+    for (const constraintSpec of constraints) {
       try {
-        if (Array.isArray(conditionSpec)) {
-          await doCheck(conditionSpec[0], thisArg, conditionSpec[1](args));
+        if (Array.isArray(constraintSpec)) {
+          await doCheck(constraintSpec[0], thisArg, constraintSpec[1](args));
         } else {
-          await doCheck(conditionSpec, thisArg, args);
+          await doCheck(constraintSpec, thisArg, args);
         }
         return true;
       } catch (e) {
