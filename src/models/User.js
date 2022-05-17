@@ -19,6 +19,13 @@ module.exports = class User extends BaseModel {
         field: "name",
         type: DataTypes.STRING(32),
         allowNull: false
+      },
+
+      data: {
+        field: "data",
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: {}
       }
     }, {
       timestamps: true,

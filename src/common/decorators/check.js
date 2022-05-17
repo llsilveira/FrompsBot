@@ -28,10 +28,10 @@ check.any = function(...constraints) {
   return check(checkAnyCallback(constraints));
 };
 
-async function doCheck(constraints, thisArg, parameters) {
-  const value = await constraints(thisArg, ...parameters);
+async function doCheck(constraint, thisArg, parameters) {
+  const value = await constraint(thisArg, ...parameters);
   if (!value) {
-    throw new CheckError(`Check failed: ${constraints.name}`);
+    throw new CheckError(`Check failed: ${constraint.name}`);
   }
 }
 
