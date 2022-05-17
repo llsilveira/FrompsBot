@@ -56,6 +56,12 @@ module.exports = class Application {
           lifetime: awilix.Lifetime.SINGLETON
         }
       ),
+
+      permission: awilix.asClass(
+        require("./modules/core/PermissionValidator"), {
+          lifetime: awilix.Lifetime.SINGLETON
+        }
+      ),
     });
 
     // Registering external modules
@@ -82,6 +88,11 @@ module.exports = class Application {
     return this.#container;
   }
 
+  get auth() {
+    if (!this.#auth) { this.#auth = this.#container.resolve("auth"); }
+    return this.#auth;
+  }
+
   get config() {
     if (!this.#config) { this.#config = this.#container.resolve("config"); }
     return this.#config;
@@ -102,14 +113,16 @@ module.exports = class Application {
     return this.#logger;
   }
 
+  get permission() {
+    if (!this.#permission) {
+      this.#permission = this.#container.resolve("permission");
+    }
+    return this.#permission;
+  }
+
   get user() {
     if (!this.#user) { this.#user = this.#container.resolve("user"); }
     return this.#user;
-  }
-
-  get auth() {
-    if (!this.#auth) { this.#auth = this.#container.resolve("auth"); }
-    return this.#auth;
   }
 
 
@@ -123,5 +136,6 @@ module.exports = class Application {
   #context;
   #db;
   #logger;
+  #permission;
   #user;
 };

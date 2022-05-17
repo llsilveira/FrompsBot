@@ -34,9 +34,25 @@ module.exports = class UserController extends BaseModule {
     });
   }
 
+  async getRoles(user) {
+    const userRoles = (await user.data).roles;
+
+    const roles = {};
+    if (!userRoles) { return roles; }
+
+    for (const roleName in userRoles) {
+      roles[Roles[roleName]] = userRoles[roleName];
+    }
+    return roles;
+  }
+
+  async isAdmin(user) {
+    return ((await this.getRoles(user))[Roles.ADMIN] === true);
+  }
+
+  @check(hasPermissions(Permissions.USER.changeName), (args) => [args[0]])
   @transactional()
   async setName(user, name) {
-    // TODO: check permissions
     // TODO: filter/escape name
     user.name = name;
     await user.save();

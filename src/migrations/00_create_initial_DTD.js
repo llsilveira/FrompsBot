@@ -18,6 +18,13 @@ async function up({ context: queryInterface }) {
       allowNull: false
     },
 
+    data: {
+      field: "data",
+      type: Sequelize.JSON,
+      allowNull: false,
+      defaultValue: {}
+    },
+
     createdAt: {
       field: "created_at",
       type: Sequelize.DATE,
