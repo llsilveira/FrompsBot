@@ -51,6 +51,12 @@ module.exports = class Application {
         }
       ),
 
+      game: awilix.asClass(
+        require("./modules/core/GameController"), {
+          lifetime: awilix.Lifetime.SINGLETON
+        }
+      ),
+
       auth: awilix.asClass(
         require("./modules/core/AuthController"), {
           lifetime: awilix.Lifetime.SINGLETON
@@ -108,6 +114,11 @@ module.exports = class Application {
     return this.#db;
   }
 
+  get game() {
+    if (!this.#game) { this.#game = this.#container.resolve("game"); }
+    return this.#game;
+  }
+
   get logger() {
     if (!this.#logger) { this.#logger = this.#container.resolve("logger"); }
     return this.#logger;
@@ -135,6 +146,7 @@ module.exports = class Application {
   #config;
   #context;
   #db;
+  #game;
   #logger;
   #permission;
   #user;

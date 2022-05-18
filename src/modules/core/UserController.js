@@ -73,5 +73,6 @@ module.exports = class UserController extends BaseModule {
       provider,
       providerId,
     });
+    return user;
   }
 };
