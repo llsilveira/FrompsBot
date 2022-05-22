@@ -1,6 +1,6 @@
 "use strict";
 
-const { CheckPermissionError } = require("@frompsbot/common/errors");
+const { PermissionError } = require("@frompsbot/common/errors");
 
 module.exports = function hasPermissions(permissions) {
   if (!Array.isArray(permissions)) { permissions = [permissions]; }
@@ -11,7 +11,7 @@ module.exports = function hasPermissions(permissions) {
     for (const permission of permissions) {
       const val = await pm[permission].call(pm, ...args);
       if (!val) {
-        throw new CheckPermissionError(permission);
+        throw new PermissionError(permission);
       }
     }
     return true;
