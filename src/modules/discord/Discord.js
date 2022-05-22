@@ -9,6 +9,7 @@ const slashCommands = require("./slash_commands");
 const BaseModule = require("@frompsbot/modules/BaseModule");
 
 const { AccountProvider } = require("@frompsbot/common/constants");
+const { userErrorMessage } = require("@frompsbot/common/helpers");
 
 module.exports = class Discord extends BaseModule {
   constructor({ app }) {
@@ -96,12 +97,10 @@ module.exports = class Discord extends BaseModule {
           }
           await command.execute(interaction, this);
         } catch (e) {
-          if (e instanceof Error) {
-            interaction.reply({
-              content: "Você deve registrar-se para usar este comando.",
-              ephemeral: true
-            });
-          }
+          interaction.reply({
+            content: userErrorMessage(e),
+            ephemeral: true
+          });
         }
       }
     );
