@@ -95,7 +95,7 @@ async function up({ context: queryInterface }) {
       unique: true
     },
 
-    shortName: {
+    shortname: {
       field: "shortname",
       type: Sequelize.STRING(32)
     },

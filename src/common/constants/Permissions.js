@@ -5,6 +5,7 @@ module.exports = Object.freeze({
     changeName: Symbol("Permissions.USER.changeName")
   },
   GAME: {
-    create: Symbol("Permissions.GAME.create")
+    create: Symbol("Permissions.GAME.create"),
+    createMode: Symbol("Permissions.GAME.createMode")
   }
 });

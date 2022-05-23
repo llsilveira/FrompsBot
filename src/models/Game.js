@@ -21,9 +21,14 @@ module.exports = class Game extends BaseModel {
         unique: true
       },
 
-      shortName: {
+      shortname: {
         field: "shortname",
-        type: DataTypes.STRING(32)
+        type: DataTypes.STRING(32),
+        get() {
+          const raw = this.getDataValue("shortname");
+          if (!raw) { return this.name; }
+          return raw;
+        }
       },
 
       data: {

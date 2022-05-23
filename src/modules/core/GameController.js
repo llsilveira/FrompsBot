@@ -13,6 +13,18 @@ module.exports = class GameController extends BaseModule {
     this.GameMode = this.app.db.getModel("GameMode");
   }
 
+  async getFromCode(code, { includeModes = false } = {}) {
+    const findParams = {};
+    if (includeModes) { findParams.include = "modes"; }
+    return await this.Game.findByPk(code, findParams);
+  }
+
+  async getGameMode(gameCode, name, { includeGame = false } = {}) {
+    const findParams = {};
+    if (includeGame) { findParams.include = "game"; }
+    return await this.GameMode.findByPk({ gameCode, name }, findParams);
+  }
+
   async isMonitor(gameCode, user) {
     const monitor = (await this.user.getRoles(user))[Roles.MONITOR];
     if (typeof monitor === "object") {
@@ -23,14 +35,26 @@ module.exports = class GameController extends BaseModule {
 
   @check(hasPermissions(Permissions.GAME.create))
   @transactional()
-  async create(code, name, shortName) {
-    return await this.Game.create({ code, name, shortName });
+  async create(code, name, shortname) {
+    return await this.Game.create({ code, name, shortname });
   }
 
   @check(hasPermissions(Permissions.GAME.createMode))
   @transactional()
   async createMode(gameCode, name, description) {
-    return await this.GameMode.create({
+    let mode = await this.getGameMode(gameCode, name);
+    if (mode) {
+      // TODO: throw error
+    }
+
+    const game = await this.getFromCode(gameCode);
+    if (!game) {
+      // TODO: throw error
+    }
+
+    mode = await this.GameMode.create({
       gameCode, name, data: { description } });
+
+    return { game, mode };
   }
 };
