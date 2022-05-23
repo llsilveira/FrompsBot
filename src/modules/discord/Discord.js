@@ -9,16 +9,36 @@ const slashCommands = require("./slash_commands");
 const BaseModule = require("@frompsbot/modules/BaseModule");
 
 const { AccountProvider } = require("@frompsbot/common/constants");
-const { userErrorMessage } = require("@frompsbot/common/helpers");
+const {
+  structuredClone,
+  userErrorMessage
+} = require("@frompsbot/common/helpers");
 
 module.exports = class Discord extends BaseModule {
   constructor({ app }) {
     super({ app });
-    const { token, clientId, guildId } = this.app.config.get("discord");
+    const { token, clientId, guilds } = this.app.config.get("discord");
 
     this.#token = token;
     this.#clientId = clientId;
-    this.#guildId = guildId;
+
+    this.#guilds = {};
+    for (const guild of guilds) {
+      this.#guilds[guild.name] = structuredClone(guild);
+      if (guild.main) {
+        this.#mainGuild = guild.name;
+      }
+    }
+
+    if (!this.#mainGuild) {
+      // TODO: Change
+      throw new Error("You must set one guild as the 'main' guild.");
+    }
+
+    if (!this.#guilds[this.#mainGuild]?.inviteUrl) {
+      // TODO: Change
+      throw new Error("The main guild must have an 'inviteUrl'.");
+    }
 
     this.#client = new Client({
       intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
@@ -30,7 +50,8 @@ module.exports = class Discord extends BaseModule {
     });
 
     this.#client.once("ready", () => {
-      console.log("Ready!");
+      // TODO: load guilds
+      this.logger.info("Bot is ready!");
     });
 
     this.#registerSlashCommands();
@@ -51,7 +72,7 @@ module.exports = class Discord extends BaseModule {
   }
 
   async getMainGuild() {
-    return await this.getGuild(this.#guildId);
+    return await this.getGuild(this.#guilds[this.#mainGuild].id);
   }
 
   async getMemberFromId(userDiscordId) {
@@ -75,10 +96,12 @@ module.exports = class Discord extends BaseModule {
 
     const rest = new REST({ version: "9" }).setToken(this.#token);
 
-    return await rest.put(
-      Routes.applicationGuildCommands(this.#clientId, this.#guildId),
-      { body: commands }
-    );
+    for (const guild in this.#guilds) {
+      await rest.put(
+        Routes.applicationGuildCommands(this.#clientId, this.#guilds[guild].id),
+        { body: commands }
+      );
+    }
   }
 
 
@@ -92,13 +115,30 @@ module.exports = class Discord extends BaseModule {
     await this.app.context.run(
       async () => {
         try {
+          const userId = interaction.user.id;
           if (!command.anonymous) {
-            await this.app.auth.login(AccountProvider.DISCORD, interaction.user.id);
+            let user = await this.app.user.getFromProvider(
+              AccountProvider.DISCORD, userId);
+
+            if (!user) {
+              const member = await this.getMemberFromId(userId);
+              if (!member) {
+                await interaction.reply({
+                  content: `Utilize o convite a seguir para entrar no server. Só membros deste server podem executar o comando solicitado. ${this.#guilds[this.#mainGuild].inviteUrl}`,
+                  ephemeral: true
+                });
+                return;
+              }
+              user = await this.app.user.register(
+                AccountProvider.DISCORD, userId, { name: member.displayName });
+            }
+
+            await this.app.auth.login(user);
           }
           await command.execute(interaction, this);
         } catch (e) {
-          interaction.reply({
-            content: userErrorMessage(e),
+          await interaction.reply({
+            content: await userErrorMessage(e),
             ephemeral: true
           });
         }
@@ -117,5 +157,6 @@ module.exports = class Discord extends BaseModule {
   #commands;
   #token;
   #clientId;
-  #guildId;
+  #guilds;
+  #mainGuild;
 };

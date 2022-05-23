@@ -9,5 +9,13 @@ module.exports = class BaseModule {
     return this.#app;
   }
 
+  get logger() {
+    if (!this.#logger) {
+      this.#logger = this.#app.logger.getLogger(this);
+    }
+    return this.#logger;
+  }
+
   #app;
+  #logger;
 };
