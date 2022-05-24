@@ -22,6 +22,15 @@ module.exports = class UserController extends BaseModule {
     return (accounts.length <= 0) ? undefined : accounts[0]?.user;
   }
 
+  async getOrRegister(provider, providerId, name) {
+    let user = await this.getFromProvider(provider, providerId);
+    if (!user) {
+      user = await this.register(provider, providerId, name);
+    }
+
+    return user;
+  }
+
   async getProvider(user, provider) {
     return await this.UserAccount.findOne({
       where: {
@@ -63,7 +72,7 @@ module.exports = class UserController extends BaseModule {
   }
 
   @transactional()
-  async register(provider, providerId, { name }) {
+  async register(provider, providerId, name) {
     if (await this.getFromProvider(provider, providerId)) {
       throw new Error(`User already registered: ${provider} - ${providerId}`);
     }

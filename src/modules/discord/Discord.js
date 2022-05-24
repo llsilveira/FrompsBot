@@ -9,16 +9,19 @@ const slashCommands = require("./slash_commands");
 const BaseModule = require("@frompsbot/modules/BaseModule");
 
 const { AccountProvider } = require("@frompsbot/common/constants");
-const { userErrorMessage } = require("@frompsbot/common/helpers");
+const { FrompsBotError } = require("@frompsbot/common/errors");
 
 module.exports = class Discord extends BaseModule {
   constructor({ app }) {
     super({ app });
-    const { token, clientId, guildId } = this.app.config.get("discord");
+    const {
+      token, clientId, guildId, inviteUrl
+    } = this.app.config.get("discord");
 
     this.#token = token;
     this.#clientId = clientId;
     this.#guildId = guildId;
+    this.#inviteUrl = inviteUrl;
 
     this.#client = new Client({
       intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
@@ -29,8 +32,9 @@ module.exports = class Discord extends BaseModule {
       this.#resolveInteraction(interaction);
     });
 
-    this.#client.once("ready", () => {
-      console.log("Ready!");
+    this.#client.once("ready", async () => {
+      this.#guildName = (await this.getMainGuild()).name;
+      this.logger.info("Discord bot is ready!");
     });
 
     this.#registerSlashCommands();
@@ -93,14 +97,39 @@ module.exports = class Discord extends BaseModule {
       async () => {
         try {
           if (!command.anonymous) {
-            await this.app.auth.login(AccountProvider.DISCORD, interaction.user.id);
+            const userId = interaction.user.id;
+            const member = await this.getMemberFromId(userId);
+
+            if (!member) {
+              // TODO: change type
+              throw new FrompsBotError(
+                `Para utilizar este comando você deve juntar-se ao servidor: ${this.#inviteUrl}`
+              );
+            }
+
+            const user = await this.app.user.getOrRegister(
+              AccountProvider.DISCORD, userId, member.displayName
+            );
+
+            await this.app.auth.login(user);
           }
+
           await command.execute(interaction, this);
         } catch (e) {
-          interaction.reply({
-            content: userErrorMessage(e),
-            ephemeral: true
-          });
+          if (e instanceof FrompsBotError) {
+            await interaction.reply({
+              content: e.message,
+              ephemeral: true
+            });
+          } else {
+            await interaction.reply({
+              content: "Ocorreu um erro na execução deste comando. " +
+                "Por favor, espere alguns minutos e tente novamente. " +
+                "Se o erro persistir, informe um moderador.",
+              ephemeral: true
+            });
+            throw e;
+          }
         }
       }
     );
@@ -118,4 +147,6 @@ module.exports = class Discord extends BaseModule {
   #token;
   #clientId;
   #guildId;
+  #guildName;
+  #inviteUrl;
 };
