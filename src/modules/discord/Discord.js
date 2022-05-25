@@ -11,17 +11,15 @@ const BaseModule = require("@frompsbot/modules/BaseModule");
 const { AccountProvider } = require("@frompsbot/common/constants");
 const { FrompsBotError } = require("@frompsbot/common/errors");
 
+
 module.exports = class Discord extends BaseModule {
   constructor({ app }) {
     super({ app });
-    const {
-      token, clientId, guildId, inviteUrl
-    } = this.app.config.get("discord");
+    const { token, clientId, guildId } = this.app.config.get("discord");
 
     this.#token = token;
     this.#clientId = clientId;
     this.#guildId = guildId;
-    this.#inviteUrl = inviteUrl;
 
     this.#client = new Client({
       intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
@@ -33,7 +31,6 @@ module.exports = class Discord extends BaseModule {
     });
 
     this.#client.once("ready", async () => {
-      this.#guildName = (await this.getMainGuild()).name;
       this.logger.info("Discord bot is ready!");
     });
 
@@ -59,7 +56,13 @@ module.exports = class Discord extends BaseModule {
   }
 
   async getMemberFromId(userDiscordId) {
-    return (await this.getMainGuild()).members.resolve(userDiscordId);
+    const guild = await this.getMainGuild();
+    try {
+      const member = await guild.members.fetch(userDiscordId);
+      return member;
+    } catch (e) {
+      // User is not a member
+    }
   }
 
   async getMemberFromUser(user) {
@@ -96,25 +99,28 @@ module.exports = class Discord extends BaseModule {
     await this.app.context.run(
       async () => {
         try {
-          if (!command.anonymous) {
-            const userId = interaction.user.id;
-            const member = await this.getMemberFromId(userId);
+          const userId = interaction.user.id;
+          let user = await this.app.user.getFromProvider(AccountProvider.DISCORD, userId);
 
-            if (!member) {
-              // TODO: change type
-              throw new FrompsBotError(
-                `Para utilizar este comando você deve juntar-se ao servidor: ${this.#inviteUrl}`
-              );
+          if (!user) {
+            let name;
+            if (interaction.guild?.id === this.#guildId) {
+              name = interaction.member.displayName;
+            } else {
+              const member = await this.getMemberFromId(userId);
+
+              if (member) {
+                name = member.displayName;
+              } else {
+                name = interaction.user.username;
+              }
             }
 
-            const user = await this.app.user.getOrRegister(
-              AccountProvider.DISCORD, userId, member.displayName
-            );
-
-            await this.app.auth.login(user);
+            user = await this.app.user.register(AccountProvider.DISCORD, userId, name);
           }
 
-          await command.execute(interaction, this);
+          await this.app.auth.login(user);
+          await command.execute(interaction);
         } catch (e) {
           if (e instanceof FrompsBotError) {
             await interaction.reply({
@@ -147,6 +153,4 @@ module.exports = class Discord extends BaseModule {
   #token;
   #clientId;
   #guildId;
-  #guildName;
-  #inviteUrl;
 };

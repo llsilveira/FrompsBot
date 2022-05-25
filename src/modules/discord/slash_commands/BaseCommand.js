@@ -5,11 +5,10 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 
 
 module.exports = class BaseCommand {
-  constructor(discord, name, description, { anonymous = false } = {}) {
+  constructor(discord, name, description) {
     this.#discord = discord;
     this.#name = name;
     this.#description = description;
-    this.#anonymous = anonymous;
 
     this.#builder = new SlashCommandBuilder()
       .setName(this.#name)
@@ -32,10 +31,6 @@ module.exports = class BaseCommand {
     return this.#description;
   }
 
-  get anonymous() {
-    return this.#anonymous;
-  }
-
   get builder() {
     return this.#builder;
   }
@@ -51,7 +46,6 @@ module.exports = class BaseCommand {
   #discord;
   #name;
   #description;
-  #anonymous;
 
   #builder;
 };
