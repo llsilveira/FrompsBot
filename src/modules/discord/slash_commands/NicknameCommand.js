@@ -1,15 +1,15 @@
 "use strict";
 
 
-const { AccountProvider } = require("@frompsbot/common/constants");
-const FrompsBotError = require("../../../common/errors/FrompsBotError");
+const { AccountProvider } = require("../../../constants");
+const { FrompsBotError } = require("../../../errors");
 
-const BaseCommand = require("./BaseCommand");
+const SlashCommandBase = require("../SlashCommandBase");
 
 
-module.exports = class NicknameCommand extends BaseCommand {
-  constructor(discord) {
-    super(discord, "nickname", "Mostra ou altera o apelido de um usuário");
+module.exports = class NicknameCommand extends SlashCommandBase {
+  constructor() {
+    super("nickname", "Mostra ou altera o apelido de um usuário");
 
     this.builder.addStringOption(option =>
       option.setName("new_nick")
@@ -22,16 +22,16 @@ module.exports = class NicknameCommand extends BaseCommand {
     );
   }
 
-  async execute(interaction) {
+  async execute(interaction, controller) {
     const discordUser = interaction.options.getUser("user");
     const name = interaction.options.getString("new_nick");
 
     let user, sameUser;
     if (!discordUser || discordUser.id == interaction.user.id) {
-      user = this.app.auth.getLoggedUser();
+      user = controller.auth.getLoggedUser();
       sameUser = true;
     } else {
-      user = await this.app.user.getFromProvider(AccountProvider.DISCORD, discordUser.id);
+      user = await controller.user.getFromProvider(AccountProvider.DISCORD, discordUser.id);
       if (!user) {
         // TODO: change type
         throw new FrompsBotError("Usuário não encontrado!");
@@ -41,7 +41,7 @@ module.exports = class NicknameCommand extends BaseCommand {
 
     let message = sameUser ? "O seu apelido " : `O apelido de '${user.name}' `;
     if (name) {
-      await this.app.user.setName(user, name);
+      await controller.user.setName(user, name);
       message += `foi alterado para '${name}'.`;
     } else {
       message += `é '${user.name}'.`;

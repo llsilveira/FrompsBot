@@ -3,32 +3,38 @@
 
 const { DataTypes } = require("sequelize");
 
-const BaseModel = require("./BaseModel");
+const { AppModel } = require("../app");
 
-module.exports = class User extends BaseModel {
-  static init(sequelize) {
-    return super.init(sequelize, "users", {
-      id: {
-        field: "id",
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
-      },
+module.exports = function userModel(db) {
 
-      name: {
-        field: "name",
-        type: DataTypes.STRING(32),
-        allowNull: false
-      },
+  class User extends AppModel {
+    static init(sequelize) {
+      return super.init(sequelize, "users", {
+        id: {
+          field: "id",
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
 
-      data: {
-        field: "data",
-        type: DataTypes.JSON,
-        allowNull: false,
-        defaultValue: {}
-      }
-    }, {
-      timestamps: true,
-    });
+        name: {
+          field: "name",
+          type: DataTypes.STRING(32),
+          allowNull: false
+        },
+
+        data: {
+          field: "data",
+          type: DataTypes.JSON,
+          allowNull: false,
+          defaultValue: {}
+        }
+      }, {
+        timestamps: true,
+      });
+    }
   }
+
+  db.registerModel(User);
+  return User;
 };

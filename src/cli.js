@@ -2,7 +2,8 @@
 
 const process = require("process");
 const commander = require("commander");
-const Application = require("./Application");
+
+const { Application } = require("./app");
 
 const INSTANCE_PATH = process.env.INSTANCE_PATH || process.cwd();
 

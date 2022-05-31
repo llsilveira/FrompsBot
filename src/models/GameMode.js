@@ -2,49 +2,54 @@
 
 const { DataTypes } = require("sequelize");
 
-const BaseModel = require("./BaseModel");
-const Game = require("./Game");
+const { AppModel } = require("../app");
 
-module.exports = class GameMode extends BaseModel {
-  static init(sequelize) {
-    Game.init(sequelize);
-    const model = super.init(sequelize, "game_modes", {
-      gameCode: {
-        field: "game_code",
-        type: DataTypes.STRING(16),
-        primaryKey: true,
-        references: {
-          model: Game,
-          key: "code"
+module.exports = function gameModeModel(db, gameModel) {
+
+  class GameMode extends AppModel {
+    static init(sequelize) {
+      gameModel.init(sequelize);
+      const model = super.init(sequelize, "game_modes", {
+        gameCode: {
+          field: "game_code",
+          type: DataTypes.STRING(16),
+          primaryKey: true,
+          references: {
+            model: gameModel,
+            key: "code"
+          },
+          onDelete: "RESTRICT",
+          onUpdate: "CASCADE"
         },
-        onDelete: "RESTRICT",
-        onUpdate: "CASCADE"
-      },
 
-      name: {
-        field: "name",
-        type: DataTypes.STRING(24),
-        primaryKey: true,
-      },
+        name: {
+          field: "name",
+          type: DataTypes.STRING(24),
+          primaryKey: true,
+        },
 
-      data: {
-        field: "data",
-        type: DataTypes.JSON,
-        allowNull: false,
-        defaultValue: {}
-      }
-    });
+        data: {
+          field: "data",
+          type: DataTypes.JSON,
+          allowNull: false,
+          defaultValue: {}
+        }
+      });
 
-    Game.hasMany(GameMode, {
-      as: "modes",
-      foreignKey: { name: "gameCode" }
-    });
+      gameModel.hasMany(GameMode, {
+        as: "modes",
+        foreignKey: { name: "gameCode" }
+      });
 
-    GameMode.belongsTo(Game, {
-      as: "game",
-      foreignKey: { name: "gameCode" }
-    });
+      GameMode.belongsTo(gameModel, {
+        as: "game",
+        foreignKey: { name: "gameCode" }
+      });
 
-    return model;
+      return model;
+    }
   }
+
+  db.registerModel(GameMode);
+  return GameMode;
 };

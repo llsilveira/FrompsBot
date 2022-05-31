@@ -2,41 +2,47 @@
 
 const { DataTypes } = require("sequelize");
 
-const BaseModel = require("./BaseModel");
+const { AppModel } = require("../app");
 
-module.exports = class Game extends BaseModel {
-  static init(sequelize) {
-    return super.init(sequelize, "games", {
-      code: {
-        field: "code",
-        type: DataTypes.STRING(16),
-        autoIncrement: true,
-        primaryKey: true
-      },
+module.exports = function gameModel(db) {
 
-      name: {
-        field: "name",
-        type: DataTypes.STRING(64),
-        allowNull: false,
-        unique: true
-      },
+  class Game extends AppModel {
+    static init(sequelize) {
+      return super.init(sequelize, "games", {
+        code: {
+          field: "code",
+          type: DataTypes.STRING(16),
+          autoIncrement: true,
+          primaryKey: true
+        },
 
-      shortname: {
-        field: "shortname",
-        type: DataTypes.STRING(32),
-        get() {
-          const raw = this.getDataValue("shortname");
-          if (!raw) { return this.name; }
-          return raw;
+        name: {
+          field: "name",
+          type: DataTypes.STRING(64),
+          allowNull: false,
+          unique: true
+        },
+
+        shortname: {
+          field: "shortname",
+          type: DataTypes.STRING(32),
+          get() {
+            const raw = this.getDataValue("shortname");
+            if (!raw) { return this.name; }
+            return raw;
+          }
+        },
+
+        data: {
+          field: "data",
+          type: DataTypes.JSON,
+          allowNull: false,
+          defaultValue: {}
         }
-      },
-
-      data: {
-        field: "data",
-        type: DataTypes.JSON,
-        allowNull: false,
-        defaultValue: {}
-      }
-    });
+      });
+    }
   }
+
+  db.registerModel(Game);
+  return Game;
 };
