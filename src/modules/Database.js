@@ -61,7 +61,7 @@ class Database extends AppModule {
   }
 
   @transactional()
-  async migrate() {
+  async migrate(version) {
     const sequelize = this.#sequelize;
     const migrationsPath = path.resolve(this.app.applicationRoot, "migrations");
 
@@ -70,10 +70,14 @@ class Database extends AppModule {
       migrations: { glob: migrationsPath + "/*.js" },
       context: sequelize.getQueryInterface(),
       storage: new SequelizeStorage({ sequelize }),
-      logger: console,
+      logger: { info: (obj) => this.logger.info("Database migration event", obj) },
     });
 
-    await umzug.up();
+    if (version) {
+      await umzug.up({ to: version });
+    } else {
+      await umzug.up();
+    }
   }
 
   #sequelize;

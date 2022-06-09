@@ -31,7 +31,7 @@ module.exports = async function cli(args) {
     .command("db:migrate")
     .description("update the database to the specified version")
     .argument("[version]", "target version (default: latest)")
-    .action(() => dbMigrate(app));
+    .action((version) => dbMigrate(app, version));
 
   await program.parseAsync(args);
 };
@@ -46,7 +46,7 @@ async function discordUpdate(app) {
   await discord.updateCommands();
 }
 
-async function dbMigrate(app) {
+async function dbMigrate(app, version) {
   const db = app.container.resolve("db");
-  await db.migrate();
+  await db.migrate(version);
 }
