@@ -3,8 +3,6 @@
 const path = require("path");
 const awilix = require("awilix");
 
-const { camelCase } = require("../helpers");
-
 const ConfigLoader = require("./ConfigLoader");
 const LoggerFactory = require("./LoggerFactory");
 
@@ -29,7 +27,7 @@ module.exports = class Application {
     this.#container.loadModules([
       this.#applicationRoot + "/models/*.js"
     ], {
-      formatName: (modelName) => camelCase(modelName) + "Model",
+      formatName: "camelCase",
       resolverOptions: {
         lifetime: awilix.Lifetime.SINGLETON,
         register: awilix.asFunction

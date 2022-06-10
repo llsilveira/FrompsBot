@@ -11,7 +11,7 @@ module.exports = function gameModel(db) {
       return super.init(sequelize, "games", {
         code: {
           field: "code",
-          type: DataTypes.STRING(24),
+          type: DataTypes.STRING(16),
           autoIncrement: true,
           primaryKey: true
         },
