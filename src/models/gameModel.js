@@ -12,7 +12,6 @@ module.exports = function gameModel(db) {
         code: {
           field: "code",
           type: DataTypes.STRING(16),
-          autoIncrement: true,
           primaryKey: true
         },
 

@@ -12,7 +12,7 @@ module.exports = function gameModeModel(db, gameModel) {
       const model = super.init(sequelize, "gamemodes", {
         gameCode: {
           field: "game_code",
-          type: DataTypes.STRING(24),
+          type: DataTypes.STRING(16),
           primaryKey: true,
           references: {
             model: gameModel,

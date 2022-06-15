@@ -14,6 +14,7 @@ module.exports = function userModel(db) {
           field: "id",
           type: DataTypes.INTEGER,
           autoIncrement: true,
+          autoIncrementIdentity: true,
           primaryKey: true
         },
 

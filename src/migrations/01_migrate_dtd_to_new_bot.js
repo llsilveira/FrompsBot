@@ -1,7 +1,7 @@
 "use strict";
 
 const { Sequelize } = require("sequelize");
-const { AccountProvider } = require("../constants");
+const { AccountProvider, RaceStatus, RaceEntryStatus } = require("../constants");
 
 async function up({ context: queryInterface }) {
   /* ********************************************
@@ -95,7 +95,7 @@ async function up({ context: queryInterface }) {
   await queryInterface.createTable("games", {
     code: {
       field: "code",
-      type: Sequelize.STRING(24),
+      type: Sequelize.STRING(16),
       primaryKey: true
     },
 
@@ -113,7 +113,7 @@ async function up({ context: queryInterface }) {
 
     data: {
       field: "data",
-      type: Sequelize.JSON,
+      type: Sequelize.JSONB,
       allowNull: false,
       defaultValue: {}
     }
@@ -124,7 +124,7 @@ async function up({ context: queryInterface }) {
   await queryInterface.createTable("gamemodes", {
     gameCode: {
       field: "game_code",
-      type: Sequelize.STRING(24),
+      type: Sequelize.STRING(16),
       primaryKey: true,
       references: {
         model: "games",
@@ -142,17 +142,203 @@ async function up({ context: queryInterface }) {
 
     data: {
       field: "data",
-      type: Sequelize.JSON,
+      type: Sequelize.JSONB,
       allowNull: false,
       defaultValue: {}
     }
   });
   // end gamemodes table
 
+  // racegroups table
+  await queryInterface.createTable("racegroups", {
+    name: {
+      field: "name",
+      type: Sequelize.STRING(20),
+      primaryKey: true,
+    },
+
+    parentName: {
+      field: "parent_name",
+      type: Sequelize.STRING(20),
+      references: {
+        model: "racegroups",
+        key: "name"
+      },
+      onDelete: "RESTRICT",
+      onUpdate: "CASCADE"
+    },
+
+    data: {
+      field: "data",
+      type: Sequelize.JSONB,
+      allowNull: false,
+      defaultValue: {}
+    },
+  });
+  // end racegroups table
+
+  // races table
+  await queryInterface.createTable("races", {
+    id: {
+      field: "id",
+      type: Sequelize.INTEGER,
+      autoIncrement: true,
+      autoIncrementIdentity: true,
+      primaryKey: true
+    },
+
+    creatorId: {
+      field: "creator_id",
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: "users",
+        key: "id"
+      },
+      onDelete: "RESTRICT",
+      onUpdate: "CASCADE"
+    },
+
+    gameCode: {
+      field: "game_code",
+      type: Sequelize.STRING(16),
+      allowNull: false,
+      references: {
+        model: "games",
+        key: "code"
+      },
+      onDelete: "RESTRICT",
+      onUpdate: "CASCADE"
+    },
+
+    gameModeName: {
+      field: "gamemode_name",
+      type: Sequelize.STRING(24),
+      allowNull: false,
+      // FK constraint definition below (composite key)
+    },
+
+    raceGroupName: {
+      field: "racegroup_name",
+      type: Sequelize.STRING(20),
+      allowNull: false,
+      references: {
+        model: "racegroups",
+        key: "name"
+      },
+      onDelete: "RESTRICT",
+      onUpdate: "CASCADE"
+    },
+
+    status: {
+      field: "status",
+      type: Sequelize.ENUM,
+      values: Object.keys(RaceStatus),
+      allowNull: false,
+    },
+
+    registrationDeadline: {
+      field: "registration_deadline",
+      type: Sequelize.DATE
+    },
+
+    data: {
+      field: "data",
+      type: Sequelize.JSONB,
+      allowNull: false,
+      defaultValue: {}
+    },
+
+    createdAt: {
+      field: "created_at",
+      type: Sequelize.DATE,
+      allowNull: false
+    },
+
+    updatedAt: {
+      field: "updated_at",
+      type: Sequelize.DATE,
+      allowNull: false
+    }
+  });
+  // end races table
+
+  // races <-> gamemode relationship (composite key)
+  await queryInterface.addConstraint("races", {
+    type: "foreign key",
+    fields: ["game_code", "gamemode_name"],
+    references: {
+      table: "gamemodes",
+      fields: ["game_code", "name"]
+    },
+    onDelete: "RESTRICT",
+    onUpdate: "CASCADE"
+  });
+
+  // raceentries table
+  await queryInterface.createTable("raceentries", {
+    raceId: {
+      field: "race_id",
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      references: {
+        model: "races",
+        key: "id"
+      },
+      onDelete: "RESTRICT",
+      onUpdate: "CASCADE"
+    },
+
+    playerId: {
+      field: "player_id",
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      references: {
+        model: "users",
+        key: "id"
+      },
+      onDelete: "RESTRICT",
+      onUpdate: "CASCADE"
+    },
+
+    status: {
+      field: "status",
+      type: Sequelize.ENUM,
+      values: Object.keys(RaceEntryStatus),
+      allowNull: false,
+    },
+
+    finishTime: {
+      field: "finish_time",
+      type: Sequelize.TIME
+    },
+
+    data: {
+      field: "data",
+      type: Sequelize.JSONB,
+      allowNull: false,
+      defaultValue: {}
+    },
+
+    createdAt: {
+      field: "created_at",
+      type: Sequelize.DATE,
+      allowNull: false
+    },
+
+    updatedAt: {
+      field: "updated_at",
+      type: Sequelize.DATE,
+      allowNull: false
+    }
+  });
+  // end raceentries table
+
 
   /* ********************************************
   *          Table and data migration           *
   ******************************************** */
+  const now = new Date();
 
   /* Retrieve players from the old database schema */
   const players = await queryInterface.sequelize.query(
@@ -164,16 +350,15 @@ async function up({ context: queryInterface }) {
   /* Map players to users and user_accounts */
 
   // ids 1-1000 will be reserved for eventual system users
-  let idSeq = 1000;
+  let userIdSeq = 1000;
 
   const playersMap = new Map();
-  const now = new Date();
   for (const player of players) {
-    ++idSeq;
+    ++userIdSeq;
 
     // users data
     const newUser = {
-      id: idSeq,
+      id: userIdSeq,
       name: player.name,
       data: JSON.stringify({
         leaderboard: player.leaderboard_data || {}
@@ -186,12 +371,13 @@ async function up({ context: queryInterface }) {
     const newAccount = {
       provider: "DISCORD",
       provider_id: player.discord_id,
-      user_id: idSeq,
+      user_id: userIdSeq,
       created_at: now,
       updated_at: now
     };
 
     playersMap.set(player.discord_id, {
+      id: userIdSeq,
       player: player,
       user: newUser,
       account: newAccount,
@@ -210,9 +396,15 @@ async function up({ context: queryInterface }) {
     );
   }
 
+  // Add FrompsBot System user
+  await queryInterface.sequelize.query(
+    "INSERT INTO users (id, name, created_at, updated_at) " +
+    "VALUES (1, 'FrompsBot', current_timestamp, current_timestamp)"
+  );
+
   // Set users id sequence to the last id used
   await queryInterface.sequelize.query(
-    `SELECT setval('users_id_seq', ${idSeq})`
+    `SELECT setval('users_id_seq', ${userIdSeq})`
   );
 
 
@@ -277,6 +469,171 @@ async function up({ context: queryInterface }) {
   /* Insert games and gamemodes */
   await queryInterface.bulkInsert("games", games);
   await queryInterface.bulkInsert("gamemodes", gamemodes);
+
+
+  /* Retrieve all legacy weeklies */
+  const weeklies = await queryInterface.sequelize.query(
+    "SELECT * FROM weeklies ORDER BY id",
+    { type: Sequelize.QueryTypes.SELECT }
+  );
+
+  /* Map weeklies into races */
+  let raceIdSeq = 0;
+
+  const weekliesMap = new Map();
+  for (const weekly of weeklies) {
+    ++raceIdSeq;
+
+    const raceData = {
+      randomizer: {
+        seedUrl: weekly.seed_url,
+        seedHash: weekly.seed_hash
+      }
+    };
+
+    if (typeof weekly.leaderboard_id === "number") {
+      raceData["leaderboard"] = { id: weekly.leaderboard_id };
+    }
+
+    const raceGroupName = (weekly.leaderboard_id) ?
+      `Leaderboard S${weekly.leaderboard_id}` :
+      "SEMANAIS LEGADAS";
+
+    const newRace = {
+      id: raceIdSeq,
+      game_code: weekly.game,
+      gamemode_name: "RBR_SEMANAL_LEGADO",
+      racegroup_name: raceGroupName,
+      status: weekly.status,
+      registration_deadline: weekly.submission_end,
+      created_at: now,
+      updated_at: now,
+      // FrompsBot user
+      creator_id: 1,
+      data: JSON.stringify(raceData)
+    };
+
+    weekliesMap.set(weekly.id, newRace);
+  }
+
+
+  /* Retrieve all legacy leaderboards */
+  const leaderboards = await queryInterface.sequelize.query(
+    "SELECT * FROM leaderboards ORDER BY id",
+    { type: Sequelize.QueryTypes.SELECT }
+  );
+
+  /* create default racegroup for legacy weeklies */
+  const legacyGroupName = "SEMANAIS LEGADAS";
+  await queryInterface.sequelize.query(
+    "INSERT INTO racegroups (name, data) " +
+    `VALUES ('${legacyGroupName}', '${JSON.stringify({})}')`
+  );
+
+  /* create parent racegroup for the alttpr leaderboards */
+  const groupName = "Leaderboards ALTTPR";
+  const groupData = JSON.stringify({
+    game: "ALTTPR",
+    gameMode: "RBR_SEMANAL_LEGADO",
+  });
+
+  /* Map leaderboards into racegroups */
+  const leaderboardsMap = new Map();
+  for (const leaderboard of leaderboards) {
+    const leaderboardData = leaderboard.leaderboard_data;
+    const newLeaderboardData = {
+      racesIncluded: leaderboardData.included_weeklies,
+      races: leaderboardData.weeklies.map(
+        (id) => weekliesMap.get(id).id
+      ),
+      tiebreak: {}
+    };
+
+    for (const position in leaderboardData.tiebreak_data) {
+      newLeaderboardData.tiebreak[position] = {
+        commonRaces: leaderboardData.tiebreak_data[position].common_weeklies
+      };
+    }
+
+    const newGroup = {
+      name: `Leaderboard S${leaderboard.id}`,
+      parent_name: groupName,
+      data: JSON.stringify({
+        status: leaderboard.status,
+        createdAt: leaderboard.created_at,
+        leaderboard: newLeaderboardData
+      })
+    };
+
+    if (leaderboard.results_url) {
+      newGroup.data.resultsUrl = leaderboard.results_url;
+    }
+
+    leaderboardsMap.set(leaderboard.id, newGroup);
+  }
+
+  if (leaderboards.length > 0) {
+    // Insert parent leaderboard
+    await queryInterface.sequelize.query(
+      "INSERT INTO racegroups (name, data) " +
+      `VALUES ('${groupName}', '${groupData}')`
+    );
+
+    // Insert into racegroups
+    await queryInterface.bulkInsert("racegroups",
+      Array.from(leaderboardsMap.values())
+    );
+  }
+
+
+  /* Bulk insert races */
+  if (weeklies.length > 0) {
+    await queryInterface.bulkInsert("races", Array.from(weekliesMap.values()));
+  }
+
+  // Set races id sequence to the last id used
+  await queryInterface.sequelize.query(
+    `SELECT setval('races_id_seq', ${raceIdSeq})`
+  );
+
+
+  /* Retrieve all legacy player entries */
+  const entries = await queryInterface.sequelize.query(
+    "SELECT * FROM player_entries ORDER BY registered_at",
+    { type: Sequelize.QueryTypes.SELECT }
+  );
+
+  const newEntries = [];
+  for (const entry of entries) {
+    const newEntryData = {};
+    if (entry.print_url) { newEntryData.printUrl = entry.print_url; }
+    if (entry.vod_url) { newEntryData.vodUrl = entry.vod_url; }
+    if (entry.comment) { newEntryData.comment = entry.comment; }
+    if (entry.time_submitted_at) {
+      newEntryData.timeSubmittedAt = entry.time_submitted_at;
+    }
+    if (entry.vod_submitted_at) {
+      newEntryData.vodSubmittedAt = entry.vod_submitted_at;
+    }
+    if (entry.leaderboard_data) {
+      newEntryData.leaderboard = entry.leaderboard_data;
+    }
+
+    newEntries.push({
+      race_id: weekliesMap.get(entry.weekly_id).id,
+      player_id: playersMap.get(entry.player_discord_id).id,
+      status: entry.status,
+      finish_time: entry.finish_time,
+      data: JSON.stringify(newEntryData),
+      created_at: entry.registered_at,
+      updated_at: now
+    });
+  }
+
+  /* Bulk insert race entries */
+  if (newEntries.length > 0) {
+    await queryInterface.bulkInsert("raceentries", newEntries);
+  }
 }
 
 
