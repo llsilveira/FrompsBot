@@ -40,7 +40,11 @@ class Discord extends AppModule {
     this.#commands = new Collection();
 
     this.#client.on("interactionCreate", async interaction => {
-      this.#resolveInteraction(interaction);
+      try {
+        await this.#resolveInteraction(interaction);
+      } catch (e) {
+        this.logger.error("An error ocurred during interaction handling:", e);
+      }
     });
 
     this.#client.once("ready", async () => {
@@ -105,7 +109,7 @@ class Discord extends AppModule {
 
   async #resolveInteraction(interaction) {
     // TODO: Set discord client error handling to log unhandled errors instead of crashing.
-    if (!interaction.isCommand()) return;
+    if (!(interaction.isCommand() || interaction.isAutocomplete())) return;
 
     const command = this.#commands.get(interaction.commandName);
     if (!command) return;
@@ -134,22 +138,40 @@ class Discord extends AppModule {
           }
 
           await this.#controllers.auth.login(user);
-          await command.execute(interaction, this.#controllers);
-        } catch (e) {
-          if (e instanceof FrompsBotError) {
-            await interaction.reply({
-              content: e.message,
-              ephemeral: true
-            });
+          if (interaction.isAutocomplete()) {
+            await command.autocomplete(interaction, this.#controllers);
           } else {
-            await interaction.reply({
-              content: "Ocorreu um erro na execução deste comando. " +
-                "Por favor, espere alguns minutos e tente novamente. " +
-                "Se o erro persistir, informe um moderador.",
-              ephemeral: true
-            });
-            throw e;
+            await command.execute(interaction, this.#controllers);
           }
+        } catch (e) {
+          let rethrow, content, sendMessage;
+
+          if (e instanceof FrompsBotError) {
+            content = e.message;
+            rethrow = false;
+          } else {
+            content = "Ocorreu um erro na execução deste comando. " +
+              "Por favor, espere alguns minutos e tente novamente. " +
+              "Se o erro persistir, informe um moderador.";
+            rethrow = true;
+          }
+
+          if (interaction.replied || interaction.deferred) {
+            sendMessage = interaction.editReply;
+          } else {
+            sendMessage = interaction.reply;
+          }
+
+          await sendMessage.call(interaction, {
+            content,
+            ephemeral: true,
+            embeds: [],
+            components: [],
+            files: [],
+            attachments: []
+          });
+
+          if (rethrow) { throw e; }
         }
       }
     );

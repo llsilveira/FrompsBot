@@ -35,7 +35,7 @@ class ContextManager extends AppModule {
   }
 
   run(callback, ...args) {
-    this.#asyncStorage.run(new Map(), callback, ...args);
+    return this.#asyncStorage.run(new Map(), callback, ...args);
   }
 
   #asyncStorage;
