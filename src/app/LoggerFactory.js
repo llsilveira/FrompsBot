@@ -30,8 +30,8 @@ module.exports = class LoggerFactory {
       if (!(loggerConfig.level in levels)) {
         throw new Error(`Logger level not found: '${loggerConfig.level}'`);
       }
-      if (loggerConfig.level < this.#minLevel) {
-        this.#minLevel = loggerConfig.level;
+      if (levels[loggerConfig.level] < this.#minLevel) {
+        this.#minLevel = levels[loggerConfig.level];
       }
 
       if (loggerConfig.logFile) {
@@ -44,12 +44,16 @@ module.exports = class LoggerFactory {
           maxSize: loggerConfig.maxSize,
           maxFiles: loggerConfig.maxFiles,
           format: winston.format.combine(
-            winston.format.timestamp(), winston.format.json())
+            winston.format.splat(),
+            winston.format.timestamp(),
+            winston.format.json()
+          )
         }));
       } else {
         this.#logger.add(new winston.transports.Console({
           level: loggerConfig.level,
           format: winston.format.combine(
+            winston.format.splat(),
             winston.format.timestamp(),
             winston.format.colorize({
               level: true
@@ -63,18 +67,15 @@ module.exports = class LoggerFactory {
 
   getLogger(origin) {
     if (!this.#cache.has(origin)) {
+      let source;
       switch (typeof origin) {
       case "object": {
         const proto = Object.getPrototypeOf(origin);
         if ("constructor" in proto && proto.constructor.name) {
-          this.#cache.set(origin, this.#logger.child({
-            source: `${proto.constructor.name} instance`
-          }));
+          source = `${proto.constructor.name} instance`;
           break;
         } else {
-          this.#cache.set(origin, this.#logger.child({
-            source: "Unknown object"
-          }));
+          source = "Unknown object";
           break;
         }
       }
@@ -84,14 +85,12 @@ module.exports = class LoggerFactory {
         if (!(name?.length)) {
           name = "anonymous";
         }
-        this.#cache.set(origin, this.#logger.child({
-          source: `${name} function`
-        }));
+        source = `${name} function`;
         break;
       }
 
       case "string": {
-        this.#cache.set(origin, this.#logger.child({ source: `#${origin}` }));
+        source = `#${origin}`;
         break;
       }
 
@@ -99,18 +98,15 @@ module.exports = class LoggerFactory {
       case "number":
       case "boolean":
       case "symbol": {
-        this.#cache.set(origin, this.#logger.child({
-          source: `${typeof origin} ${String.toString(origin)}`
-        }));
+        source = `${typeof origin} ${String.toString(origin)}`;
         break;
       }
 
       default: {
-        this.#cache.set(origin, this.#logger.child({
-          source: "Unknown source"
-        }));
+        source = "Unknown source";
       }
       }
+      this.#cache.set(origin, this.#logger.child({ source }));
     }
 
     return this.#cache.get(origin);
