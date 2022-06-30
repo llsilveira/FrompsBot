@@ -34,6 +34,16 @@ module.exports = function gameModeModel(db, gameModel) {
           allowNull: false,
           defaultValue: {}
         }
+      }, {
+        // We store gamemode names with case to be used later, but they
+        // must be unique per game not considering the case.
+        indexes: [{
+          name: "game_modes_unique_game_code_upper_name",
+          unique: true,
+          fields: [
+            "gameCode", sequelize.fn("upper", sequelize.col("name"))
+          ]
+        }]
       });
 
       gameModel.hasMany(GameMode, {

@@ -12,7 +12,10 @@ module.exports = function gameModel(db) {
         code: {
           field: "code",
           type: DataTypes.STRING(16),
-          primaryKey: true
+          primaryKey: true,
+          set(value) {
+            this.setDataValue("code", value.toUpperCase());
+          }
         },
 
         name: {
@@ -38,6 +41,12 @@ module.exports = function gameModel(db) {
           allowNull: false,
           defaultValue: {}
         }
+      }, {
+        indexes: [{
+          name: "games_unique_upper_code",
+          unique: true,
+          fields: [sequelize.fn("upper", sequelize.col("code"))]
+        }]
       });
     }
   }

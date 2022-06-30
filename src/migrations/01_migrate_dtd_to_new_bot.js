@@ -4,6 +4,8 @@ const { Sequelize } = require("sequelize");
 const { AccountProvider, RaceStatus, RaceEntryStatus } = require("../constants");
 
 async function up({ context: queryInterface }) {
+  const sequelize = queryInterface.sequelize;
+
   /* ********************************************
   *            New table definitions            *
   ******************************************** */
@@ -88,7 +90,10 @@ async function up({ context: queryInterface }) {
 
   // user_accounts unique (provider, providerId) index
   await queryInterface.addIndex(
-    "user_accounts", ["provider", "user_id"], { unique: true }
+    "user_accounts", {
+      unique: true,
+      fields: ["provider", "user_id"]
+    }
   );
 
   // games table
@@ -120,6 +125,15 @@ async function up({ context: queryInterface }) {
   });
   // end games table
 
+  // games unique upper(code)
+  await queryInterface.addIndex(
+    "games", {
+      name: "games_unique_upper_code",
+      unique: true,
+      fields: [sequelize.fn("upper", sequelize.col("code"))]
+    }
+  );
+
   // game_modes table
   await queryInterface.createTable("game_modes", {
     gameCode: {
@@ -148,6 +162,17 @@ async function up({ context: queryInterface }) {
     }
   });
   // end game_modes table
+
+  // game_modes unique (game_code, upper(name))
+  await queryInterface.addIndex(
+    "game_modes", {
+      name: "game_modes_unique_game_code_upper_name",
+      unique: true,
+      fields: [
+        "game_code", sequelize.fn("upper", sequelize.col("name"))
+      ]
+    }
+  );
 
   // race_groups table
   await queryInterface.createTable("race_groups", {
@@ -462,7 +487,8 @@ async function up({ context: queryInterface }) {
     game_code: game.code,
     name: "RBR_SEMANAL_LEGADO",
     data: JSON.stringify({
-      description: "Modo de jogo padrão para as antigas corridas semanais da Randomizer Brasil."
+      description: "Modo de jogo padrão para as antigas corridas semanais da Randomizer Brasil.",
+      usable: false
     })
   }));
 
@@ -634,6 +660,13 @@ async function up({ context: queryInterface }) {
   if (newEntries.length > 0) {
     await queryInterface.bulkInsert("race_entries", newEntries);
   }
+
+  /* Drop old tables */
+  queryInterface.dropTable("player_entries");
+  queryInterface.dropTable("leaderboard_entries");
+  queryInterface.dropTable("weeklies");
+  queryInterface.dropTable("leaderboards");
+  queryInterface.dropTable("players");
 }
 
 
