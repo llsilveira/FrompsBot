@@ -22,11 +22,11 @@ module.exports = function gameModel(db) {
           unique: true
         },
 
-        shortname: {
-          field: "shortname",
+        shortName: {
+          field: "short_name",
           type: DataTypes.STRING(32),
           get() {
-            const raw = this.getDataValue("shortname");
+            const raw = this.getDataValue("short_name");
             if (!raw) { return this.name; }
             return raw;
           }

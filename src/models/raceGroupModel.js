@@ -10,7 +10,7 @@ module.exports = function raceGroupModel(db) {
   class RaceGroup extends AppModel {
     static init(sequelize) {
 
-      const model = super.init(sequelize, "racegroups", {
+      const model = super.init(sequelize, "race_groups", {
         name: {
           field: "name",
           type: DataTypes.STRING(20),

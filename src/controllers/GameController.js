@@ -40,8 +40,8 @@ module.exports = class GameController {
 
   @check(hasPermissions(Permissions.GAME.create))
   @transactional()
-  async create(code, name, shortname) {
-    return await this.#gameModel.create({ code, name, shortname });
+  async create(code, name, shortName) {
+    return await this.#gameModel.create({ code, name, shortName });
   }
 
   @check(hasPermissions(Permissions.GAME.createMode))

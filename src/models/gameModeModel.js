@@ -9,7 +9,7 @@ module.exports = function gameModeModel(db, gameModel) {
   class GameMode extends AppModel {
     static init(sequelize) {
       gameModel.init(sequelize);
-      const model = super.init(sequelize, "gamemodes", {
+      const model = super.init(sequelize, "game_modes", {
         gameCode: {
           field: "game_code",
           type: DataTypes.STRING(16),

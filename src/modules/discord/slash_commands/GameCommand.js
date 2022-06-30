@@ -20,7 +20,7 @@ module.exports = class GameCommand extends SlashCommandBase {
             .setRequired(true)
         )
         .addStringOption(option =>
-          option.setName("shortname")
+          option.setName("short_name")
             .setDescription("Nome curto (máximo 32 caracteres).")
         )
     );
@@ -52,9 +52,9 @@ module.exports = class GameCommand extends SlashCommandBase {
     case "add": {
       const code = interaction.options.getString("code");
       const name = interaction.options.getString("name");
-      const shortname = interaction.options.getString("shortname");
+      const shortName = interaction.options.getString("short_name");
 
-      await controllers.game.create(code, name, shortname);
+      await controllers.game.create(code, name, shortName);
       await interaction.reply(`O jogo '${name}' foi adicionado com sucesso!`);
       break;
     }

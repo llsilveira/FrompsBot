@@ -106,8 +106,8 @@ async function up({ context: queryInterface }) {
       unique: true
     },
 
-    shortname: {
-      field: "shortname",
+    shortName: {
+      field: "short_name",
       type: Sequelize.STRING(32)
     },
 
@@ -120,8 +120,8 @@ async function up({ context: queryInterface }) {
   });
   // end games table
 
-  // gamemodes table
-  await queryInterface.createTable("gamemodes", {
+  // game_modes table
+  await queryInterface.createTable("game_modes", {
     gameCode: {
       field: "game_code",
       type: Sequelize.STRING(16),
@@ -147,10 +147,10 @@ async function up({ context: queryInterface }) {
       defaultValue: {}
     }
   });
-  // end gamemodes table
+  // end game_modes table
 
-  // racegroups table
-  await queryInterface.createTable("racegroups", {
+  // race_groups table
+  await queryInterface.createTable("race_groups", {
     name: {
       field: "name",
       type: Sequelize.STRING(20),
@@ -161,7 +161,7 @@ async function up({ context: queryInterface }) {
       field: "parent_name",
       type: Sequelize.STRING(20),
       references: {
-        model: "racegroups",
+        model: "race_groups",
         key: "name"
       },
       onDelete: "RESTRICT",
@@ -175,7 +175,7 @@ async function up({ context: queryInterface }) {
       defaultValue: {}
     },
   });
-  // end racegroups table
+  // end race_groups table
 
   // races table
   await queryInterface.createTable("races", {
@@ -223,7 +223,7 @@ async function up({ context: queryInterface }) {
       type: Sequelize.STRING(20),
       allowNull: false,
       references: {
-        model: "racegroups",
+        model: "race_groups",
         key: "name"
       },
       onDelete: "RESTRICT",
@@ -268,15 +268,15 @@ async function up({ context: queryInterface }) {
     type: "foreign key",
     fields: ["game_code", "gamemode_name"],
     references: {
-      table: "gamemodes",
+      table: "game_modes",
       fields: ["game_code", "name"]
     },
     onDelete: "RESTRICT",
     onUpdate: "CASCADE"
   });
 
-  // raceentries table
-  await queryInterface.createTable("raceentries", {
+  // race_entries table
+  await queryInterface.createTable("race_entries", {
     raceId: {
       field: "race_id",
       type: Sequelize.INTEGER,
@@ -332,7 +332,7 @@ async function up({ context: queryInterface }) {
       allowNull: false
     }
   });
-  // end raceentries table
+  // end race_entries table
 
 
   /* ********************************************
@@ -341,7 +341,7 @@ async function up({ context: queryInterface }) {
   const now = new Date();
 
   /* Retrieve players from the old database schema */
-  const players = await queryInterface.sequelize.query(
+  const players = await sequelize.query(
     "SELECT * FROM players",
     { type: Sequelize.QueryTypes.SELECT }
   );
@@ -397,13 +397,13 @@ async function up({ context: queryInterface }) {
   }
 
   // Add FrompsBot System user
-  await queryInterface.sequelize.query(
+  await sequelize.query(
     "INSERT INTO users (id, name, created_at, updated_at) " +
     "VALUES (1, 'FrompsBot', current_timestamp, current_timestamp)"
   );
 
   // Set users id sequence to the last id used
-  await queryInterface.sequelize.query(
+  await sequelize.query(
     `SELECT setval('users_id_seq', ${userIdSeq})`
   );
 
@@ -412,28 +412,28 @@ async function up({ context: queryInterface }) {
   const games = [{
     code: "ALTTPR",
     name: "The Legend of Zelda: A Link to The Past Randomizer",
-    shortname: "A Link to The Past Randomizer",
+    short_name: "A Link to The Past Randomizer",
     data: JSON.stringify({
       color: 0x188020,
     })
   }, {
     code: "OOTR",
     name: "The Legend of Zelda: Ocarina of Time Randomizer",
-    shortname: "Ocarina of Time Randomizer",
+    short_name: "Ocarina of Time Randomizer",
     data: JSON.stringify({
       color: 0x5F1412,
     })
   }, {
     code: "MMR",
     name: "The Legend of Zelda: Majora's Mask Randomizer",
-    shortname: "Majora's Mask Randomizer",
+    short_name: "Majora's Mask Randomizer",
     data: JSON.stringify({
       color: 0xae27cf,
     })
   }, {
     code: "TMCR",
     name: "The Legend of Zelda: The Minish Cap Randomizer",
-    shortname: "The Minish Cap Randomizer",
+    short_name: "The Minish Cap Randomizer",
     data: JSON.stringify({
       color: 0x73C636,
     })
@@ -458,7 +458,7 @@ async function up({ context: queryInterface }) {
   }];
 
   /* Creating legacy mode for existing races */
-  const gamemodes = games.map(game => ({
+  const gameModes = games.map(game => ({
     game_code: game.code,
     name: "RBR_SEMANAL_LEGADO",
     data: JSON.stringify({
@@ -466,13 +466,13 @@ async function up({ context: queryInterface }) {
     })
   }));
 
-  /* Insert games and gamemodes */
+  /* Insert games and game_modes */
   await queryInterface.bulkInsert("games", games);
-  await queryInterface.bulkInsert("gamemodes", gamemodes);
+  await queryInterface.bulkInsert("game_modes", gameModes);
 
 
   /* Retrieve all legacy weeklies */
-  const weeklies = await queryInterface.sequelize.query(
+  const weeklies = await sequelize.query(
     "SELECT * FROM weeklies ORDER BY id",
     { type: Sequelize.QueryTypes.SELECT }
   );
@@ -518,15 +518,15 @@ async function up({ context: queryInterface }) {
 
 
   /* Retrieve all legacy leaderboards */
-  const leaderboards = await queryInterface.sequelize.query(
+  const leaderboards = await sequelize.query(
     "SELECT * FROM leaderboards ORDER BY id",
     { type: Sequelize.QueryTypes.SELECT }
   );
 
   /* create default racegroup for legacy weeklies */
   const legacyGroupName = "SEMANAIS LEGADAS";
-  await queryInterface.sequelize.query(
-    "INSERT INTO racegroups (name, data) " +
+  await sequelize.query(
+    "INSERT INTO race_groups (name, data) " +
     `VALUES ('${legacyGroupName}', '${JSON.stringify({})}')`
   );
 
@@ -537,7 +537,7 @@ async function up({ context: queryInterface }) {
     gameMode: "RBR_SEMANAL_LEGADO",
   });
 
-  /* Map leaderboards into racegroups */
+  /* Map leaderboards into race_groups */
   const leaderboardsMap = new Map();
   for (const leaderboard of leaderboards) {
     const leaderboardData = leaderboard.leaderboard_data;
@@ -574,13 +574,13 @@ async function up({ context: queryInterface }) {
 
   if (leaderboards.length > 0) {
     // Insert parent leaderboard
-    await queryInterface.sequelize.query(
-      "INSERT INTO racegroups (name, data) " +
+    await sequelize.query(
+      "INSERT INTO race_groups (name, data) " +
       `VALUES ('${groupName}', '${groupData}')`
     );
 
-    // Insert into racegroups
-    await queryInterface.bulkInsert("racegroups",
+    // Insert into race_groups
+    await queryInterface.bulkInsert("race_groups",
       Array.from(leaderboardsMap.values())
     );
   }
@@ -592,13 +592,13 @@ async function up({ context: queryInterface }) {
   }
 
   // Set races id sequence to the last id used
-  await queryInterface.sequelize.query(
+  await sequelize.query(
     `SELECT setval('races_id_seq', ${raceIdSeq})`
   );
 
 
   /* Retrieve all legacy player entries */
-  const entries = await queryInterface.sequelize.query(
+  const entries = await sequelize.query(
     "SELECT * FROM player_entries ORDER BY registered_at",
     { type: Sequelize.QueryTypes.SELECT }
   );
@@ -632,7 +632,7 @@ async function up({ context: queryInterface }) {
 
   /* Bulk insert race entries */
   if (newEntries.length > 0) {
-    await queryInterface.bulkInsert("raceentries", newEntries);
+    await queryInterface.bulkInsert("race_entries", newEntries);
   }
 }
 

@@ -12,7 +12,7 @@ module.exports = function raceEntryModel(db, userModel, raceModel) {
   class RaceEntry extends AppModel {
     static init(sequelize) {
 
-      const model = super.init(sequelize, "raceentries", {
+      const model = super.init(sequelize, "race_entries", {
         raceId: {
           field: "race_id",
           type: DataTypes.INTEGER,
