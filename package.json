@@ -36,10 +36,10 @@
     "nodemon": "^2.0.15"
   },
   "scripts": {
-    "start": "babel-node .",
-    "watch": "nodemon babel-node .",
-    "debug": "babel-node --inspect .",
-    "build": "babel src -d build --copy-files --no-copy-ignored --source-maps",
+    "start": "npx babel-node .",
+    "watch": "npx nodemon --watch src --exec 'yarn build; yarn build_start'",
+    "debug": "npx babel-node --inspect .",
+    "build": "npx babel src -d build --copy-files --no-copy-ignored --source-maps",
     "build_start": "node build",
     "build_debug": "node build --inspect",
     "build_clean": "rm -rf build"
