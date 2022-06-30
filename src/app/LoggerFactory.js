@@ -1,6 +1,7 @@
 "use strict";
 
 const winston = require("winston");
+const { structuredClone } = require("../helpers");
 
 module.exports = class LoggerFactory {
   constructor(app) {

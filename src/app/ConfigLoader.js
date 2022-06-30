@@ -2,6 +2,7 @@
 
 
 const path = require("path");
+const { structuredClone } = require("../helpers");
 
 module.exports = class ConfigLoader {
   constructor(app) {
