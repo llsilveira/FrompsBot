@@ -16,6 +16,7 @@ class Discord extends AppModule {
   constructor(
     app,
     context,
+    botController,
     userController,
     authController,
     gameController
@@ -24,6 +25,7 @@ class Discord extends AppModule {
 
     this.#context = context;
     this.#controllers = Object.freeze({
+      bot: botController,
       user: userController,
       auth: authController,
       game: gameController

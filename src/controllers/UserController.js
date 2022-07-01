@@ -2,7 +2,7 @@
 
 const { check, transactional } = require("../decorators");
 const { hasPermissions } = require("../constraints");
-const { Permissions, Roles } = require("../constants");
+const { Permissions } = require("../constants");
 
 module.exports = class UserController {
   constructor(app, userModel, userAccountModel) {
@@ -49,23 +49,7 @@ module.exports = class UserController {
     });
   }
 
-  async getRoles(user) {
-    const userRoles = (await user.data).roles;
-
-    const roles = {};
-    if (!userRoles) { return roles; }
-
-    for (const roleName in userRoles) {
-      roles[Roles[roleName]] = userRoles[roleName];
-    }
-    return roles;
-  }
-
-  async isAdmin(user) {
-    return ((await this.getRoles(user))[Roles.ADMIN] === true);
-  }
-
-  @check(hasPermissions(Permissions.USER.changeName), (args) => [args[0]])
+  @check(hasPermissions(Permissions.user.changeName), (args) => [args[0]])
   @transactional()
   async setName(user, name) {
     // TODO: filter/escape name

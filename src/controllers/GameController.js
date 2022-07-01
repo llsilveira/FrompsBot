@@ -2,14 +2,13 @@
 
 const { check, transactional } = require("../decorators");
 const { hasPermissions } = require("../constraints");
-const { Permissions, Roles } = require("../constants");
+const { Permissions } = require("../constants");
+const FrompsBotError = require("../errors/FrompsBotError");
 
 module.exports = class GameController {
-  constructor(app, gameModel, gameModeModel, userController) {
+  constructor(app, gameModel, gameModeModel) {
     this.#gameModel = gameModel;
     this.#gameModeModel = gameModeModel;
-
-    this.#userController = userController;
 
     this.#app = app;
   }
@@ -30,21 +29,52 @@ module.exports = class GameController {
     return await this.#gameModeModel.findByPk({ gameCode, name }, findParams);
   }
 
-  async isMonitor(gameCode, user) {
-    const monitor = (await this.#userController.getRoles(user))[Roles.MONITOR];
-    if (typeof monitor === "object") {
-      return monitor["games"].includes(gameCode);
-    }
-    return false;
+  isMonitor(game, user) {
+    const userGameData = user.getData("game", {});
+    return (userGameData.monitors?.includes(game.code) === true);
   }
 
-  @check(hasPermissions(Permissions.GAME.create))
+  @check(hasPermissions(Permissions.game.addMonitor))
+  @transactional()
+  async addMonitor(game, user) {
+    if (this.isMonitor(game, user)) {
+      throw new FrompsBotError(
+        `O usuário ${user.name} já é monitor de ${game.shortName}`);
+    }
+
+    const userGameData = user.getData("game", {});
+    if (typeof userGameData.monitors !== "object") {
+      userGameData.monitors = [];
+    }
+    userGameData.monitors.push(game.code);
+    user.setData("game", userGameData);
+    await user.save();
+  }
+
+  @check(hasPermissions(Permissions.game.removeMonitor))
+  @transactional()
+  async removeMonitor(game, user) {
+    if (!this.isMonitor(game, user)) {
+      throw new FrompsBotError(
+        `O usuário ${user.name} não é monitor de ${game.shortName}`);
+    }
+
+    const userGameData = user.getData("game", {});
+    const index = userGameData.monitors.findIndex(
+      gameCode => gameCode === game.code
+    );
+    userGameData.monitors.splice(index, 1);
+    user.setData("game", userGameData);
+    await user.save();
+  }
+
+  @check(hasPermissions(Permissions.game.create))
   @transactional()
   async create(code, name, shortName) {
     return await this.#gameModel.create({ code, name, shortName });
   }
 
-  @check(hasPermissions(Permissions.GAME.createMode))
+  @check(hasPermissions(Permissions.game.createMode))
   @transactional()
   async createMode(gameCode, name, description) {
     let mode = await this.getGameMode(gameCode, name);
@@ -65,6 +95,5 @@ module.exports = class GameController {
 
   #gameModel;
   #gameModeModel;
-  #userController;
   #app;
 };

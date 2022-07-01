@@ -3,26 +3,52 @@
 const { Permissions } = require("../constants");
 
 module.exports = class PermissionController {
-  constructor(authController, userController) {
+  constructor(authController, botController, gameController) {
     this.#controllers = Object.freeze({
       auth: authController,
-      user: userController
+      bot: botController,
+      game: gameController
     });
   }
 
-  async [Permissions.USER.changeName](subject) {
+
+  async [Permissions.bot.addAdmin]() {
     const user = this.#controllers.auth.getLoggedUser();
-    return ((await this.#controllers.user.isAdmin(user)) || user.id === subject.id);
+    return (await this.#controllers.bot.isAdmin(user));
   }
 
-  async [Permissions.GAME.create]() {
-    return (await this.#controllers.user.isAdmin(this.#controllers.auth.getLoggedUser()));
+  async [Permissions.bot.removeAdmin]() {
+    const user = this.#controllers.auth.getLoggedUser();
+    return (await this.#controllers.bot.isAdmin(user));
   }
 
-  async [Permissions.GAME.createMode](gameCode) {
+  async [Permissions.user.changeName](subject) {
+    const user = this.#controllers.auth.getLoggedUser();
+    return (
+      (await this.#controllers.bot.isAdmin(user)) ||
+      user.id === subject.id
+    );
+  }
+
+  async [Permissions.user.create]() {
+    const user = this.#controllers.auth.getLoggedUser();
+    return (await this.#controllers.bot.isAdmin(user));
+  }
+
+  async [Permissions.user.createMode](game) {
     return (await this.#controllers.game.isMonitor(
-      gameCode, this.#controllers.auth.getLoggedUser()
+      game, this.#controllers.auth.getLoggedUser()
     ));
+  }
+
+  async [Permissions.user.addMonitor]() {
+    const user = this.#controllers.auth.getLoggedUser();
+    return (await this.#controllers.bot.isAdmin(user));
+  }
+
+  async [Permissions.user.removeMonitor]() {
+    const user = this.#controllers.auth.getLoggedUser();
+    return (await this.#controllers.bot.isAdmin(user));
   }
 
   #controllers;
