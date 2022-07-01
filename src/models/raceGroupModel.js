@@ -2,12 +2,12 @@
 
 const { DataTypes } = require("sequelize");
 
-const { AppModel } = require("../app");
+const { AppModelWithData } = require("../app");
 
 
 module.exports = function raceGroupModel(db) {
 
-  class RaceGroup extends AppModel {
+  class RaceGroup extends AppModelWithData {
     static init(sequelize) {
 
       const model = super.init(sequelize, "race_groups", {
@@ -26,14 +26,7 @@ module.exports = function raceGroupModel(db) {
           },
           onDelete: "RESTRICT",
           onUpdate: "CASCADE"
-        },
-
-        data: {
-          field: "data",
-          type: DataTypes.JSONB,
-          allowNull: false,
-          defaultValue: {}
-        },
+        }
       });
 
       RaceGroup.hasMany(RaceGroup, {

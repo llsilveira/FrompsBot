@@ -2,14 +2,14 @@
 
 const { DataTypes } = require("sequelize");
 
-const { AppModel } = require("../app");
+const { AppModelWithData } = require("../app");
 
 const { RaceStatus } = require("../constants");
 
 
 module.exports = function raceModel(db, userModel, gameModel, raceGroupModel) {
 
-  class Race extends AppModel {
+  class Race extends AppModelWithData {
     static init(sequelize) {
 
       const model = super.init(sequelize, "races", {
@@ -76,13 +76,6 @@ module.exports = function raceModel(db, userModel, gameModel, raceGroupModel) {
           },
           onDelete: "RESTRICT",
           onUpdate: "CASCADE"
-        },
-
-        data: {
-          field: "data",
-          type: DataTypes.JSONB,
-          allowNull: false,
-          defaultValue: {}
         }
       }, {
         timestamps: true

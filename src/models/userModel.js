@@ -3,11 +3,11 @@
 
 const { DataTypes } = require("sequelize");
 
-const { AppModel } = require("../app");
+const { AppModelWithData } = require("../app");
 
 module.exports = function userModel(db) {
 
-  class User extends AppModel {
+  class User extends AppModelWithData {
     static init(sequelize) {
       return super.init(sequelize, "users", {
         id: {
@@ -22,13 +22,6 @@ module.exports = function userModel(db) {
           field: "name",
           type: DataTypes.STRING(32),
           allowNull: false
-        },
-
-        data: {
-          field: "data",
-          type: DataTypes.JSON,
-          allowNull: false,
-          defaultValue: {}
         }
       }, {
         timestamps: true,

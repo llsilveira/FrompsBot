@@ -2,11 +2,11 @@
 
 const { DataTypes } = require("sequelize");
 
-const { AppModel } = require("../app");
+const { AppModelWithData } = require("../app");
 
 module.exports = function gameModel(db) {
 
-  class Game extends AppModel {
+  class Game extends AppModelWithData {
     static init(sequelize) {
       return super.init(sequelize, "games", {
         code: {
@@ -33,13 +33,6 @@ module.exports = function gameModel(db) {
             if (!raw) { return this.name; }
             return raw;
           }
-        },
-
-        data: {
-          field: "data",
-          type: DataTypes.JSON,
-          allowNull: false,
-          defaultValue: {}
         }
       }, {
         indexes: [{

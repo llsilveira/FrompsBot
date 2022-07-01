@@ -2,11 +2,11 @@
 
 const { DataTypes } = require("sequelize");
 
-const { AppModel } = require("../app");
+const { AppModelWithData } = require("../app");
 
 module.exports = function gameModeModel(db, gameModel) {
 
-  class GameMode extends AppModel {
+  class GameMode extends AppModelWithData {
     static init(sequelize) {
       gameModel.init(sequelize);
       const model = super.init(sequelize, "game_modes", {
@@ -26,13 +26,6 @@ module.exports = function gameModeModel(db, gameModel) {
           field: "name",
           type: DataTypes.STRING(24),
           primaryKey: true,
-        },
-
-        data: {
-          field: "data",
-          type: DataTypes.JSON,
-          allowNull: false,
-          defaultValue: {}
         }
       }, {
         // We store gamemode names with case to be used later, but they

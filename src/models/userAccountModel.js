@@ -2,12 +2,12 @@
 
 const { DataTypes } = require("sequelize");
 
-const { AppModel } = require("../app");
+const { AppModelWithData } = require("../app");
 const { AccountProvider } = require("../constants");
 
 module.exports = function userAccountModel(db, userModel) {
 
-  class UserAccount extends AppModel {
+  class UserAccount extends AppModelWithData {
     static init(sequelize) {
       userModel.init(sequelize);
       const model = super.init(sequelize, "user_accounts", {

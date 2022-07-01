@@ -74,6 +74,13 @@ async function up({ context: queryInterface }) {
       onUpdate: "CASCADE"
     },
 
+    data: {
+      field: "data",
+      type: Sequelize.JSONB,
+      allowNull: false,
+      defaultValue: {}
+    },
+
     createdAt: {
       field: "created_at",
       type: Sequelize.DATE,
