@@ -3,8 +3,8 @@
 const SlashCommandBase = require("../SlashCommandBase");
 
 module.exports = class GameCommand extends SlashCommandBase {
-  constructor() {
-    super("game", "Gerencia os jogos cadastrados no bot.");
+  constructor(discord) {
+    super(discord, "game", "Gerencia os jogos cadastrados no bot.");
 
     this.builder.addSubcommand(subcommand =>
       subcommand.setName("add")
@@ -46,7 +46,7 @@ module.exports = class GameCommand extends SlashCommandBase {
     );
   }
 
-  async execute(interaction, controllers) {
+  async execute(interaction) {
     const command = interaction.options.getSubcommand();
     switch (command) {
     case "add": {
@@ -54,7 +54,7 @@ module.exports = class GameCommand extends SlashCommandBase {
       const name = interaction.options.getString("name");
       const shortName = interaction.options.getString("short_name");
 
-      await controllers.game.create(code, name, shortName);
+      await this.discord.controllers.game.create(code, name, shortName);
       await interaction.reply(`O jogo '${name}' foi adicionado com sucesso!`);
       break;
     }
@@ -63,7 +63,7 @@ module.exports = class GameCommand extends SlashCommandBase {
       const name = interaction.options.getString("name");
       const description = interaction.options.getString("description");
 
-      await controllers.game.createMode(code, name, { description });
+      await this.discord.controllers.game.createMode(code, name, { description });
       await interaction.reply(`O modo '${name}' foi criado com sucesso!`);
       break;
     }

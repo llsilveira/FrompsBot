@@ -24,15 +24,6 @@ module.exports = class UserController {
     return (accounts.length <= 0) ? undefined : accounts[0]?.user;
   }
 
-  async getOrRegister(provider, providerId, name) {
-    let user = await this.getFromProvider(provider, providerId);
-    if (!user) {
-      user = await this.register(provider, providerId, name);
-    }
-
-    return user;
-  }
-
   async getProvider(user, provider) {
     return await this.#userAccountModel.findOne({
       where: {
@@ -68,6 +59,16 @@ module.exports = class UserController {
       provider,
       providerId,
     });
+    return user;
+  }
+
+  @transactional()
+  async getOrRegister(provider, providerId, name) {
+    let user = await this.getFromProvider(provider, providerId);
+    if (!user) {
+      user = await this.register(provider, providerId, name);
+    }
+
     return user;
   }
 

@@ -8,8 +8,8 @@ const SlashCommandBase = require("../SlashCommandBase");
 
 
 module.exports = class BotCommand extends SlashCommandBase {
-  constructor() {
-    super("bot", "Comandos para gerenciar este bot.");
+  constructor(discord) {
+    super(discord, "bot", "Comandos para gerenciar este bot.");
 
     this.builder.addSubcommand(subcommand =>
       subcommand.setName("add_admin")
@@ -62,7 +62,7 @@ module.exports = class BotCommand extends SlashCommandBase {
     );
   }
 
-  async execute(interaction, controllers) {
+  async execute(interaction) {
     const command = interaction.options.getSubcommand();
     const gameCode = interaction.options.getString("game_code");
     const discordUser = interaction.options.getMember("user");
@@ -70,7 +70,7 @@ module.exports = class BotCommand extends SlashCommandBase {
     let game, user;
 
     if (gameCode) {
-      game = await controllers.game.getGameFromCode(gameCode);
+      game = await this.discord.controllers.game.getGameFromCode(gameCode);
       if (!game) {
         throw new FrompsBotError(
           `O codigo '${gameCode}' não corresponde a um jogo conhecido.`
@@ -79,7 +79,7 @@ module.exports = class BotCommand extends SlashCommandBase {
     }
 
     if (discordUser) {
-      user = await controllers.user.getOrRegister(
+      user = await this.discord.controllers.user.getOrRegister(
         AccountProvider.DISCORD, discordUser.id, discordUser.displayName
       );
     }
@@ -87,22 +87,22 @@ module.exports = class BotCommand extends SlashCommandBase {
     let message;
     switch (command) {
     case "add_admin": {
-      await controllers.bot.addAdmin(user);
+      await this.discord.controllers.bot.addAdmin(user);
       message = `${user.name} foi adicionado como administrador deste bot.`;
       break;
     }
     case "remove_admin": {
-      await controllers.bot.removeAdmin(user);
+      await this.discord.controllers.bot.removeAdmin(user);
       message = `${user.name} foi removido do cargo de administrador deste bot.`;
       break;
     }
     case "add_monitor": {
-      await controllers.game.addMonitor(game, user);
+      await this.discord.controllers.game.addMonitor(game, user);
       message = `${user.name} foi adicionado como monitor de ${game.shortName}.`;
       break;
     }
     case "remove_monitor": {
-      await controllers.game.addMonitor(game, user);
+      await this.discord.controllers.game.addMonitor(game, user);
       message = `${user.name} foi removido do cargo de monitor de ${game.shortName}.`;
       break;
     }

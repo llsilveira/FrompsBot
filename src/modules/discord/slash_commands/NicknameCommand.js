@@ -8,8 +8,8 @@ const SlashCommandBase = require("../SlashCommandBase");
 
 
 module.exports = class NicknameCommand extends SlashCommandBase {
-  constructor() {
-    super("nickname", "Mostra ou altera o apelido de um usuário");
+  constructor(discord) {
+    super(discord, "nickname", "Mostra ou altera o apelido de um usuário");
 
     this.builder.addStringOption(option =>
       option.setName("new_nick")
@@ -22,16 +22,16 @@ module.exports = class NicknameCommand extends SlashCommandBase {
     );
   }
 
-  async execute(interaction, controller) {
+  async execute(interaction) {
     const discordUser = interaction.options.getUser("user");
     const name = interaction.options.getString("new_nick");
 
     let user, sameUser;
     if (!discordUser || discordUser.id == interaction.user.id) {
-      user = controller.auth.getLoggedUser();
+      user = this.discord.controllers.auth.getLoggedUser();
       sameUser = true;
     } else {
-      user = await controller.user.getFromProvider(AccountProvider.DISCORD, discordUser.id);
+      user = await this.discord.controllers.user.getFromProvider(AccountProvider.DISCORD, discordUser.id);
       if (!user) {
         // TODO: change type
         throw new FrompsBotError("Usuário não encontrado!");
@@ -41,7 +41,7 @@ module.exports = class NicknameCommand extends SlashCommandBase {
 
     let message = sameUser ? "O seu apelido " : `O apelido de '${user.name}' `;
     if (name) {
-      await controller.user.setName(user, name);
+      await this.discord.controllers.user.setName(user, name);
       message += `foi alterado para '${name}'.`;
     } else {
       message += `é '${user.name}'.`;

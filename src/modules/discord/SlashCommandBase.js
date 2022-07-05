@@ -5,13 +5,18 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 
 
 module.exports = class SlashCommandBase {
-  constructor(name, description) {
+  constructor(discord, name, description) {
+    this.#discord = discord;
     this.#name = name;
     this.#description = description;
 
     this.#builder = new SlashCommandBuilder()
       .setName(this.#name)
       .setDescription(this.#description);
+  }
+
+  get discord() {
+    return this.#discord;
   }
 
   get name() {
@@ -30,10 +35,16 @@ module.exports = class SlashCommandBase {
     return this.#builder.toJSON();
   }
 
-  async execute() {
+  // eslint-disable-next-line no-unused-vars
+  async execute(interaction) {
     /* override this */
+    throw new Error(
+      `execute method must be implemented by ${SlashCommandBase.name} ` +
+      " concrete subclasses."
+    );
   }
 
+  #discord;
   #name;
   #description;
 
