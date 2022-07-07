@@ -5,11 +5,10 @@ const { structuredClone } = require("../helpers");
 
 module.exports = class LoggerFactory {
   constructor(app) {
-    this.#app = app;
     this.#cache = new Map();
     this.#minLevel = 10;
 
-    const defaultSettings = this.#app.config.get("logger");
+    const defaultSettings = app.config.get("logger");
     const loggers = defaultSettings.loggers || [{}];
     delete defaultSettings.loggers;
 
@@ -117,7 +116,6 @@ module.exports = class LoggerFactory {
     return this.#logger.levels[level] >= this.#minLevel;
   }
 
-  #app;
   #cache;
   #logger;
   #minLevel;

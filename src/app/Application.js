@@ -23,9 +23,20 @@ module.exports = class Application {
       app: awilix.asValue(this)
     });
 
-    // Register models
+    // Register core modules
     this.#container.loadModules([
-      this.#applicationRoot + "/models/*.js"
+      this.#applicationRoot + "/core/modules/*.js"
+    ], {
+      formatName: "camelCase",
+      resolverOptions: {
+        lifetime: awilix.Lifetime.SINGLETON,
+        register: awilix.asClass
+      }
+    });
+
+    // Register core models
+    this.#container.loadModules([
+      this.#applicationRoot + "/core/models/*.js"
     ], {
       formatName: "camelCase",
       resolverOptions: {
@@ -34,9 +45,9 @@ module.exports = class Application {
       }
     });
 
-    // Register controllers
+    // Register core services
     this.#container.loadModules([
-      this.#applicationRoot + "/controllers/*.js"
+      this.#applicationRoot + "/core/services/*.js"
     ], {
       formatName: "camelCase",
       resolverOptions: {
@@ -85,6 +96,27 @@ module.exports = class Application {
     return this.#logger;
   }
 
+  get context() {
+    if (!this.#context) {
+      this.#context = this.container.resolve("contextManager");
+    }
+    return this.#context;
+  }
+
+  get models() {
+    if (!this.#models) {
+      this.#models = this.container.resolve("models");
+    }
+    return this.#models;
+  }
+
+  get services() {
+    if (!this.#services) {
+      this.#services = this.container.resolve("services");
+    }
+    return this.#services;
+  }
+
   #name;
   #instancePath;
   #applicationRoot;
@@ -92,4 +124,8 @@ module.exports = class Application {
 
   #config;
   #logger;
+
+  #context;
+  #models;
+  #services;
 };

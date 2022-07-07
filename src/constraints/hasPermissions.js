@@ -7,7 +7,7 @@ module.exports = function hasPermissions(permissions) {
 
   return async function checkPermissions(obj, ...args) {
     const app = obj.app;
-    const pc = app.container.resolve("permissionController");
+    const pc = app.services.permission;
 
     for (const permission of permissions) {
       const val = await pc[permission].call(pc, ...args);

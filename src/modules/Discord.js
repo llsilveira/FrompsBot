@@ -15,23 +15,8 @@ const PermanentButtonContainer = require("./discord/PermanentButtonContainer");
 
 
 class Discord extends AppModule {
-  constructor(
-    app,
-    context,
-    botController,
-    userController,
-    authController,
-    gameController
-  ) {
+  constructor(app) {
     super(app);
-
-    this.#context = context;
-    this.#controllers = Object.freeze({
-      bot: botController,
-      user: userController,
-      auth: authController,
-      game: gameController
-    });
 
     const { token, clientId, guildId } = app.config.get("discord");
     this.#token = token;
@@ -49,7 +34,7 @@ class Discord extends AppModule {
       try {
         const handler = await this.#resolveInteraction(interaction);
         if (handler) {
-          await this.#context.run(async () => {
+          await this.app.context.run(async () => {
             await this.#handleInteraction(interaction, handler);
           });
         }
@@ -66,13 +51,9 @@ class Discord extends AppModule {
     this.#registerPermanentButtons();
   }
 
-  get controllers() {
-    return this.#controllers;
-  }
-
   async getDiscordId(user) {
     const provider =
-      await this.#controllers.user.getProvider(user, AccountProvider.DISCORD);
+      await this.app.services.user.getProvider(user, AccountProvider.DISCORD);
     return provider?.providerId;
   }
 
@@ -142,7 +123,7 @@ class Discord extends AppModule {
   async #handleInteraction(interaction, handler) {
     try {
       const userId = interaction.user.id;
-      let user = await this.#controllers.user.getFromProvider(
+      let user = await this.app.services.user.getFromProvider(
         AccountProvider.DISCORD, userId
       );
 
@@ -160,18 +141,18 @@ class Discord extends AppModule {
           }
         }
 
-        user = await this.#controllers.user.register(
+        user = await this.app.services.user.register(
           AccountProvider.DISCORD, userId, name
         );
       }
 
-      await this.#controllers.auth.login(user);
+      await this.app.services.auth.login(user);
       if (interaction.isCommand()) {
-        await handler.execute(interaction, this.#controllers);
+        await handler.execute(interaction);
       } else if (interaction.isButton()) {
         await handler.button.execute(interaction, ...handler.args);
       } else if (interaction.isAutocomplete()) {
-        await handler.autocomplete(interaction, this.#controllers);
+        await handler.autocomplete(interaction);
       }
     } catch (e) {
       let rethrow, content, sendMessage;
@@ -225,9 +206,6 @@ class Discord extends AppModule {
   #token;
   #clientId;
   #guildId;
-
-  #context;
-  #controllers;
 }
 
 AppModule.setModuleName(Discord, "discord");

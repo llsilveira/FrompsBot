@@ -1,20 +1,13 @@
 "use strict";
 
-const Permissions = require("../constants/Permissions");
-const hasPermissions = require("../constraints/hasPermissions");
-const check = require("../decorators/check");
-const transactional = require("../decorators/transactional");
-const FrompsBotError = require("../errors/FrompsBotError");
+const AppModule = require("../../app/AppModule");
+const Permissions = require("../../constants/Permissions");
+const hasPermissions = require("../../constraints/hasPermissions");
+const check = require("../../decorators/check");
+const transactional = require("../../decorators/transactional");
+const FrompsBotError = require("../../errors/FrompsBotError");
 
-module.exports = class BotController {
-  constructor(app) {
-    this.#app = app;
-  }
-
-  get app() {
-    return this.#app;
-  }
-
+module.exports = class BotService extends AppModule {
   isAdmin(user) {
     const data = user.getData("bot", {});
     return (data.isAdmin === true);

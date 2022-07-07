@@ -28,10 +28,10 @@ module.exports = class NicknameCommand extends SlashCommandBase {
 
     let user, sameUser;
     if (!discordUser || discordUser.id == interaction.user.id) {
-      user = this.discord.controllers.auth.getLoggedUser();
+      user = this.discord.app.services.auth.getLoggedUser();
       sameUser = true;
     } else {
-      user = await this.discord.controllers.user.getFromProvider(AccountProvider.DISCORD, discordUser.id);
+      user = await this.discord.app.services.user.getFromProvider(AccountProvider.DISCORD, discordUser.id);
       if (!user) {
         // TODO: change type
         throw new FrompsBotError("Usuário não encontrado!");
@@ -41,7 +41,7 @@ module.exports = class NicknameCommand extends SlashCommandBase {
 
     let message = sameUser ? "O seu apelido " : `O apelido de '${user.name}' `;
     if (name) {
-      await this.discord.controllers.user.setName(user, name);
+      await this.discord.app.services.user.setName(user, name);
       message += `foi alterado para '${name}'.`;
     } else {
       message += `é '${user.name}'.`;

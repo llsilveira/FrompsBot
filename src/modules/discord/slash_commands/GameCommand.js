@@ -69,7 +69,7 @@ module.exports = class GameCommand extends SlashCommandBase {
     const command = interaction.options.getSubcommand();
     switch (command) {
     case "list": {
-      const games = await this.discord.controllers.game.list();
+      const games = await this.discord.app.services.game.list();
       let codes = "";
       let names = "";
 
@@ -100,7 +100,7 @@ module.exports = class GameCommand extends SlashCommandBase {
     case "remove": {
       const code = interaction.options.getString("code");
 
-      const game = await this.discord.controllers.game.remove(code);
+      const game = await this.discord.app.services.game.remove(code);
       await interaction.reply(`O jogo '${game.name}' foi removido!`);
       break;
     }
@@ -109,7 +109,7 @@ module.exports = class GameCommand extends SlashCommandBase {
       const name = interaction.options.getString("name");
       const shortName = interaction.options.getString("short_name");
 
-      await this.discord.controllers.game.create(code, name, shortName);
+      await this.discord.app.services.game.create(code, name, shortName);
       await interaction.reply(`O jogo '${name}' foi adicionado com sucesso!`);
       break;
     }
@@ -118,7 +118,7 @@ module.exports = class GameCommand extends SlashCommandBase {
       const name = interaction.options.getString("name");
       const description = interaction.options.getString("description");
 
-      await this.discord.controllers.game.createMode(code, name, { description });
+      await this.discord.app.services.game.createMode(code, name, { description });
       await interaction.reply(`O modo '${name}' foi criado com sucesso!`);
       break;
     }

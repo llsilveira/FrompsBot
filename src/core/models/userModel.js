@@ -3,7 +3,7 @@
 
 const { DataTypes } = require("sequelize");
 
-const { AppModelWithData } = require("../app");
+const { AppModelWithData } = require("../../app");
 
 module.exports = function userModel(db) {
 

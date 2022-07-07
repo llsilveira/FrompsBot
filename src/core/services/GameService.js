@@ -1,36 +1,26 @@
 "use strict";
 
-const { check, transactional } = require("../decorators");
-const { hasPermissions } = require("../constraints");
-const { Permissions } = require("../constants");
-const FrompsBotError = require("../errors/FrompsBotError");
+const { check, transactional } = require("../../decorators");
+const { hasPermissions } = require("../../constraints");
+const { Permissions } = require("../../constants");
+const FrompsBotError = require("../../errors/FrompsBotError");
+const AppModule = require("../../app/AppModule");
 
-module.exports = class GameController {
-  constructor(app, gameModel, gameModeModel) {
-    this.#gameModel = gameModel;
-    this.#gameModeModel = gameModeModel;
-
-    this.#app = app;
-  }
-
-  get app() {
-    return this.#app;
-  }
-
+module.exports = class GameService extends AppModule {
   async list() {
-    return await this.#gameModel.findAll();
+    return await this.app.models.game.findAll();
   }
 
   async getFromCode(code, { includeModes = false } = {}) {
     const findParams = {};
     if (includeModes) { findParams.include = "modes"; }
-    return await this.#gameModel.findByPk(code, findParams);
+    return await this.app.models.game.findByPk(code, findParams);
   }
 
   async getGameMode(gameCode, name, { includeGame = false } = {}) {
     const findParams = {};
     if (includeGame) { findParams.include = "game"; }
-    return await this.#gameModeModel.findByPk({ gameCode, name }, findParams);
+    return await this.app.models.gameMode.findByPk({ gameCode, name }, findParams);
   }
 
   isMonitor(game, user) {
@@ -80,7 +70,7 @@ module.exports = class GameController {
       throw new FrompsBotError(
         `Já existe um jogo cadastrado com o código '${code}'.`);
     }
-    return await this.#gameModel.create({ code, name, shortName });
+    return await this.app.models.game.create({ code, name, shortName });
   }
 
   @check(hasPermissions(Permissions.game.remove))
@@ -108,14 +98,9 @@ module.exports = class GameController {
       // TODO: throw error
     }
 
-    mode = await this.#gameModeModel.create({
+    mode = await this.app.models.gameMode.create({
       gameCode, name, data: { description } });
 
     return { game, mode };
   }
-
-
-  #gameModel;
-  #gameModeModel;
-  #app;
 };

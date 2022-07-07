@@ -2,8 +2,8 @@
 
 const { DataTypes } = require("sequelize");
 
-const { AppModelWithData } = require("../app");
-const { AccountProvider } = require("../constants");
+const { AppModelWithData } = require("../../app");
+const { AccountProvider } = require("../../constants");
 
 module.exports = function userAccountModel(db, userModel) {
 

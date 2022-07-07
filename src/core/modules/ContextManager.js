@@ -2,9 +2,9 @@
 
 const { AsyncLocalStorage } = require("async_hooks");
 
-const { AppModule } = require("../app");
+const { AppModule } = require("../../app");
 
-class ContextManager extends AppModule {
+module.exports = class ContextManager extends AppModule {
   constructor(app) {
     super(app);
     this.#asyncStorage = new AsyncLocalStorage();
@@ -39,7 +39,4 @@ class ContextManager extends AppModule {
   }
 
   #asyncStorage;
-}
-
-AppModule.setModuleName(ContextManager, "context");
-module.exports = ContextManager;
+};

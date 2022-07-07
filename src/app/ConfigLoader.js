@@ -6,13 +6,13 @@ const { structuredClone } = require("../helpers");
 
 module.exports = class ConfigLoader {
   constructor(app) {
-    this.#app = app;
+    this.#instancePath = app.instancePath;
     this.#cache = new Map();
   }
 
   get(name = "config", overrides = {}) {
     if (!this.#cache.has(name)) {
-      const configPath = path.resolve(this.#app.instancePath, "config");
+      const configPath = path.resolve(this.#instancePath, "config");
 
       const configFile = path.resolve(configPath, name);
       const config = require(configFile);
@@ -25,6 +25,6 @@ module.exports = class ConfigLoader {
     return config;
   }
 
-  #app;
+  #instancePath;
   #cache;
 };

@@ -1,23 +1,13 @@
 "use strict";
 
-const { check, transactional } = require("../decorators");
-const { hasPermissions } = require("../constraints");
-const { Permissions } = require("../constants");
+const { check, transactional } = require("../../decorators");
+const { hasPermissions } = require("../../constraints");
+const { Permissions } = require("../../constants");
+const AppModule = require("../../app/AppModule");
 
-module.exports = class UserController {
-  constructor(app, userModel, userAccountModel) {
-    this.#userModel = userModel;
-    this.#userAccountModel = userAccountModel;
-
-    this.#app = app;
-  }
-
-  get app() {
-    return this.#app;
-  }
-
+module.exports = class UserService extends AppModule {
   async getFromProvider(provider, providerId) {
-    const accounts = await this.#userAccountModel.findAll({
+    const accounts = await this.app.models.userAccount.findAll({
       where: { provider, providerId },
       include: "user"
     });
@@ -25,7 +15,7 @@ module.exports = class UserController {
   }
 
   async getProvider(user, provider) {
-    return await this.#userAccountModel.findOne({
+    return await this.app.models.userAccount.findOne({
       where: {
         provider: provider,
         userId: user.id
@@ -34,9 +24,9 @@ module.exports = class UserController {
   }
 
   async searchByName(name) {
-    return await this.#userModel.findAll({
+    return await this.app.models.user.findAll({
       where: { name },
-      include: this.#userAccountModel
+      include: "accounts"
     });
   }
 
@@ -53,8 +43,8 @@ module.exports = class UserController {
     if (await this.getFromProvider(provider, providerId)) {
       throw new Error(`User already registered: ${provider} - ${providerId}`);
     }
-    const user = await this.#userModel.create({ name });
-    await this.#userAccountModel.create({
+    const user = await this.app.models.user.create({ name });
+    await this.app.models.userAccount.create({
       userId: user.id,
       provider,
       providerId,
@@ -71,9 +61,4 @@ module.exports = class UserController {
 
     return user;
   }
-
-  #userModel;
-  #userAccountModel;
-
-  #app;
 };

@@ -70,7 +70,7 @@ module.exports = class BotCommand extends SlashCommandBase {
     let game, user;
 
     if (gameCode) {
-      game = await this.discord.controllers.game.getGameFromCode(gameCode);
+      game = await this.discord.app.services.game.getGameFromCode(gameCode);
       if (!game) {
         throw new FrompsBotError(
           `O codigo '${gameCode}' não corresponde a um jogo conhecido.`
@@ -79,7 +79,7 @@ module.exports = class BotCommand extends SlashCommandBase {
     }
 
     if (discordUser) {
-      user = await this.discord.controllers.user.getOrRegister(
+      user = await this.discord.app.services.user.getOrRegister(
         AccountProvider.DISCORD, discordUser.id, discordUser.displayName
       );
     }
@@ -87,22 +87,22 @@ module.exports = class BotCommand extends SlashCommandBase {
     let message;
     switch (command) {
     case "add_admin": {
-      await this.discord.controllers.bot.addAdmin(user);
+      await this.discord.app.services.bot.addAdmin(user);
       message = `${user.name} foi adicionado como administrador deste bot.`;
       break;
     }
     case "remove_admin": {
-      await this.discord.controllers.bot.removeAdmin(user);
+      await this.discord.app.services.bot.removeAdmin(user);
       message = `${user.name} foi removido do cargo de administrador deste bot.`;
       break;
     }
     case "add_monitor": {
-      await this.discord.controllers.game.addMonitor(game, user);
+      await this.discord.app.services.game.addMonitor(game, user);
       message = `${user.name} foi adicionado como monitor de ${game.shortName}.`;
       break;
     }
     case "remove_monitor": {
-      await this.discord.controllers.game.addMonitor(game, user);
+      await this.discord.app.services.game.addMonitor(game, user);
       message = `${user.name} foi removido do cargo de monitor de ${game.shortName}.`;
       break;
     }

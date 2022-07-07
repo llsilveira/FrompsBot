@@ -5,8 +5,8 @@ const path = require("path");
 const cls = require("cls-hooked");
 const { Sequelize } = require("sequelize");
 
-const { transactional } = require("../decorators");
-const { AppModule } = require("../app");
+const { transactional } = require("../../decorators");
+const { AppModule } = require("../../app");
 
 const namespace = cls.createNamespace("fromps-bot-database");
 Sequelize.useCLS(namespace);
@@ -63,7 +63,8 @@ class Database extends AppModule {
   @transactional()
   async migrate(version) {
     const sequelize = this.#sequelize;
-    const migrationsPath = path.resolve(this.app.applicationRoot, "migrations");
+    const migrationsPath = path.resolve(
+      this.app.applicationRoot, "core/migrations");
 
     const { Umzug, SequelizeStorage } = require("umzug");
     const umzug = new Umzug({
