@@ -29,7 +29,7 @@ module.exports = function gameModel(db) {
           field: "short_name",
           type: DataTypes.STRING(32),
           get() {
-            const raw = this.getDataValue("short_name");
+            const raw = this.getDataValue("shortName");
             if (!raw) { return this.name; }
             return raw;
           }

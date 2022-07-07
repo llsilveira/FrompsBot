@@ -619,15 +619,15 @@ async function up({ context: queryInterface }) {
   }
 
 
-  /* Bulk insert races */
   if (weeklies.length > 0) {
+    /* Bulk insert races */
     await queryInterface.bulkInsert("races", Array.from(weekliesMap.values()));
-  }
 
-  // Set races id sequence to the last id used
-  await sequelize.query(
-    `SELECT setval('races_id_seq', ${raceIdSeq})`
-  );
+    // Set races id sequence to the last id used
+    await sequelize.query(
+      `SELECT setval('races_id_seq', ${raceIdSeq})`
+    );
+  }
 
 
   /* Retrieve all legacy player entries */

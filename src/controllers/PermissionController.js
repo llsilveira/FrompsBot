@@ -30,23 +30,28 @@ module.exports = class PermissionController {
     );
   }
 
-  async [Permissions.user.create]() {
+  async [Permissions.game.create]() {
     const user = this.#controllers.auth.getLoggedUser();
     return (await this.#controllers.bot.isAdmin(user));
   }
 
-  async [Permissions.user.createMode](game) {
+  async [Permissions.game.remove]() {
+    const user = this.#controllers.auth.getLoggedUser();
+    return (await this.#controllers.bot.isAdmin(user));
+  }
+
+  async [Permissions.game.createMode](game) {
     return (await this.#controllers.game.isMonitor(
       game, this.#controllers.auth.getLoggedUser()
     ));
   }
 
-  async [Permissions.user.addMonitor]() {
+  async [Permissions.game.addMonitor]() {
     const user = this.#controllers.auth.getLoggedUser();
     return (await this.#controllers.bot.isAdmin(user));
   }
 
-  async [Permissions.user.removeMonitor]() {
+  async [Permissions.game.removeMonitor]() {
     const user = this.#controllers.auth.getLoggedUser();
     return (await this.#controllers.bot.isAdmin(user));
   }

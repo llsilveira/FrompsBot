@@ -66,6 +66,10 @@ class Discord extends AppModule {
     this.#registerPermanentButtons();
   }
 
+  get controllers() {
+    return this.#controllers;
+  }
+
   async getDiscordId(user) {
     const provider =
       await this.#controllers.user.getProvider(user, AccountProvider.DISCORD);
