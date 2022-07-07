@@ -17,6 +17,10 @@ module.exports = class GameController {
     return this.#app;
   }
 
+  async list() {
+    return await this.#gameModel.findAll();
+  }
+
   async getFromCode(code, { includeModes = false } = {}) {
     const findParams = {};
     if (includeModes) { findParams.include = "modes"; }
@@ -71,7 +75,24 @@ module.exports = class GameController {
   @check(hasPermissions(Permissions.game.create))
   @transactional()
   async create(code, name, shortName) {
+    const game = await this.getFromCode(code.toUpperCase());
+    if (game) {
+      throw new FrompsBotError(
+        `Já existe um jogo cadastrado com o código '${code}'.`);
+    }
     return await this.#gameModel.create({ code, name, shortName });
+  }
+
+  @check(hasPermissions(Permissions.game.remove))
+  @transactional()
+  async remove(code) {
+    const game = await this.getFromCode(code.toUpperCase());
+    if (!game) {
+      throw new FrompsBotError("Jogo não encontrado!");
+    }
+
+    await game.destroy();
+    return game;
   }
 
   @check(hasPermissions(Permissions.game.createMode))
@@ -92,6 +113,7 @@ module.exports = class GameController {
 
     return { game, mode };
   }
+
 
   #gameModel;
   #gameModeModel;

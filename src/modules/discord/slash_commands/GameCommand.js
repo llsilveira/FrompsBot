@@ -1,10 +1,19 @@
 "use strict";
 
+const { MessageEmbed } = require("discord.js");
 const SlashCommandBase = require("../SlashCommandBase");
 
 module.exports = class GameCommand extends SlashCommandBase {
   constructor(discord) {
     super(discord, "game", "Gerencia os jogos cadastrados no bot.");
+
+    this.builder.addSubcommand(subcommand =>
+      subcommand.setName("list")
+        .setDescription(
+          "Lista os jogos cadastrados no bot juntamente com seus " +
+          "respectivos códigos"
+        )
+    );
 
     this.builder.addSubcommand(subcommand =>
       subcommand.setName("add")
@@ -22,6 +31,16 @@ module.exports = class GameCommand extends SlashCommandBase {
         .addStringOption(option =>
           option.setName("short_name")
             .setDescription("Nome curto (máximo 32 caracteres).")
+        )
+    );
+
+    this.builder.addSubcommand(subcommand =>
+      subcommand.setName("remove")
+        .setDescription("Remove um jogo")
+        .addStringOption(option =>
+          option.setName("code")
+            .setDescription("Código do jogo. Ex: ALTTPR.")
+            .setRequired(true)
         )
     );
 
@@ -49,6 +68,42 @@ module.exports = class GameCommand extends SlashCommandBase {
   async execute(interaction) {
     const command = interaction.options.getSubcommand();
     switch (command) {
+    case "list": {
+      const games = await this.discord.controllers.game.list();
+      let codes = "";
+      let names = "";
+
+      games.sort((a, b) => a.shortName < b.shortName ? -1 : 1).forEach(game => {
+        codes += `${game.code}\n`;
+        names += `${game.shortName}\n`;
+      });
+
+      const embed = new MessageEmbed().setTitle("Jogos cadastrados");
+      const description = "Lista de jogos e seus respectivos códigos";
+
+      if (games.length > 0) {
+        embed.setDescription(description).addFields(
+          { name: "Jogo", value: names, inline: true },
+          { name: "Código", value: codes, inline: true }
+        );
+      } else {
+        embed.setDescription(
+          description + "\n\n**Nenhum jogo foi cadastrado ainda!**");
+      }
+
+      await interaction.reply({
+        embeds: [embed],
+        ephemeral: true
+      });
+      break;
+    }
+    case "remove": {
+      const code = interaction.options.getString("code");
+
+      const game = await this.discord.controllers.game.remove(code);
+      await interaction.reply(`O jogo '${game.name}' foi removido!`);
+      break;
+    }
     case "add": {
       const code = interaction.options.getString("code");
       const name = interaction.options.getString("name");
