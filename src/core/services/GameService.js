@@ -14,13 +14,25 @@ module.exports = class GameService extends AppModule {
   async getFromCode(code, { includeModes = false } = {}) {
     const findParams = {};
     if (includeModes) { findParams.include = "modes"; }
-    return await this.app.models.game.findByPk(code, findParams);
+    return await this.app.models.game.findByPk(code.toUpperCase(), findParams);
+  }
+
+  async listModes(gameCode, { includeAll = false } = {}) {
+    const findParams = {
+      where: { gameCode: gameCode.toUpperCase() }
+    };
+    if (!includeAll) {
+      findParams.where.data = {
+        disabled: false
+      };
+    }
+    return await this.app.models.gameMode.findAll(findParams);
   }
 
   async getGameMode(gameCode, name, { includeGame = false } = {}) {
-    const findParams = {};
+    const findParams = { where: { gameCode: gameCode.toUpperCase(), name } };
     if (includeGame) { findParams.include = "game"; }
-    return await this.app.models.gameMode.findByPk({ gameCode, name }, findParams);
+    return await this.app.models.gameMode.findOne(findParams);
   }
 
   isMonitor(game, user) {
@@ -70,7 +82,9 @@ module.exports = class GameService extends AppModule {
       throw new FrompsBotError(
         `Já existe um jogo cadastrado com o código '${code}'.`);
     }
-    return await this.app.models.game.create({ code, name, shortName });
+    return await this.app.models.game.create(
+      { code: code.toUpperCase(), name, shortName }
+    );
   }
 
   @check(hasPermissions(Permissions.game.remove))
@@ -87,20 +101,36 @@ module.exports = class GameService extends AppModule {
 
   @check(hasPermissions(Permissions.game.createMode))
   @transactional()
-  async createMode(gameCode, name, description) {
-    let mode = await this.getGameMode(gameCode, name);
-    if (mode) {
-      // TODO: throw error
+  async createMode(game, name, description) {
+    if (typeof description !== typeof "" || description.length <= 0) {
+      throw new FrompsBotError("A descrição deve ter até 80 caracteres.");
     }
 
-    const game = await this.getFromCode(gameCode);
-    if (!game) {
-      // TODO: throw error
+    let mode = await this.getGameMode(game.code, name);
+    if (mode) {
+      throw new FrompsBotError(
+        `Já existe um modo com o nome ${name} para ${game.shortName}.`
+      );
     }
 
     mode = await this.app.models.gameMode.create({
-      gameCode, name, data: { description } });
+      gameCode: game.code, name, description
+    });
 
-    return { game, mode };
+    return mode;
+  }
+
+
+  @check(hasPermissions(Permissions.game.removeMode))
+  @transactional()
+  async removeMode(game, name) {
+    const mode = await this.getGameMode(game.code, name);
+    if (!mode) {
+      throw new FrompsBotError(
+        `Não existe um modo com o nome ${name} para ${game.shortName}.`
+      );
+    }
+
+    await mode.destroy();
   }
 };

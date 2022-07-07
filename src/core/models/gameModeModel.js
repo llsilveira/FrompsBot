@@ -26,6 +26,12 @@ module.exports = function gameModeModel(db, gameModel) {
           field: "name",
           type: DataTypes.STRING(24),
           primaryKey: true,
+        },
+
+        description: {
+          field: "description",
+          type: DataTypes.STRING(80),
+          allowNull: false
         }
       }, {
         // We store gamemode names with case to be used later, but they

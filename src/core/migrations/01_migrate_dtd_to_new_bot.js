@@ -161,6 +161,12 @@ async function up({ context: queryInterface }) {
       primaryKey: true,
     },
 
+    description: {
+      field: "description",
+      type: Sequelize.STRING(80),
+      allowNull: false
+    },
+
     data: {
       field: "data",
       type: Sequelize.JSONB,
@@ -430,8 +436,8 @@ async function up({ context: queryInterface }) {
 
   // Add FrompsBot System user
   await sequelize.query(
-    "INSERT INTO users (id, name, created_at, updated_at) " +
-    "VALUES (1, 'FrompsBot', current_timestamp, current_timestamp)"
+    "INSERT INTO users (id, name, data, created_at, updated_at) " +
+    "VALUES (1, 'FrompsBot', '{ \"bot\": { \"isAdmin\": true } }', current_timestamp, current_timestamp)"
   );
 
   // Set users id sequence to the last id used
@@ -492,10 +498,10 @@ async function up({ context: queryInterface }) {
   /* Creating legacy mode for existing races */
   const gameModes = games.map(game => ({
     game_code: game.code,
-    name: "RBR_SEMANAL_LEGADO",
+    name: "Semanal RBR Legada",
+    description: "Modo de jogo padrão para as antigas corridas semanais da Randomizer Brasil.",
     data: JSON.stringify({
-      description: "Modo de jogo padrão para as antigas corridas semanais da Randomizer Brasil.",
-      usable: false
+      disabled: true
     })
   }));
 
@@ -530,12 +536,12 @@ async function up({ context: queryInterface }) {
 
     const raceGroupName = (weekly.leaderboard_id) ?
       `Leaderboard S${weekly.leaderboard_id}` :
-      "SEMANAIS LEGADAS";
+      "Semanais Legadas";
 
     const newRace = {
       id: raceIdSeq,
       game_code: weekly.game,
-      gamemode_name: "RBR_SEMANAL_LEGADO",
+      gamemode_name: "Semanal RBR Legada",
       racegroup_name: raceGroupName,
       status: weekly.status,
       registration_deadline: weekly.submission_end,
@@ -557,7 +563,7 @@ async function up({ context: queryInterface }) {
   );
 
   /* create default racegroup for legacy weeklies */
-  const legacyGroupName = "SEMANAIS LEGADAS";
+  const legacyGroupName = "Semanais Legadas";
   await sequelize.query(
     "INSERT INTO race_groups (name, data) " +
     `VALUES ('${legacyGroupName}', '${JSON.stringify({})}')`
@@ -567,7 +573,7 @@ async function up({ context: queryInterface }) {
   const groupName = "Leaderboards ALTTPR";
   const groupData = JSON.stringify({
     game: "ALTTPR",
-    gameMode: "RBR_SEMANAL_LEGADO",
+    gameMode: "Semanal RRB Legada",
   });
 
   /* Map leaderboards into race_groups */

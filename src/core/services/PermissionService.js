@@ -48,6 +48,12 @@ module.exports = class PermissionService extends AppModule {
     ));
   }
 
+  async [Permissions.game.removeMode](game) {
+    return (await this.#services.game.isMonitor(
+      game, this.#services.auth.getLoggedUser()
+    ));
+  }
+
   async [Permissions.game.addMonitor]() {
     const user = this.#services.auth.getLoggedUser();
     return (await this.#services.bot.isAdmin(user));

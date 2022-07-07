@@ -70,7 +70,7 @@ module.exports = class BotCommand extends SlashCommandBase {
     let game, user;
 
     if (gameCode) {
-      game = await this.discord.app.services.game.getGameFromCode(gameCode);
+      game = await this.discord.app.services.game.getFromCode(gameCode);
       if (!game) {
         throw new FrompsBotError(
           `O codigo '${gameCode}' não corresponde a um jogo conhecido.`
@@ -102,7 +102,7 @@ module.exports = class BotCommand extends SlashCommandBase {
       break;
     }
     case "remove_monitor": {
-      await this.discord.app.services.game.addMonitor(game, user);
+      await this.discord.app.services.game.removeMonitor(game, user);
       message = `${user.name} foi removido do cargo de monitor de ${game.shortName}.`;
       break;
     }

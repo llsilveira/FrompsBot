@@ -12,6 +12,7 @@ module.exports = Object.freeze({
     create: Symbol("Permissions.game.create"),
     remove: Symbol("Permissions.game.remove"),
     createMode: Symbol("Permissions.game.createMode"),
+    removeMode: Symbol("Permissions.game.removeMode"),
     addMonitor: Symbol("Permissions.game.addMonitor"),
     removeMonitor: Symbol("Permissions.game.removeMonitor")
   }
