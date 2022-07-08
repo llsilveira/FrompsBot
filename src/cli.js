@@ -4,6 +4,8 @@ const process = require("process");
 const commander = require("commander");
 
 const { Application } = require("./app");
+const AccountProvider = require("./core/constants/AccountProvider");
+const runAsBot = require("./helpers/runAsBot");
 
 const INSTANCE_PATH = process.env.INSTANCE_PATH || process.cwd();
 
@@ -21,6 +23,12 @@ module.exports = async function cli(args) {
     .description("run all bot services")
     .option("-s, --service", "activate service mode (no console output)")
     .action(() => run(app));
+
+  program
+    .command("bot:addAdmin")
+    .description("add the bot admin role to the user")
+    .argument("<userDiscordId>", "id of the user on discord")
+    .action((userDiscordId) => botAddAdmin(app, userDiscordId));
 
   program
     .command("discord:update")
@@ -41,12 +49,27 @@ async function run(app) {
   await discord.start();
 }
 
+async function botAddAdmin(app, userDiscordId) {
+  const user = await app.services.user.getFromProvider(
+    AccountProvider.DISCORD, userDiscordId
+  );
+
+  if (!user) {
+    console.log("Usuário não encontrado!");
+  } else {
+    await runAsBot(app, async () => await app.services.bot.addAdmin(user));
+    console.log(`${user.name} foi adicionado como admin deste bot.`);
+  }
+}
+
 async function discordUpdate(app) {
   const discord = app.container.resolve("discord");
   await discord.updateCommands();
+  console.log("Comandos atualizados!");
 }
 
 async function dbMigrate(app, version) {
   const db = app.container.resolve("db");
   await db.migrate(version);
+  console.log("Migração concluída!");
 }
