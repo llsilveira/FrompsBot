@@ -14,6 +14,10 @@ module.exports = class UserService extends AppModule {
     return (accounts.length <= 0) ? undefined : accounts[0]?.user;
   }
 
+  async getFromId(userId) {
+    return await this.app.models.user.findByPk(userId);
+  }
+
   async getProvider(user, provider) {
     return await this.app.models.userAccount.findOne({
       where: {
