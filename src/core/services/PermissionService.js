@@ -1,7 +1,7 @@
 "use strict";
 
 const AppModule = require("../../app/AppModule");
-const { Permissions } = require("../../constants");
+const { Permissions } = require("../constants");
 
 module.exports = class PermissionService extends AppModule {
   constructor(app, authService, botService, gameService) {

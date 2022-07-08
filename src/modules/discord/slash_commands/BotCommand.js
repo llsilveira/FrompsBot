@@ -1,7 +1,7 @@
 "use strict";
 
 
-const { AccountProvider } = require("../../../constants");
+const { AccountProvider } = require("../../../core/constants");
 const { FrompsBotError } = require("../../../errors");
 
 const SlashCommandBase = require("../SlashCommandBase");

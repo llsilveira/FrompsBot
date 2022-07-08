@@ -6,7 +6,7 @@ const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v9");
 
 const { AppModule } = require("../app");
-const { AccountProvider } = require("../constants");
+const { AccountProvider } = require("../core/constants");
 const { FrompsBotError } = require("../errors");
 
 const slashCommands = require("./discord/slash_commands");

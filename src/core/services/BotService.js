@@ -1,7 +1,7 @@
 "use strict";
 
 const AppModule = require("../../app/AppModule");
-const Permissions = require("../../constants/Permissions");
+const Permissions = require("../constants/Permissions");
 const hasPermissions = require("../../constraints/hasPermissions");
 const check = require("../../decorators/check");
 const transactional = require("../../decorators/transactional");

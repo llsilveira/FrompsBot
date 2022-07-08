@@ -4,7 +4,7 @@ const { DataTypes } = require("sequelize");
 
 const { AppModelWithData } = require("../../app");
 
-const { RaceEntryStatus } = require("../../constants");
+const { RaceEntryStatus } = require("../constants");
 
 
 module.exports = function raceEntryModel(db, userModel, raceModel) {

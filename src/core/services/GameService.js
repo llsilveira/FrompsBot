@@ -2,7 +2,7 @@
 
 const { check, transactional } = require("../../decorators");
 const { hasPermissions } = require("../../constraints");
-const { Permissions } = require("../../constants");
+const { Permissions } = require("../constants");
 const FrompsBotError = require("../../errors/FrompsBotError");
 const AppModule = require("../../app/AppModule");
 

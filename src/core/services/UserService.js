@@ -2,7 +2,7 @@
 
 const { check, transactional } = require("../../decorators");
 const { hasPermissions } = require("../../constraints");
-const { Permissions } = require("../../constants");
+const { Permissions } = require("../constants");
 const AppModule = require("../../app/AppModule");
 
 module.exports = class UserService extends AppModule {

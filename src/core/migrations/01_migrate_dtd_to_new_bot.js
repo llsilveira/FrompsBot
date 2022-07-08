@@ -1,7 +1,7 @@
 "use strict";
 
 const { Sequelize } = require("sequelize");
-const { AccountProvider, RaceStatus, RaceEntryStatus } = require("../../constants");
+const { AccountProvider, RaceStatus, RaceEntryStatus } = require("../constants");
 
 async function up({ context: queryInterface }) {
   const sequelize = queryInterface.sequelize;
