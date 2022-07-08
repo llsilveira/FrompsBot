@@ -4,7 +4,7 @@ const AppModule = require("../../app/AppModule");
 const { AuthenticationError } = require("../../errors");
 
 module.exports = class AuthService extends AppModule {
-  async login(user) {
+  login(user) {
     // TODO: create different exceptions to represent each error
 
     if (typeof this.getLoggedUser() !== "undefined") {

@@ -146,7 +146,7 @@ class Discord extends AppModule {
         );
       }
 
-      await this.app.services.auth.login(user);
+      this.app.services.auth.login(user);
       if (interaction.isCommand()) {
         await handler.execute(interaction);
       } else if (interaction.isButton()) {
