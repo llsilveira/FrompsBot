@@ -13,8 +13,8 @@ module.exports = class BotService extends AppModule {
     return (data.isAdmin === true);
   }
 
-  @check(hasPermissions(Permissions.bot.addAdmin))
   @transactional()
+  @check(hasPermissions(Permissions.bot.addAdmin))
   async addAdmin(user) {
     if (this.isAdmin(user)) {
       throw new FrompsBotError(
@@ -27,8 +27,8 @@ module.exports = class BotService extends AppModule {
     await user.save();
   }
 
-  @check(hasPermissions(Permissions.bot.removeAdmin))
   @transactional()
+  @check(hasPermissions(Permissions.bot.removeAdmin))
   async removeAdmin(user) {
     if (!this.isAdmin(user)) {
       throw new FrompsBotError(

@@ -34,8 +34,8 @@ module.exports = class UserService extends AppModule {
     });
   }
 
-  @check(hasPermissions(Permissions.user.changeName), (args) => [args[0]])
   @transactional()
+  @check(hasPermissions(Permissions.user.changeName), (args) => [args[0]])
   async setName(user, name) {
     // TODO: filter/escape name
     user.name = name;

@@ -40,8 +40,8 @@ module.exports = class GameService extends AppModule {
     return (userGameData.monitors?.includes(game.code) === true);
   }
 
-  @check(hasPermissions(Permissions.game.addMonitor))
   @transactional()
+  @check(hasPermissions(Permissions.game.addMonitor))
   async addMonitor(game, user) {
     if (this.isMonitor(game, user)) {
       throw new FrompsBotError(
@@ -57,8 +57,8 @@ module.exports = class GameService extends AppModule {
     await user.save();
   }
 
-  @check(hasPermissions(Permissions.game.removeMonitor))
   @transactional()
+  @check(hasPermissions(Permissions.game.removeMonitor))
   async removeMonitor(game, user) {
     if (!this.isMonitor(game, user)) {
       throw new FrompsBotError(
@@ -74,8 +74,8 @@ module.exports = class GameService extends AppModule {
     await user.save();
   }
 
-  @check(hasPermissions(Permissions.game.create))
   @transactional()
+  @check(hasPermissions(Permissions.game.create))
   async create(code, name, shortName) {
     const game = await this.getFromCode(code.toUpperCase());
     if (game) {
@@ -87,8 +87,8 @@ module.exports = class GameService extends AppModule {
     );
   }
 
-  @check(hasPermissions(Permissions.game.remove))
   @transactional()
+  @check(hasPermissions(Permissions.game.remove))
   async remove(code) {
     const game = await this.getFromCode(code.toUpperCase());
     if (!game) {
@@ -99,8 +99,8 @@ module.exports = class GameService extends AppModule {
     return game;
   }
 
-  @check(hasPermissions(Permissions.game.createMode))
   @transactional()
+  @check(hasPermissions(Permissions.game.createMode))
   async createMode(game, name, description) {
     if (typeof description !== typeof "" || description.length <= 0) {
       throw new FrompsBotError("A descrição deve ter até 80 caracteres.");
@@ -120,9 +120,8 @@ module.exports = class GameService extends AppModule {
     return mode;
   }
 
-
-  @check(hasPermissions(Permissions.game.removeMode))
   @transactional()
+  @check(hasPermissions(Permissions.game.removeMode))
   async removeMode(game, name) {
     const mode = await this.getGameMode(game.code, name);
     if (!mode) {
