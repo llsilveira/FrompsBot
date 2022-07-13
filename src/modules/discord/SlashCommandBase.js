@@ -5,10 +5,13 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 
 
 module.exports = class SlashCommandBase {
-  constructor(discord, name, description) {
+  constructor(discord, name, description, {
+    loginRequired = true
+  } = {}) {
     this.#discord = discord;
     this.#name = name;
     this.#description = description;
+    this.#loginRequired = loginRequired;
 
     this.#builder = new SlashCommandBuilder()
       .setName(this.#name)
@@ -25,6 +28,10 @@ module.exports = class SlashCommandBase {
 
   get description() {
     return this.#description;
+  }
+
+  get loginRequired() {
+    return this.#loginRequired;
   }
 
   get builder() {
@@ -47,6 +54,7 @@ module.exports = class SlashCommandBase {
   #discord;
   #name;
   #description;
+  #loginRequired;
 
   #builder;
 };

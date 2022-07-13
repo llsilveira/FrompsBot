@@ -122,31 +122,34 @@ class Discord extends AppModule {
 
   async #handleInteraction(interaction, handler) {
     try {
-      const userId = interaction.user.id;
-      let user = await this.app.services.user.getFromProvider(
-        AccountProvider.DISCORD, userId
-      );
+      if (handler.loginRequired) {
+        const userId = interaction.user.id;
+        let user = await this.app.services.user.getFromProvider(
+          AccountProvider.DISCORD, userId
+        );
 
-      if (!user) {
-        let name;
-        if (interaction.guild?.id === this.#guildId) {
-          name = interaction.member.displayName;
-        } else {
-          const member = await this.getMemberFromId(userId);
-
-          if (member) {
-            name = member.displayName;
+        if (!user) {
+          let name;
+          if (interaction.guild?.id === this.#guildId) {
+            name = interaction.member.displayName;
           } else {
-            name = interaction.user.username;
+            const member = await this.getMemberFromId(userId);
+
+            if (member) {
+              name = member.displayName;
+            } else {
+              name = interaction.user.username;
+            }
           }
+
+          user = await this.app.services.user.register(
+            AccountProvider.DISCORD, userId, name
+          );
         }
 
-        user = await this.app.services.user.register(
-          AccountProvider.DISCORD, userId, name
-        );
+        this.app.services.auth.login(user);
       }
 
-      this.app.services.auth.login(user);
       if (interaction.isCommand()) {
         await handler.execute(interaction);
       } else if (interaction.isButton()) {
