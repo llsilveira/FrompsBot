@@ -3517,6 +3517,13 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
+timezonecomplete@^5.12.4:
+  version "5.12.4"
+  resolved "https://registry.yarnpkg.com/timezonecomplete/-/timezonecomplete-5.12.4.tgz#5508107540ccfe32c7cbed97d7d0433a9d241e71"
+  integrity sha512-K+ocagBAl5wu9Ifh5oHKhRRLb0wP7j0VjAzjboZsT6bnVmtJNRe3Wnk2IPp0C4Uc8HpLly3gbfUrTlJ3M7vCPA==
+  dependencies:
+    tzdata "^1.0.25"
+
 to-fast-properties@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/to-fast-properties/-/to-fast-properties-2.0.0.tgz#dc5e698cbd079265bc73e0377681a4e4e83f616e"
@@ -3589,6 +3596,11 @@ typedarray-to-buffer@^3.1.5:
   integrity sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==
   dependencies:
     is-typedarray "^1.0.0"
+
+tzdata@^1.0.25:
+  version "1.0.30"
+  resolved "https://registry.yarnpkg.com/tzdata/-/tzdata-1.0.30.tgz#d9d5a4b4b5e1ed95f6255f98c0564c4256316f52"
+  integrity sha512-/0yogZsIRUVhGIEGZahL+Nnl9gpMD6jtQ9MlVtPVofFwhaqa+cFTgRy1desTAKqdmIJjS6CL+i6F/mnetrLaxw==
 
 uc.micro@^1.0.1, uc.micro@^1.0.5:
   version "1.0.6"
