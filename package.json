@@ -37,10 +37,11 @@
   },
   "scripts": {
     "start": "npx babel-node .",
-    "watch": "npx nodemon --watch src --exec 'yarn build; yarn build_start'",
+    "watch": "npx nodemon --watch src --exec 'yarn start'",
     "debug": "npx babel-node --inspect .",
     "build": "npx babel src -d build --copy-files --no-copy-ignored --source-maps",
     "build_start": "node build",
+    "build_watch": "npx nodemon --watch src --exec 'yarn build; yarn build_start'",
     "build_debug": "node build --inspect",
     "build_clean": "rm -rf build"
   }
