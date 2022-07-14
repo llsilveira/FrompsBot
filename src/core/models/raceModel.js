@@ -33,21 +33,21 @@ module.exports = function raceModel(db, userModel, gameModel, raceGroupModel) {
           onUpdate: "CASCADE"
         },
 
-        gameCode: {
-          field: "game_code",
-          type: DataTypes.STRING(24),
+        gameId: {
+          field: "game_id",
+          type: DataTypes.INTEGER,
           allowNull: false,
           references: {
             model: gameModel,
-            key: "code"
+            key: "id"
           },
           onDelete: "RESTRICT",
           onUpdate: "CASCADE"
         },
 
-        gameModeName: {
-          field: "gamemode_name",
-          type: DataTypes.STRING(24),
+        gameModeId: {
+          field: "gamemode_id",
+          type: DataTypes.INTEGER,
           allowNull: false
           // FK constraint created on migration since sequelize does not have
           // a way to declare associations with composite keys inside the  model
@@ -66,13 +66,13 @@ module.exports = function raceModel(db, userModel, gameModel, raceGroupModel) {
           type: DataTypes.DATE
         },
 
-        raceGroupName: {
-          field: "racegroup_name",
-          type: DataTypes.STRING(20),
+        raceGroupId: {
+          field: "racegroup_id",
+          type: DataTypes.INTEGER,
           allowNull: false,
           references: {
             model: raceGroupModel,
-            key: "name"
+            key: "id"
           },
           onDelete: "RESTRICT",
           onUpdate: "CASCADE"
@@ -83,12 +83,12 @@ module.exports = function raceModel(db, userModel, gameModel, raceGroupModel) {
 
       gameModel.hasMany(Race, {
         as: "races",
-        foreignKey: { name: "gameCode" }
+        foreignKey: { name: "gameId" }
       });
 
       Race.belongsTo(gameModel, {
         as: "game",
-        foreignKey: { name: "gameCode" }
+        foreignKey: { name: "gameId" }
       });
 
       Race.belongsTo(userModel, {
@@ -98,7 +98,7 @@ module.exports = function raceModel(db, userModel, gameModel, raceGroupModel) {
 
       raceGroupModel.hasMany(Race, {
         as: "races",
-        foreignKey: { name: "raceGroupName" }
+        foreignKey: { name: "raceGroupId" }
       });
 
       return model;

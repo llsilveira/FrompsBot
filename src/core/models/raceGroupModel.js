@@ -11,32 +11,41 @@ module.exports = function raceGroupModel(db) {
     static init(sequelize) {
 
       const model = super.init(sequelize, "race_groups", {
-        name: {
-          field: "name",
-          type: DataTypes.STRING(20),
-          primaryKey: true,
+        id: {
+          field: "id",
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          autoIncrementIdentity: true,
+          primaryKey: true
         },
 
-        parentName: {
-          field: "parent_name",
-          type: DataTypes.STRING(20),
+        parentId: {
+          field: "parent_id",
+          type: DataTypes.INTEGER,
           references: {
             model: RaceGroup,
-            key: "name"
+            key: "id"
           },
           onDelete: "RESTRICT",
           onUpdate: "CASCADE"
-        }
+        },
+
+        name: {
+          field: "name",
+          type: DataTypes.STRING(24),
+          allowNull: false,
+          unique: true
+        },
       });
 
       RaceGroup.hasMany(RaceGroup, {
         as: "children",
-        foreignKey: { name: "parentName" }
+        foreignKey: { name: "parentId" }
       });
 
       RaceGroup.belongsTo(RaceGroup, {
         as: "parent",
-        foreignKey: { name: "parentName" }
+        foreignKey: { name: "parentId" }
       });
 
       return model;

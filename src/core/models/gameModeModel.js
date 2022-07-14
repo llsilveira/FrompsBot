@@ -10,22 +10,30 @@ module.exports = function gameModeModel(db, gameModel) {
     static init(sequelize) {
       gameModel.init(sequelize);
       const model = super.init(sequelize, "game_modes", {
-        gameCode: {
-          field: "game_code",
-          type: DataTypes.STRING(16),
+        gameId: {
+          field: "game_id",
+          type: DataTypes.INTEGER,
           primaryKey: true,
           references: {
             model: gameModel,
-            key: "code"
+            key: "id"
           },
           onDelete: "RESTRICT",
           onUpdate: "CASCADE"
         },
 
+        id: {
+          field: "id",
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          autoIncrementIdentity: true,
+          primaryKey: true
+        },
+
         name: {
           field: "name",
           type: DataTypes.STRING(24),
-          primaryKey: true,
+          allowNull: false
         },
 
         description: {
@@ -37,22 +45,22 @@ module.exports = function gameModeModel(db, gameModel) {
         // We store gamemode names with case to be used later, but they
         // must be unique per game not considering the case.
         indexes: [{
-          name: "game_modes_unique_game_code_upper_name",
+          name: "game_modes_unique_game_id_upper_name",
           unique: true,
           fields: [
-            "gameCode", sequelize.fn("upper", sequelize.col("name"))
+            "gameId", sequelize.fn("upper", sequelize.col("name"))
           ]
         }]
       });
 
       gameModel.hasMany(GameMode, {
         as: "modes",
-        foreignKey: { name: "gameCode" }
+        foreignKey: { name: "gameId" }
       });
 
       GameMode.belongsTo(gameModel, {
         as: "game",
-        foreignKey: { name: "gameCode" }
+        foreignKey: { name: "gameId" }
       });
 
       return model;

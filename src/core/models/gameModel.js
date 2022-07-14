@@ -9,10 +9,19 @@ module.exports = function gameModel(db) {
   class Game extends AppModelWithData {
     static init(sequelize) {
       return super.init(sequelize, "games", {
+        id: {
+          field: "id",
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          autoIncrementIdentity: true,
+          primaryKey: true
+        },
+
         code: {
           field: "code",
-          type: DataTypes.STRING(16),
-          primaryKey: true,
+          type: DataTypes.STRING(24),
+          allowNull:false,
+          // unique constraint below
           set(value) {
             this.setDataValue("code", value.toUpperCase());
           }

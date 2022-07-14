@@ -105,10 +105,18 @@ async function up({ context: queryInterface }) {
 
   // games table
   await queryInterface.createTable("games", {
+    id: {
+      field: "id",
+      type: Sequelize.INTEGER,
+      autoIncrement: true,
+      autoIncrementIdentity: true,
+      primaryKey: true
+    },
+
     code: {
       field: "code",
-      type: Sequelize.STRING(16),
-      primaryKey: true
+      type: Sequelize.STRING(24),
+      allowNull:false,
     },
 
     name: {
@@ -143,22 +151,30 @@ async function up({ context: queryInterface }) {
 
   // game_modes table
   await queryInterface.createTable("game_modes", {
-    gameCode: {
-      field: "game_code",
-      type: Sequelize.STRING(16),
+    gameId: {
+      field: "game_id",
+      type: Sequelize.INTEGER,
       primaryKey: true,
       references: {
         model: "games",
-        key: "code"
+        key: "id"
       },
       onDelete: "RESTRICT",
       onUpdate: "CASCADE"
     },
 
+    id: {
+      field: "id",
+      type: Sequelize.INTEGER,
+      autoIncrement: true,
+      autoIncrementIdentity: true,
+      primaryKey: true
+    },
+
     name: {
       field: "name",
       type: Sequelize.STRING(24),
-      primaryKey: true,
+      allowNull: false
     },
 
     description: {
@@ -179,31 +195,40 @@ async function up({ context: queryInterface }) {
   // game_modes unique (game_code, upper(name))
   await queryInterface.addIndex(
     "game_modes", {
-      name: "game_modes_unique_game_code_upper_name",
+      name: "game_modes_unique_game_id_upper_name",
       unique: true,
       fields: [
-        "game_code", sequelize.fn("upper", sequelize.col("name"))
+        "game_id", sequelize.fn("upper", sequelize.col("name"))
       ]
     }
   );
 
   // race_groups table
   await queryInterface.createTable("race_groups", {
-    name: {
-      field: "name",
-      type: Sequelize.STRING(20),
-      primaryKey: true,
+    id: {
+      field: "id",
+      type: Sequelize.INTEGER,
+      autoIncrement: true,
+      autoIncrementIdentity: true,
+      primaryKey: true
     },
 
-    parentName: {
-      field: "parent_name",
-      type: Sequelize.STRING(20),
+    parentId: {
+      field: "parent_id",
+      type: Sequelize.INTEGER,
       references: {
         model: "race_groups",
-        key: "name"
+        key: "id"
       },
       onDelete: "RESTRICT",
       onUpdate: "CASCADE"
+    },
+
+    name: {
+      field: "name",
+      type: Sequelize.STRING(24),
+      allowNull: false,
+      unique: true
     },
 
     data: {
@@ -237,35 +262,23 @@ async function up({ context: queryInterface }) {
       onUpdate: "CASCADE"
     },
 
-    gameCode: {
-      field: "game_code",
-      type: Sequelize.STRING(16),
+    gameId: {
+      field: "game_id",
+      type: Sequelize.INTEGER,
       allowNull: false,
       references: {
         model: "games",
-        key: "code"
+        key: "id"
       },
       onDelete: "RESTRICT",
       onUpdate: "CASCADE"
     },
 
-    gameModeName: {
-      field: "gamemode_name",
-      type: Sequelize.STRING(24),
+    gameModeId: {
+      field: "gamemode_id",
+      type: Sequelize.INTEGER,
       allowNull: false,
       // FK constraint definition below (composite key)
-    },
-
-    raceGroupName: {
-      field: "racegroup_name",
-      type: Sequelize.STRING(20),
-      allowNull: false,
-      references: {
-        model: "race_groups",
-        key: "name"
-      },
-      onDelete: "RESTRICT",
-      onUpdate: "CASCADE"
     },
 
     status: {
@@ -287,6 +300,18 @@ async function up({ context: queryInterface }) {
       defaultValue: {}
     },
 
+    raceGroupId: {
+      field: "racegroup_id",
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: "race_groups",
+        key: "id"
+      },
+      onDelete: "RESTRICT",
+      onUpdate: "CASCADE"
+    },
+
     createdAt: {
       field: "created_at",
       type: Sequelize.DATE,
@@ -304,10 +329,10 @@ async function up({ context: queryInterface }) {
   // races <-> gamemode relationship (composite key)
   await queryInterface.addConstraint("races", {
     type: "foreign key",
-    fields: ["game_code", "gamemode_name"],
+    fields: ["game_id", "gamemode_id"],
     references: {
       table: "game_modes",
-      fields: ["game_code", "name"]
+      fields: ["game_id", "id"]
     },
     onDelete: "RESTRICT",
     onUpdate: "CASCADE"
@@ -447,7 +472,8 @@ async function up({ context: queryInterface }) {
 
 
   /* Prepare existing games */
-  const games = [{
+  const gamesList = [{
+    id: 1,
     code: "ALTTPR",
     name: "The Legend of Zelda: A Link to The Past Randomizer",
     short_name: "A Link to The Past Randomizer",
@@ -455,6 +481,7 @@ async function up({ context: queryInterface }) {
       color: 0x188020,
     })
   }, {
+    id: 2,
     code: "OOTR",
     name: "The Legend of Zelda: Ocarina of Time Randomizer",
     short_name: "Ocarina of Time Randomizer",
@@ -462,6 +489,7 @@ async function up({ context: queryInterface }) {
       color: 0x5F1412,
     })
   }, {
+    id: 3,
     code: "MMR",
     name: "The Legend of Zelda: Majora's Mask Randomizer",
     short_name: "Majora's Mask Randomizer",
@@ -469,6 +497,7 @@ async function up({ context: queryInterface }) {
       color: 0xae27cf,
     })
   }, {
+    id: 4,
     code: "TMCR",
     name: "The Legend of Zelda: The Minish Cap Randomizer",
     short_name: "The Minish Cap Randomizer",
@@ -476,18 +505,21 @@ async function up({ context: queryInterface }) {
       color: 0x73C636,
     })
   }, {
+    id: 5,
     code: "PKMN_CRYSTAL",
     name: "Pokemon Crystal Randomizer",
     data: JSON.stringify({
       color: 0xFFCB06,
     })
   }, {
+    id: 6,
     code: "SMR",
     name: "Super Metroid Randomizer",
     data: JSON.stringify({
       color: 0x127C6A,
     })
   }, {
+    id: 7,
     code: "HKR",
     name: "Hollow Knight Randomizer",
     data: JSON.stringify({
@@ -496,9 +528,10 @@ async function up({ context: queryInterface }) {
   }];
 
   /* Creating legacy mode for existing races */
-  const gameModes = games.map(game => ({
-    game_code: game.code,
-    name: "Semanal RBR Legada",
+  const gameModes = gamesList.map(game => ({
+    id: game.id,
+    game_id: game.id,
+    name: "Semanal RBR",
     description: "Modo de jogo padrão para as antigas corridas semanais da Randomizer Brasil.",
     data: JSON.stringify({
       disabled: true
@@ -506,8 +539,22 @@ async function up({ context: queryInterface }) {
   }));
 
   /* Insert games and game_modes */
-  await queryInterface.bulkInsert("games", games);
+  await queryInterface.bulkInsert("games", gamesList);
   await queryInterface.bulkInsert("game_modes", gameModes);
+
+  // Set games and gamemodes id sequence to the last id used
+  await sequelize.query(
+    "SELECT setval('games_id_seq', 7)"
+  );
+  await sequelize.query(
+    "SELECT setval('game_modes_id_seq', 7)"
+  );
+
+  // Create games variable to index games by code:
+  const games = {};
+  gamesList.forEach(game =>
+    games[game.code] = game
+  );
 
 
   /* Retrieve all legacy weeklies */
@@ -523,6 +570,9 @@ async function up({ context: queryInterface }) {
   for (const weekly of weeklies) {
     ++raceIdSeq;
 
+    const gameId = games[weekly.game].id;
+    const gameModeId = gameId;
+
     const raceData = {
       randomizer: {
         seedUrl: weekly.seed_url,
@@ -530,21 +580,19 @@ async function up({ context: queryInterface }) {
       }
     };
 
+    let raceGroupId = 1;
     if (typeof weekly.leaderboard_id === "number") {
       raceData["leaderboard"] = { id: weekly.leaderboard_id };
+      raceGroupId = weekly.leaderboard_id + 2;
     }
-
-    const raceGroupName = (weekly.leaderboard_id) ?
-      `Leaderboard S${weekly.leaderboard_id}` :
-      "Semanais Legadas";
 
     const newRace = {
       id: raceIdSeq,
-      game_code: weekly.game,
-      gamemode_name: "Semanal RBR Legada",
-      racegroup_name: raceGroupName,
+      game_id: gameId,
+      gamemode_id: gameModeId,
       status: weekly.status,
       registration_deadline: weekly.submission_end,
+      racegroup_id: raceGroupId,
       created_at: now,
       updated_at: now,
       // FrompsBot user
@@ -563,22 +611,16 @@ async function up({ context: queryInterface }) {
   );
 
   /* create default racegroup for legacy weeklies */
-  const legacyGroupName = "Semanais Legadas";
-  await sequelize.query(
-    "INSERT INTO race_groups (name, data) " +
-    `VALUES ('${legacyGroupName}', '${JSON.stringify({})}')`
+  sequelize.query(
+    "INSERT INTO race_groups (id, parent_id, name, data) " +
+    `VALUES (1, NULL, 'Semanais RBR', '${JSON.stringify({})}')`
   );
 
-  /* create parent racegroup for the alttpr leaderboards */
-  const groupName = "Leaderboards ALTTPR";
-  const groupData = JSON.stringify({
-    game: "ALTTPR",
-    gameMode: "Semanal RRB Legada",
-  });
-
   /* Map leaderboards into race_groups */
+  let raceGroupId = (leaderboards.length > 0) ? 2 : 1;
   const leaderboardsMap = new Map();
   for (const leaderboard of leaderboards) {
+    ++raceGroupId;
     const leaderboardData = leaderboard.leaderboard_data;
     const newLeaderboardData = {
       racesIncluded: leaderboardData.included_weeklies,
@@ -595,8 +637,9 @@ async function up({ context: queryInterface }) {
     }
 
     const newGroup = {
+      id: raceGroupId,
+      parent_id: 2,
       name: `Leaderboard S${leaderboard.id}`,
-      parent_name: groupName,
       data: JSON.stringify({
         status: leaderboard.status,
         createdAt: leaderboard.created_at,
@@ -613,9 +656,9 @@ async function up({ context: queryInterface }) {
 
   if (leaderboards.length > 0) {
     // Insert parent leaderboard
-    await sequelize.query(
-      "INSERT INTO race_groups (name, data) " +
-      `VALUES ('${groupName}', '${groupData}')`
+    sequelize.query(
+      "INSERT INTO race_groups (id, parent_id, name, data) " +
+      `VALUES (2, 1, 'Leaderboards ALTTPR', '${JSON.stringify({})}')`
     );
 
     // Insert into race_groups
@@ -624,6 +667,10 @@ async function up({ context: queryInterface }) {
     );
   }
 
+  // Set race_groups id sequence to the last id used
+  await sequelize.query(
+    `SELECT setval('race_groups_id_seq', ${raceGroupId})`
+  );
 
   if (weeklies.length > 0) {
     /* Bulk insert races */
