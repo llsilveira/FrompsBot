@@ -1,6 +1,6 @@
 "use strict";
 
-const { MessageButton } = require("discord.js");
+const { ButtonBuilder } = require("discord.js");
 
 
 module.exports = class PermanentButtonBase {
@@ -25,7 +25,7 @@ module.exports = class PermanentButtonBase {
   }
 
   create(customId) {
-    return new MessageButton(
+    return new ButtonBuilder(
       Object.assign({ customId, ...this.#options })
     );
   }

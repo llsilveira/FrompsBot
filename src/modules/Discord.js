@@ -1,9 +1,8 @@
 "use strict";
 
 
-const { Client, Collection, Intents } = require("discord.js");
+const { Client, Collection, GatewayIntentBits, Routes, InteractionType } = require("discord.js");
 const { REST } = require("@discordjs/rest");
-const { Routes } = require("discord-api-types/v9");
 
 const { AppModule } = require("../app");
 const { AccountProvider } = require("../core/constants");
@@ -12,6 +11,8 @@ const { FrompsBotError } = require("../errors");
 const slashCommands = require("./discord/slash_commands");
 const permanentButtons = require("./discord/permanent_buttons");
 const PermanentButtonContainer = require("./discord/PermanentButtonContainer");
+
+const DISCORD_REST_API_VERSION = "10";
 
 
 class Discord extends AppModule {
@@ -24,7 +25,7 @@ class Discord extends AppModule {
     this.#guildId = guildId;
 
     this.#client = new Client({
-      intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
+      intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
     });
 
     this.#commands = new Collection();
@@ -99,7 +100,9 @@ class Discord extends AppModule {
       commands.push(command[1].definition);
     }
 
-    const rest = new REST({ version: "9" }).setToken(this.#token);
+    const rest = new REST(
+      { version: DISCORD_REST_API_VERSION }
+    ).setToken(this.#token);
 
     return await rest.put(
       Routes.applicationGuildCommands(this.#clientId, this.#guildId),
@@ -111,10 +114,16 @@ class Discord extends AppModule {
   async #resolveInteraction(interaction) {
     // TODO: Set discord client error handling to log unhandled errors instead of crashing.
     let interactionHandler;
-    if (interaction.isCommand() || interaction.isAutocomplete()) {
+
+    switch (interaction.type) {
+    case InteractionType.ApplicationCommand:
+    case InteractionType.ApplicationCommandAutocomplete: {
       interactionHandler = this.#commands.get(interaction.commandName);
-    } else if (interaction.isButton()) {
+      break;
+    }
+    case InteractionType.MessageComponent:
       interactionHandler = this.#permanentButtons.resolve(interaction);
+      break;
     }
 
     return interactionHandler;
@@ -150,13 +159,21 @@ class Discord extends AppModule {
         this.app.services.auth.login(user);
       }
 
-      if (interaction.isCommand()) {
+      switch (interaction.type) {
+      case InteractionType.ApplicationCommand: {
         await handler.execute(interaction);
-      } else if (interaction.isButton()) {
-        await handler.button.execute(interaction, ...handler.args);
-      } else if (interaction.isAutocomplete()) {
-        await handler.autocomplete(interaction);
+        break;
       }
+      case InteractionType.ApplicationCommandAutocomplete: {
+        await handler.autocomplete(interaction);
+        break;
+      }
+      case InteractionType.MessageComponent: {
+        await handler.button.execute(interaction, ...handler.args);
+        break;
+      }
+      }
+
     } catch (e) {
       let rethrow, content, sendMessage;
 

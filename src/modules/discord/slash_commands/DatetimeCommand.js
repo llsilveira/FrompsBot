@@ -1,6 +1,6 @@
 "use strict";
 
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const { TzDatabase, DateTime, TimeZone } = require("timezonecomplete");
 const FrompsBotError = require("../../../errors/FrompsBotError");
 const parseDate = require("../../../helpers/parseDate");
@@ -124,7 +124,7 @@ module.exports = class DatetimeCommand extends SlashCommandBase {
         `\n\`<t:${dateValue}:F>\` - <t:${dateValue}:F>` +
         `\n\`<t:${dateValue}:R>\` - <t:${dateValue}:R>`;
 
-      const embed = new MessageEmbed()
+      const embed = new EmbedBuilder()
         .setTitle(datetimeToString(dt))
         .setDescription(description);
 
@@ -176,7 +176,7 @@ module.exports = class DatetimeCommand extends SlashCommandBase {
       }
       const dt2 = dt1.toZone(timezone2);
 
-      const embed = new MessageEmbed()
+      const embed = new EmbedBuilder()
         .addFields([{
           name: dt1.zone().name(),
           value: `\`${datetimeToString(dt1, { date: showDate })}\``

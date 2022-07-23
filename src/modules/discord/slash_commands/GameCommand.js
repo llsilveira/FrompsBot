@@ -1,6 +1,6 @@
 "use strict";
 
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const FrompsBotError = require("../../../errors/FrompsBotError");
 const SlashCommandBase = require("../SlashCommandBase");
 
@@ -105,7 +105,7 @@ module.exports = class GameCommand extends SlashCommandBase {
       names += `${game.shortName}\n`;
     });
 
-    const embed = new MessageEmbed().setTitle("Jogos cadastrados");
+    const embed = new EmbedBuilder().setTitle("Jogos cadastrados");
     const description = "Lista de jogos e seus respectivos códigos";
 
     if (games.length > 0) {
@@ -161,7 +161,7 @@ module.exports = class GameCommand extends SlashCommandBase {
       mode => !(mode.data?.disabled)
     );
 
-    const embed = new MessageEmbed().setTitle(`${game.code} - Modos de jogo`);
+    const embed = new EmbedBuilder().setTitle(`${game.code} - Modos de jogo`);
     let description = `Modos de jogo de ${game.shortName}:`;
 
     if (modes.length > 0) {
