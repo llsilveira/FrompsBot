@@ -40,6 +40,7 @@
     "start": "npx babel-node .",
     "watch": "npx nodemon --watch src --exec 'yarn start'",
     "debug": "npx babel-node --inspect .",
+    "lint": "npx eslint ./src",
     "build": "npx babel src -d build --copy-files --no-copy-ignored --source-maps",
     "build_start": "node build",
     "build_watch": "npx nodemon --watch src --exec 'yarn build; yarn build_start'",
