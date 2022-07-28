@@ -33,7 +33,8 @@
     "@babel/preset-env": "^7.16.11",
     "eslint": "^8.11.0",
     "jsdoc": "^3.6.10",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "sqlite3": "^5.0.9"
   },
   "scripts": {
     "start": "npx babel-node .",
