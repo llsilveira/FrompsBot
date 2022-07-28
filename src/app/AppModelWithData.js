@@ -6,39 +6,50 @@ const AppModel = require("./AppModel");
 const { structuredClone } = require("../helpers");
 
 module.exports = class AppModelWithData extends AppModel {
-  getData(key, defaultValue) {
-    const data = this.data[key];
-    if (typeof data === "undefined") {
-      return defaultValue;
-    }
-    return structuredClone(data);
+  static async loadDataFor(instance) {
+    await instance.reload({ attributes: ["data"] });
   }
 
-  setData(key, value) {
-    let changed = false;
+  async getData(key, defaultValue) {
+    if (typeof this.data === typeof undefined) {
+      await this.constructor.loadDataFor(this);
+    }
+    const data = this.data;
 
-    if (typeof value !== "undefined") {
-      this.data[key] = value;
+    if (typeof data[key] === typeof undefined) {
+      return defaultValue;
+    }
+    return structuredClone(data[key]);
+  }
+
+  async setData(key, value) {
+    if (typeof this.data === typeof undefined) {
+      await this.constructor.loadDataFor(this);
+    }
+    const data = this.data;
+
+    let changed = false;
+    if (typeof value !== typeof undefined) {
+      data[key] = value;
       changed = true;
-    } else if (typeof this.data[key] !== "undefined") {
-      delete this.data[key];
+    } else if (typeof data[key] !== typeof undefined) {
+      delete data[key];
       changed = true;
     }
 
     if (changed) {
       this.changed("data", true);
+      await this.save({ fields: ["data"] });
     }
   }
 
   static init(sequelize, tableName, fields, opts = {}) {
-
     fields.data = {
       field: "data",
       type: DataTypes.JSONB,
       allowNull: false,
       defaultValue: {}
     };
-
     return super.init(sequelize, tableName, fields, opts);
   }
 };
