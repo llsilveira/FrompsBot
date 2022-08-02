@@ -3,118 +3,100 @@
 const { check, transactional } = require("../../decorators");
 const { hasPermissions } = require("../../constraints");
 const { Permissions } = require("../constants");
-const FrompsBotError = require("../../errors/FrompsBotError");
-const AppModule = require("../../app/AppModule");
+const { FrompsBotError } = require("../../errors");
+const { AppModule } = require("../../app");
+
+const sequelize = require("sequelize");
 
 module.exports = class GameService extends AppModule {
-  async list() {
-    return await this.app.models.game.findAll();
+  async listGames(options) {
+    const queryOptions = this.#processGameQueryOptions(options);
+    const func = options?.count ? "findAndCountAll" : "findAll";
+
+    return await this.app.models.game[func](queryOptions);
   }
 
-  async getFromCode(code, { includeModes = false } = {}) {
-    const findParams = {};
-    if (includeModes) { findParams.include = "modes"; }
-    return await this.app.models.game.findByPk(code.toUpperCase(), findParams);
+  async getGameById(gameId, options) {
+    const queryOptions = this.#processGameQueryOptions(options);
+    return await this.app.models.game.findOne({
+      ...queryOptions,
+      where: { id: gameId }
+    });
   }
 
-  async listModes(gameCode, { includeAll = false } = {}) {
-    const findParams = {
-      where: { gameCode: gameCode.toUpperCase() }
-    };
-    if (!includeAll) {
-      findParams.where.data = {
-        disabled: false
-      };
-    }
-    return await this.app.models.gameMode.findAll(findParams);
+  async getGameByCode(gameCode, options) {
+    const queryOptions = this.#processGameQueryOptions(options);
+    return await this.app.models.game.findOne({
+      ...queryOptions,
+      where: { code: gameCode.toUpperCase() }
+    });
   }
 
-  async getGameMode(gameCode, name, { includeGame = false } = {}) {
-    const findParams = { where: { gameCode: gameCode.toUpperCase(), name } };
-    if (includeGame) { findParams.include = "game"; }
-    return await this.app.models.gameMode.findOne(findParams);
+  async listGameModes(options) {
+    const queryOptions = this.#processGameModeQueryOptions(options);
+    const func = options?.count ? "findAndCountAll" : "findAll";
+
+    return await this.app.models.gameMode[func](queryOptions);
   }
 
-  isMonitor(game, user) {
-    const userGameData = user.getData("game", {});
-    return (userGameData.monitors?.includes(game.code) === true);
+  async getGameModeById(gameId, gameModeId, options = {}) {
+    const queryOptions = this.#processGameModeQueryOptions(options);
+    return await this.app.models.gameMode.findOne({
+      ...queryOptions,
+      where: { gameId, id: gameModeId }
+    });
   }
 
-  @transactional()
-  @check(hasPermissions(Permissions.game.addMonitor))
-  async addMonitor(game, user) {
-    if (this.isMonitor(game, user)) {
-      throw new FrompsBotError(
-        `O usuário ${user.name} já é monitor de ${game.shortName}`);
-    }
-
-    const userGameData = user.getData("game", {});
-    if (typeof userGameData.monitors !== "object") {
-      userGameData.monitors = [];
-    }
-    userGameData.monitors.push(game.code);
-    user.setData("game", userGameData);
-    await user.save();
-  }
-
-  @transactional()
-  @check(hasPermissions(Permissions.game.removeMonitor))
-  async removeMonitor(game, user) {
-    if (!this.isMonitor(game, user)) {
-      throw new FrompsBotError(
-        `O usuário ${user.name} não é monitor de ${game.shortName}`);
-    }
-
-    const userGameData = user.getData("game", {});
-    const index = userGameData.monitors.findIndex(
-      gameCode => gameCode === game.code
-    );
-    userGameData.monitors.splice(index, 1);
-    user.setData("game", userGameData);
-    await user.save();
+  async getGameModeByName(gameId, gameModeName, options = {}) {
+    const queryOptions = this.#processGameModeQueryOptions(options);
+    return await this.app.models.gameMode.findOne({
+      ...queryOptions,
+      where: {
+        [sequelize.Op.and]: [
+          { gameId },
+          sequelize.where(
+            sequelize.fn("UPPER", sequelize.col("name")),
+            gameModeName.toUpperCase()
+          )
+        ]
+      }
+    });
   }
 
   @transactional()
   @check(hasPermissions(Permissions.game.create))
-  async create(code, name, shortName) {
-    const game = await this.getFromCode(code.toUpperCase());
+  async createGame(code, name, shortName) {
+    const game = await this.getGameByCode(code);
     if (game) {
       throw new FrompsBotError(
-        `Já existe um jogo cadastrado com o código '${code}'.`);
+        `Já existe um jogo cadastrado com o código '${code.toUpperCase()}'.`);
     }
-    return await this.app.models.game.create(
-      { code: code.toUpperCase(), name, shortName }
-    );
+    return await this.app.models.game.create({ code, name, shortName });
   }
 
   @transactional()
   @check(hasPermissions(Permissions.game.remove))
-  async remove(code) {
-    const game = await this.getFromCode(code.toUpperCase());
-    if (!game) {
-      throw new FrompsBotError("Jogo não encontrado!");
-    }
-
+  async removeGame(game) {
     await game.destroy();
     return game;
   }
 
   @transactional()
   @check(hasPermissions(Permissions.game.createMode))
-  async createMode(game, name, description) {
-    if (typeof description !== typeof "" || description.length <= 0) {
+  async createGameMode(game, gameModeName, gameModeDescription) {
+    if (typeof gameModeDescription !== typeof "" || gameModeDescription.length <= 0) {
       throw new FrompsBotError("A descrição deve ter até 80 caracteres.");
     }
 
-    let mode = await this.getGameMode(game.code, name);
+    let mode = await this.getGameModeByName(game.id, gameModeName);
     if (mode) {
       throw new FrompsBotError(
-        `Já existe um modo com o nome ${name} para ${game.shortName}.`
+        `Já existe um modo com o nome ${gameModeName} para ${game.shortName}.`
       );
     }
 
     mode = await this.app.models.gameMode.create({
-      gameCode: game.code, name, description
+      gameId: game.id, name: gameModeName, description: gameModeDescription
     });
 
     return mode;
@@ -122,14 +104,70 @@ module.exports = class GameService extends AppModule {
 
   @transactional()
   @check(hasPermissions(Permissions.game.removeMode))
-  async removeMode(game, name) {
-    const mode = await this.getGameMode(game.code, name);
-    if (!mode) {
-      throw new FrompsBotError(
-        `Não existe um modo com o nome ${name} para ${game.shortName}.`
-      );
+  async removeGameMode(gameMode) {
+    await gameMode.destroy();
+    return gameMode;
+  }
+
+  #processQueryOptions(options = {}) {
+    const queryOptions = { where: {} };
+
+    if (options?.ordered) {
+      queryOptions.order = [["name", "ASC"]];
     }
 
-    await mode.destroy();
+    if (options?.pagination) {
+      const { pageSize, pageNumber } = options.pagination;
+
+      queryOptions.limit = pageSize;
+      queryOptions.offset = (pageNumber - 1) * pageSize;
+    }
+
+    return queryOptions;
+  }
+
+  #processGameQueryOptions(options) {
+    const queryOptions = this.#processQueryOptions(options);
+
+    if (options?.includeModes) {
+      queryOptions.include = ["modes"];
+    }
+
+    if (options?.filter) {
+      const search = `%${options.filter}%`;
+      queryOptions.where[sequelize.Op.or] = {
+        name: {
+          [sequelize.Op.iLike]: search
+        },
+        shortName: {
+          [sequelize.Op.iLike]: search
+        }
+      };
+    }
+
+    return queryOptions;
+  }
+
+  #processGameModeQueryOptions(options) {
+    const queryOptions = this.#processQueryOptions(options);
+
+    if (options?.includeGame) {
+      queryOptions.include = ["game"];
+    }
+
+    if (!(options?.includeAll)) {
+      queryOptions.where["data.disabled"] = { [sequelize.Op.not]: true };
+    }
+
+    if (options?.gameId) {
+      queryOptions.where["gameId"] = options.gameId;
+    }
+
+    if (options?.filter) {
+      const search = `%${options.filter}%`;
+      queryOptions.where["name"] = { [sequelize.Op.iLike]: search };
+    }
+
+    return queryOptions;
   }
 };

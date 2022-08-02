@@ -1,7 +1,6 @@
 "use strict";
 
-
-const { Client, Collection, GatewayIntentBits, Routes, InteractionType } = require("discord.js");
+const { Client, GatewayIntentBits, Routes } = require("discord.js");
 const { REST } = require("@discordjs/rest");
 
 const { AppModule } = require("../app");
@@ -9,11 +8,9 @@ const { AccountProvider } = require("../core/constants");
 const { FrompsBotError } = require("../errors");
 
 const slashCommands = require("./discord/slash_commands");
-const permanentButtons = require("./discord/permanent_buttons");
-const PermanentButtonContainer = require("./discord/PermanentButtonContainer");
+const InteractionHandlerContainer = require("./discord/InteractionHandlerContainer");
 
 const DISCORD_REST_API_VERSION = "10";
-
 
 class Discord extends AppModule {
   constructor(app) {
@@ -28,12 +25,12 @@ class Discord extends AppModule {
       intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
     });
 
-    this.#commands = new Collection();
-    this.#permanentButtons = new PermanentButtonContainer();
+    this.#interactionHandlerContainer = new InteractionHandlerContainer();
 
     this.#client.on("interactionCreate", async interaction => {
       try {
-        const handler = await this.#resolveInteraction(interaction);
+        const handler =
+          this.#interactionHandlerContainer.getHandlerFor(interaction);
         if (handler) {
           await this.app.context.run(async () => {
             await this.#handleInteraction(interaction, handler);
@@ -49,7 +46,10 @@ class Discord extends AppModule {
     });
 
     this.#registerSlashCommands();
-    this.#registerPermanentButtons();
+  }
+
+  registerInteractionHandler(interactionHandler) {
+    this.#interactionHandlerContainer.registerHandler(interactionHandler);
   }
 
   async getDiscordId(user) {
@@ -90,14 +90,11 @@ class Discord extends AppModule {
     return this.#client.login(this.#token);
   }
 
-  getPermanentButton(name, args = []) {
-    return this.#permanentButtons.createButton(name, args);
-  }
-
   async updateCommands() {
     const commands = [];
-    for (const command of this.#commands) {
-      commands.push(command[1].definition);
+    for (const command of this.#interactionHandlerContainer
+      .getApplicationCommands()) {
+      commands.push(command.builder.toJSON());
     }
 
     const rest = new REST(
@@ -110,28 +107,9 @@ class Discord extends AppModule {
     );
   }
 
-
-  async #resolveInteraction(interaction) {
-    // TODO: Set discord client error handling to log unhandled errors instead of crashing.
-    let interactionHandler;
-
-    switch (interaction.type) {
-    case InteractionType.ApplicationCommand:
-    case InteractionType.ApplicationCommandAutocomplete: {
-      interactionHandler = this.#commands.get(interaction.commandName);
-      break;
-    }
-    case InteractionType.MessageComponent:
-      interactionHandler = this.#permanentButtons.resolve(interaction);
-      break;
-    }
-
-    return interactionHandler;
-  }
-
   async #handleInteraction(interaction, handler) {
     try {
-      if (handler.loginRequired) {
+      if (!handler.annonymous) {
         const userId = interaction.user.id;
         let user = await this.app.services.user.getFromProvider(
           AccountProvider.DISCORD, userId
@@ -158,21 +136,7 @@ class Discord extends AppModule {
 
         this.app.services.auth.login(user);
       }
-
-      switch (interaction.type) {
-      case InteractionType.ApplicationCommand: {
-        await handler.execute(interaction);
-        break;
-      }
-      case InteractionType.ApplicationCommandAutocomplete: {
-        await handler.autocomplete(interaction);
-        break;
-      }
-      case InteractionType.MessageComponent: {
-        await handler.button.execute(interaction, ...handler.args);
-        break;
-      }
-      }
+      await handler.handleInteraction(interaction, this.app.context);
 
     } catch (e) {
       let rethrow, content, sendMessage;
@@ -209,23 +173,17 @@ class Discord extends AppModule {
   #registerSlashCommands() {
     for (const command in slashCommands) {
       const instance = new slashCommands[command](this);
-      this.#commands.set(instance.name, instance);
-    }
-  }
-
-  #registerPermanentButtons() {
-    for (const button in permanentButtons) {
-      const instance = new permanentButtons[button](this);
-      this.#permanentButtons.register(instance.name, instance);
+      this.registerInteractionHandler(instance);
     }
   }
 
   #client;
-  #commands;
-  #permanentButtons;
+
   #token;
   #clientId;
   #guildId;
+
+  #interactionHandlerContainer;
 }
 
 AppModule.setModuleName(Discord, "discord");

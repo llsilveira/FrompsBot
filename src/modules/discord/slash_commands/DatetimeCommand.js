@@ -1,11 +1,12 @@
 "use strict";
 
 const { EmbedBuilder } = require("discord.js");
-const { TzDatabase, DateTime, TimeZone } = require("timezonecomplete");
+const { DateTime } = require("timezonecomplete");
 const FrompsBotError = require("../../../errors/FrompsBotError");
+const ApplicationCommand = require("../interaction/ApplicationCommand");
 const parseDate = require("../../../helpers/parseDate");
 const parseTime = require("../../../helpers/parseTime");
-const SlashCommandBase = require("../SlashCommandBase");
+const TimezoneAutocompleteField = require("../autocomplete_fields/TimezoneAutocompleteField");
 
 
 function datetimeToString(datetime, {
@@ -23,13 +24,23 @@ function datetimeToString(datetime, {
   return datetime.format(format);
 }
 
-module.exports = class DatetimeCommand extends SlashCommandBase {
+module.exports = class DatetimeCommand extends ApplicationCommand {
   constructor(discord) {
-    super(discord, "datetime", "Funções utilitárias de data e hora.", {
-      loginRequired: false
-    });
+    super(
+      "datetime",
+      "Funções utilitárias de data e hora.",
+      { annonymous: true }
+    );
 
-    this.builder.addSubcommand(subcommand =>
+    this.#timezoneField = new TimezoneAutocompleteField(this, "timezone");
+    this.#firstTimezoneField = new TimezoneAutocompleteField(this, "timezone1");
+    this.#secondTimezoneField = new TimezoneAutocompleteField(this, "timezone2");
+
+    discord.registerInteractionHandler(this.#timezoneField);
+    discord.registerInteractionHandler(this.#firstTimezoneField);
+    discord.registerInteractionHandler(this.#secondTimezoneField);
+
+    this.builder.addSubcommand(subcommand => {
       subcommand.setName("localtime")
         .setDescription(
           "Mostra as opções de formatação de data e hora nativas do Discord."
@@ -43,15 +54,16 @@ module.exports = class DatetimeCommand extends SlashCommandBase {
           option.setName("time")
             .setDescription("Horário no formato 'HH:MM:SS'.")
             .setRequired(true)
-        )
-        .addStringOption(option =>
-          option.setName("timezone")
-            .setDescription("Fuso horário (Padrão: America/Sao_Paulo).")
-            .setAutocomplete(true)
-        )
-    );
+        );
 
-    this.builder.addSubcommand(subcommand =>
+      this.#timezoneField.addTo(
+        subcommand, "Fuso horário (Padrão: America/Sao_Paulo).", false
+      );
+
+      return subcommand;
+    });
+
+    this.builder.addSubcommand(subcommand => {
       subcommand.setName("convert")
         .setDescription("Converte hora de um fuso horário para outro.")
         .addStringOption(option =>
@@ -61,42 +73,31 @@ module.exports = class DatetimeCommand extends SlashCommandBase {
         .addStringOption(option =>
           option.setName("time")
             .setDescription("Horário no formato 'HH:MM:SS'.")
-        )
-        .addStringOption(option =>
-          option.setName("timezone1")
-            .setDescription("Fuso horário de origem (Padrão: America/Sao_Paulo).")
-            .setAutocomplete(true)
-        )
-        .addStringOption(option =>
-          option.setName("timezone2")
-            .setDescription("Fuso horário de destino (Padrão: America/Sao_Paulo).")
-            .setAutocomplete(true)
-        )
-    );
+        );
 
-    const preferredZones = [
-      "America/Sao_Paulo",
-      "Europe/Madrid"
-    ];
-    const allZones = Array.from(TzDatabase.instance().zoneNames());
-    const zonesCombined = preferredZones.concat(allZones.filter(
-      name => !preferredZones.includes(name)
-    ));
+      this.#firstTimezoneField.addTo(
+        subcommand,
+        "Fuso horário de origem (Padrão: America/Sao_Paulo).",
+        false
+      );
 
+      this.#secondTimezoneField.addTo(
+        subcommand,
+        "Fuso horário de destino (Padrão: America/Sao_Paulo).",
+        false
+      );
 
-    this.timezones = {};
-    zonesCombined.forEach(
-      zoneName => this.timezones[zoneName] = zoneName.toLowerCase()
-    );
+      return subcommand;
+    });
   }
 
-  async execute(interaction) {
+  async handleInteraction(interaction) {
     const command = interaction.options.getSubcommand();
     switch (command) {
     case "localtime": {
       const date = this._getDateField("date", interaction);
       const time = this._getTimeField("time", interaction);
-      const timezone = this._getTimezoneField("timezone", interaction);
+      const timezone = await this.#timezoneField.getValue(interaction);
 
       let dt;
       try {
@@ -134,11 +135,13 @@ module.exports = class DatetimeCommand extends SlashCommandBase {
       });
       break;
     }
+
     case "convert": {
       let date = this._getDateField("date", interaction);
       let time = this._getTimeField("time", interaction);
-      const timezone1 = this._getTimezoneField("timezone1", interaction);
-      const timezone2 = this._getTimezoneField("timezone2", interaction);
+
+      const timezone1 = await this.#firstTimezoneField.getValue(interaction);
+      const timezone2 = await this.#secondTimezoneField.getValue(interaction);
 
       const now = DateTime.now(timezone1);
       let showDate = true;
@@ -157,7 +160,6 @@ module.exports = class DatetimeCommand extends SlashCommandBase {
           seconds: now.second()
         };
       }
-
 
       let dt1;
       try {
@@ -193,27 +195,6 @@ module.exports = class DatetimeCommand extends SlashCommandBase {
     }
   }
 
-  async autocomplete(interaction) {
-    const focusedOption = interaction.options.getFocused(true);
-    const typed = focusedOption.value.toLowerCase();
-
-    switch (focusedOption.name) {
-    case "timezone":
-    case "timezone1":
-    case "timezone2": {
-      const results = [];
-      for (const [tz, tzvalue] of Object.entries(this.timezones)) {
-        if (tzvalue.startsWith(typed)) {
-          results.push({ name: tz, value: tz });
-          if (results.length >= 25) { break; }
-        }
-      }
-
-      await interaction.respond(results);
-    }
-    }
-  }
-
   _getDateField(fieldName, interaction) {
     const dateField = interaction.options.getString(fieldName);
     if (!dateField) { return null; }
@@ -236,18 +217,7 @@ module.exports = class DatetimeCommand extends SlashCommandBase {
     return timeVal;
   }
 
-  _getTimezoneField(fieldName, interaction) {
-    let timezoneField = interaction.options.getString(fieldName);
-
-    let timezoneVal;
-    if (typeof timezoneField !== typeof "" || timezoneField.length === 0) {
-      timezoneField = "America/Sao_Paulo";
-    }
-    try {
-      timezoneVal = TimeZone.zone(timezoneField);
-    } catch (e) {
-      throw new FrompsBotError("Fuso horário desconhecido!");
-    }
-    return timezoneVal;
-  }
+  #timezoneField;
+  #firstTimezoneField;
+  #secondTimezoneField;
 };

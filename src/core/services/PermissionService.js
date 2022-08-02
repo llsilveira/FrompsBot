@@ -1,7 +1,7 @@
 "use strict";
 
 const AppModule = require("../../app/AppModule");
-const { Permissions } = require("../constants");
+const Permissions = require("../constants/Permissions");
 
 module.exports = class PermissionService extends AppModule {
   constructor(app, authService, botService, gameService) {
@@ -13,6 +13,10 @@ module.exports = class PermissionService extends AppModule {
     });
   }
 
+  async [Permissions.bot.listAdmins]() {
+    const user = this.#services.auth.getLoggedUser();
+    return (await this.#services.bot.isAdmin(user));
+  }
 
   async [Permissions.bot.addAdmin]() {
     const user = this.#services.auth.getLoggedUser();
@@ -20,6 +24,24 @@ module.exports = class PermissionService extends AppModule {
   }
 
   async [Permissions.bot.removeAdmin]() {
+    const user = this.#services.auth.getLoggedUser();
+    return (await this.#services.bot.isAdmin(user));
+  }
+
+  async [Permissions.bot.listMonitors](game) {
+    const user = this.#services.auth.getLoggedUser();
+    return (
+      await this.#services.bot.isAdmin(user) ||
+      await this.#services.bot.isMonitor(user, game)
+    );
+  }
+
+  async [Permissions.bot.addMonitor]() {
+    const user = this.#services.auth.getLoggedUser();
+    return (await this.#services.bot.isAdmin(user));
+  }
+
+  async [Permissions.bot.removeMonitor]() {
     const user = this.#services.auth.getLoggedUser();
     return (await this.#services.bot.isAdmin(user));
   }
@@ -43,25 +65,16 @@ module.exports = class PermissionService extends AppModule {
   }
 
   async [Permissions.game.createMode](game) {
-    return (await this.#services.game.isMonitor(
-      game, this.#services.auth.getLoggedUser()
+    return (await this.#services.bot.isMonitor(
+      this.#services.auth.getLoggedUser(), game
     ));
   }
 
-  async [Permissions.game.removeMode](game) {
-    return (await this.#services.game.isMonitor(
-      game, this.#services.auth.getLoggedUser()
+  async [Permissions.game.removeMode](gameMode) {
+    const game = gameMode.game || await this.#services.game.getGameById(gameMode.gameId);
+    return (await this.#services.bot.isMonitor(
+      this.#services.auth.getLoggedUser(), game
     ));
-  }
-
-  async [Permissions.game.addMonitor]() {
-    const user = this.#services.auth.getLoggedUser();
-    return (await this.#services.bot.isAdmin(user));
-  }
-
-  async [Permissions.game.removeMonitor]() {
-    const user = this.#services.auth.getLoggedUser();
-    return (await this.#services.bot.isAdmin(user));
   }
 
   #services;

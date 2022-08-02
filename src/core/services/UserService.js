@@ -6,6 +6,18 @@ const { Permissions } = require("../constants");
 const AppModule = require("../../app/AppModule");
 
 module.exports = class UserService extends AppModule {
+  async listUsersFilterByData(dataFilter, options = {}) {
+    const queryOptions = this.processQueryOptions(options);
+
+    const query = { data: {} };
+    for (const dataKey in dataFilter) {
+      query.data[dataKey] = dataFilter[dataKey];
+    }
+
+    queryOptions.where = query;
+    return await this.app.models.user.findAll(queryOptions);
+  }
+
   async getFromProvider(provider, providerId) {
     const accounts = await this.app.models.userAccount.findAll({
       where: { provider, providerId },
@@ -64,5 +76,14 @@ module.exports = class UserService extends AppModule {
     }
 
     return user;
+  }
+
+  processQueryOptions(options) {
+    const queryOptions = { where: {} };
+
+    if (options?.ordered) {
+      queryOptions.order = [["name", "ASC"]];
+    }
+    return queryOptions;
   }
 };
