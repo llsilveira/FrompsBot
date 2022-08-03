@@ -1,18 +1,23 @@
-{
-  "extends": "eslint:recommended",
-  "parser": "@babel/eslint-parser",
-  "env": {
-    "node": true,
-    "es2021": true
-  },
+{  
+  "extends": [
+    "eslint:recommended",
+		"plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+	"plugins": [
+    "@typescript-eslint"
+  ],
   "parserOptions": {
-    "ecmaVersion": 12,
-    "sourceType": "script"
+		"project": ["./tsconfig.json", "./local/tsconfig.json"]
   },
   "rules": {
+    "@typescript-eslint/no-unused-vars": "warn",
+		"@typescript-eslint/no-inferrable-types": "off",
+
     "strict": ["error", "global"],
     "linebreak-style": ["error", "unix"],
-    "no-unused-vars": "warn",
 		"arrow-spacing": ["warn", { "before": true, "after": true }],
 		"brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
 		"comma-dangle": ["warn", "only-multiline"],
