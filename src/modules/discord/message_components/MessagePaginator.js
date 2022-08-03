@@ -1,7 +1,9 @@
 "use strict";
 
-const { ButtonBuilder, ButtonStyle, ActionRowBuilder } = require("discord.js");
+const { ButtonBuilder, ButtonStyle, ActionRowBuilder, SelectMenuBuilder } = require("discord.js");
 const MessageComponent = require("../interaction/MessageComponent");
+
+const MAX_SELECT_OPTIONS = 11;
 
 module.exports = class MessagePaginator extends MessageComponent {
   constructor(componentName, updateMessageCallback, options = {}) {
@@ -32,6 +34,11 @@ module.exports = class MessagePaginator extends MessageComponent {
       page = 1;
       break;
     }
+    case "select": {
+      const newPage = Number.parseInt(interaction.values[0]);
+      if (newPage > 0) { page = newPage; }
+      break;
+    }
     }
 
     await this.#updateMessageCallback(
@@ -39,7 +46,7 @@ module.exports = class MessagePaginator extends MessageComponent {
     );
   }
 
-  createActionRow(pageSize, pageNumber, pageCount, ...extra) {
+  getButtons(pageSize, pageNumber, pageCount, ...extra) {
 
     const firstButton = this.#createButton(this.generateCustomId(
       ["first", pageNumber, pageSize, pageCount, ...extra]
@@ -74,12 +81,23 @@ module.exports = class MessagePaginator extends MessageComponent {
     }
 
     const pageCountButton = this.#createButton(this.generateCustomId());
-    pageCountButton.setLabel(`${pageNumber}/${pageCount}`).setDisabled(true);
+    pageCountButton.setLabel(`Página ${pageNumber}/${pageCount}`).setDisabled(true);
+    pageCountButton.setStyle(ButtonStyle.Secondary);
 
-    const actionRow = new ActionRowBuilder();
-    actionRow.addComponents([
+    const actionRow = new ActionRowBuilder().addComponents([
       firstButton, prevButton, pageCountButton, nextButton, lastButton
     ]);
+
+    return actionRow;
+  }
+
+  getPageSelector(pageSize, pageNumber, pageCount, ...extra) {
+    const pageSelector = this.#createSelectMenu(this.generateCustomId(
+      ["select", pageNumber, pageSize, pageCount, ...extra]
+    ), pageNumber, pageCount);
+
+    const actionRow = new ActionRowBuilder()
+      .addComponents([pageSelector]);
 
     return actionRow;
   }
@@ -88,6 +106,68 @@ module.exports = class MessagePaginator extends MessageComponent {
     const button = new ButtonBuilder().setStyle(ButtonStyle.Primary)
       .setCustomId(customId);
     return button;
+  }
+
+  #createSelectMenu(customId, pageNumber, pageCount) {
+    let pagesBefore = pageNumber - 1;
+    let pagesAfter = pageCount - pageNumber;
+
+    if (pageCount > MAX_SELECT_OPTIONS) {
+      const halfPages = (MAX_SELECT_OPTIONS - 1) / 2;
+      if (pagesAfter >= halfPages && pagesBefore >= halfPages) {
+        pagesAfter = pagesBefore = halfPages;
+      } else if (pagesAfter >= halfPages) {
+        pagesAfter = Math.min(pagesAfter, MAX_SELECT_OPTIONS - 1 - pagesBefore);
+      } else {
+        pagesBefore = Math.min(pagesBefore, MAX_SELECT_OPTIONS - 1 - pagesAfter);
+      }
+    }
+
+    const values = [];
+
+    let page = pageNumber - pagesBefore;
+    if (pageNumber !== 1) {
+      values.push({ label: "Página 1", value: "1" });
+      page++;
+    }
+
+    if (page !== pageNumber && page > 2) {
+      values.push({ label: "--", value: "-1" });
+      page++;
+    }
+
+    while (page < pageNumber) {
+      values.push({ label: `Página ${page}`, value: page.toString() });
+      page++;
+    }
+
+    values.push({
+      label: `Página ${pageNumber}`,
+      value: pageNumber.toString(),
+      default: true
+    });
+    page++;
+
+    while (page <= pageNumber + pagesAfter - 2) {
+      values.push({ label: `Página ${page}`, value: page.toString() });
+      page++;
+    }
+
+    if (page < pageCount - 1) {
+      values.push({ label: "--", value: "-2" });
+    } else if (page < pageCount) {
+      values.push({ label: `Página ${page}`, value: page.toString() });
+    }
+
+    if (pageNumber !== pageCount) {
+      values.push({ label: `Página ${pageCount}`, value: pageCount.toString() });
+    }
+
+
+    const selectMenu = new SelectMenuBuilder()
+      .setCustomId(customId)
+      .setOptions(values);
+    return selectMenu;
   }
 
   #updateMessageCallback;

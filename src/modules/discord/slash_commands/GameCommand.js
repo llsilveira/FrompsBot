@@ -181,7 +181,7 @@ module.exports = class GameCommand extends ApplicationCommand {
     const includeAll = interaction.options.getBoolean("include_all");
 
     const message = await this.#listGameModesMessage(
-      context, 1, 1, game.id, filter, includeAll
+      context, 10, 1, game.id, filter, includeAll
     );
     await interaction.reply({
       ...message,
@@ -287,11 +287,11 @@ module.exports = class GameCommand extends ApplicationCommand {
     if (totalPages > 1) {
       let paginator;
       if (filter) {
-        paginator = this.#gamePaginator.createActionRow(
+        paginator = this.#gamePaginator.getButtons(
           pageSize, pageNumber, totalPages, "game", filter
         );
       } else {
-        paginator = this.#gamePaginator.createActionRow(
+        paginator = this.#gamePaginator.getButtons(
           pageSize, pageNumber, totalPages, "game"
         );
       }
