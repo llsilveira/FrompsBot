@@ -1,18 +1,21 @@
 import {
   AutocompleteInteraction, CommandInteraction, Interaction, InteractionType,
-  MessageComponentInteraction
+  MessageComponentInteraction,
+  ModalSubmitInteraction
 } from "discord.js";
 
 import ApplicationCommand from "./interaction/ApplicationCommand";
 import AutocompleteField from "./interaction/AutocompleteField";
 import InteractionHandler from "./interaction/InteractionHandler";
 import MessageComponent from "./interaction/MessageComponent";
+import ModalSubmit from "./interaction/ModalSubmit";
 
 
 type MapTypes = {
   [InteractionType.ApplicationCommand]: ApplicationCommand,
   [InteractionType.ApplicationCommandAutocomplete]: AutocompleteField,
-  [InteractionType.MessageComponent]: MessageComponent
+  [InteractionType.MessageComponent]: MessageComponent,
+  [InteractionType.ModalSubmit]: ModalSubmit
 };
 
 export type InteractionHandlerContainerTypes = keyof MapTypes;
@@ -29,6 +32,8 @@ export default class InteractionHandlerContainer {
       this.#registerAutocompleteField(interactionHandler);
     } else if (interactionHandler instanceof MessageComponent) {
       this.#registerMessageComponent(interactionHandler);
+    } else if (interactionHandler instanceof ModalSubmit) {
+      this.#registerModalSubmit(interactionHandler);
     } else {
       throw new TypeError("Unrecognized interaction handler type");
     }
@@ -42,8 +47,12 @@ export default class InteractionHandlerContainer {
       return this.#getAutocompleteFieldHandler(interaction);
     } else if (interactionType === InteractionType.MessageComponent) {
       return this.#getMessageComponentHandler(interaction);
+    } else if (interactionType === InteractionType.ModalSubmit) {
+      return this.#getModalSubmitHandler(interaction);
     } else {
-      throw new Error(`Unrecognized interaction type: ${interactionType}`);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const exhaustiveCheck: never = interactionType;
+      throw new TypeError("Unrecognized interaction type");
     }
   }
 
@@ -62,6 +71,12 @@ export default class InteractionHandlerContainer {
   getMessageComponents() {
     const commandContainer =
       this.#containers[InteractionType.MessageComponent];
+    return commandContainer.values();
+  }
+
+  getModalSubmits() {
+    const commandContainer =
+      this.#containers[InteractionType.ModalSubmit];
     return commandContainer.values();
   }
 
@@ -112,6 +127,21 @@ export default class InteractionHandlerContainer {
     return this.#containerGet(InteractionType.MessageComponent, key);
   }
 
+  #registerModalSubmit(interactionHandler: ModalSubmit) {
+    this.#containerSet(
+      InteractionType.ModalSubmit,
+      interactionHandler.componentName,
+      interactionHandler
+    );
+  }
+
+  #getModalSubmitHandler(interaction: ModalSubmitInteraction) {
+    const customId = interaction.customId;
+    const key = MessageComponent.getComponentNameFromCustomId(customId) || "";
+
+    return this.#containerGet(InteractionType.MessageComponent, key);
+  }
+
   #containerGet(
     interactionType: InteractionHandlerContainerTypes,
     key: string
@@ -135,6 +165,7 @@ export default class InteractionHandlerContainer {
   #containers: ContainersType = {
     [InteractionType.ApplicationCommand]: new Map(),
     [InteractionType.ApplicationCommandAutocomplete]: new Map(),
-    [InteractionType.MessageComponent]: new Map()
+    [InteractionType.MessageComponent]: new Map(),
+    [InteractionType.ModalSubmit]: new Map()
   };
 }

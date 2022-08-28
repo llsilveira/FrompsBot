@@ -13,9 +13,11 @@ export type PermanentButtonCallback = (
   args?: JSONSerializable
 ) => unknown;
 
-export interface PermanentButtonOptions extends
-  Partial<Exclude<InteractionButtonComponentData, "customId">>,
-  InteractionHandlerOptions {}
+interface ButtonOptions
+  extends Partial<Exclude<InteractionButtonComponentData, "customId">> {}
+
+export interface PermanentButtonOptions
+  extends ButtonOptions, InteractionHandlerOptions {}
 
 export default class PermanentButton extends MessageComponent {
   constructor(
@@ -29,7 +31,7 @@ export default class PermanentButton extends MessageComponent {
   }
 
   createButton(
-    options: Partial<Exclude<InteractionButtonComponentData, "customId">> = {},
+    options: ButtonOptions,
     args: JSONSerializable
   ) {
     const fullOptions = Object.assign({

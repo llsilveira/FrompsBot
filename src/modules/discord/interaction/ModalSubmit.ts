@@ -3,10 +3,10 @@ import ComponentInteractionHandler from "./ComponentInteractionHandler";
 import { InteractionHandlerOptions } from "./InteractionHandler";
 
 
-export default abstract class MessageComponent
-  extends ComponentInteractionHandler<InteractionType.MessageComponent> {
+export default abstract class ModalSubmit
+  extends ComponentInteractionHandler<InteractionType.ModalSubmit> {
 
   constructor(componentName: string, options?: InteractionHandlerOptions) {
-    super(InteractionType.MessageComponent, componentName, options);
+    super(InteractionType.ModalSubmit, componentName, options);
   }
 }
