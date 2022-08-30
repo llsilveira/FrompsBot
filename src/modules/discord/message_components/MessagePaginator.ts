@@ -95,7 +95,7 @@ export default class MessagePaginator<T extends JSONSerializable | undefined>
     extra: T
   ) {
     const firstButton = this.#createButton(this.#generateId(
-      "first", pageNumber, pageSize, pageCount, extra
+      "first", pageSize, pageNumber, pageCount, extra
     ));
     firstButton.setEmoji("⏮");
     if (pageNumber === 1) {
@@ -103,7 +103,7 @@ export default class MessagePaginator<T extends JSONSerializable | undefined>
     }
 
     const prevButton = this.#createButton(this.#generateId(
-      "prev", pageNumber, pageSize, pageCount, extra
+      "prev", pageSize, pageNumber, pageCount, extra
     ));
     prevButton.setEmoji("◀");
     if (pageNumber === 1) {
@@ -111,7 +111,7 @@ export default class MessagePaginator<T extends JSONSerializable | undefined>
     }
 
     const nextButton = this.#createButton(this.#generateId(
-      "next", pageNumber, pageSize, pageCount, extra
+      "next", pageSize, pageNumber, pageCount, extra
     ));
     nextButton.setEmoji("▶");
     if (pageNumber === pageCount) {
@@ -119,7 +119,7 @@ export default class MessagePaginator<T extends JSONSerializable | undefined>
     }
 
     const lastButton = this.#createButton(this.#generateId(
-      "last", pageNumber, pageSize, pageCount, extra
+      "last", pageSize, pageNumber, pageCount, extra
     ));
     lastButton.setEmoji("⏭");
     if (pageNumber === pageCount) {
