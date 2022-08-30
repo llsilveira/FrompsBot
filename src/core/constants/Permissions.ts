@@ -20,6 +20,7 @@ export default class Permissions {
 
   static readonly game = class {
     static readonly create: unique symbol = Symbol("Permission.game.create");
+    static readonly update: unique symbol = Symbol("Permission.game.update");
     static readonly remove: unique symbol = Symbol("Permission.game.remove");
     static readonly createMode: unique symbol = Symbol("Permission.game.createMode");
     static readonly removeMode: unique symbol = Symbol("Permission.game.removeMode");

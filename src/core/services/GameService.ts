@@ -119,6 +119,23 @@ export default class GameService extends AppModule {
   }
 
   @transactional()
+  @check(hasPermission(Permissions.game.update))
+  async updateGame(game: GameModel, code: string, name: string, shortName?: string) {
+    const otherGame = await this.getGameByCode(code);
+    if (otherGame && otherGame.id !== game.id) {
+      throw new FrompsBotError(
+        `O código ${code} já esta sendo usado no jogo ${otherGame.shortName}.`
+      );
+    }
+
+    game.code = code;
+    game.name = name;
+    // TODO: study a way to change this
+    game.shortName = shortName as string;
+    await game.save();
+  }
+
+  @transactional()
   @check(hasPermission(Permissions.game.remove))
   async removeGame(game: GameModel) {
     await game.destroy();

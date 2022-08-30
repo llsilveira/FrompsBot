@@ -75,6 +75,11 @@ export default class PermissionService extends AppModule implements IPermissionS
     return this.#services.bot.isAdmin(user);
   }
 
+  [Permissions.game.update]() {
+    const user = this.#services.auth.getLoggedUser();
+    return this.#services.bot.isAdmin(user);
+  }
+
   [Permissions.game.remove]() {
     const user = this.#services.auth.getLoggedUser();
     return this.#services.bot.isAdmin(user);
