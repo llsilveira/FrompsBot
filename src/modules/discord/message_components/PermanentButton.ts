@@ -7,10 +7,12 @@ import ContextManager from "../../../core/modules/ContextManager";
 import MessageComponent from "../interaction/MessageComponent";
 import { JSONSerializable } from "../../../core/type";
 
-export type PermanentButtonCallback = (
+export type PermanentButtonCallback<
+  ArgsType extends JSONSerializable | undefined
+> = (
   interaction: MessageComponentInteraction,
   context: ContextManager,
-  args?: JSONSerializable
+  args: ArgsType
 ) => unknown;
 
 interface ButtonOptions
@@ -19,10 +21,12 @@ interface ButtonOptions
 export interface PermanentButtonOptions
   extends ButtonOptions, InteractionHandlerOptions {}
 
-export default class PermanentButton extends MessageComponent {
+export default class PermanentButton<
+  ArgsType extends JSONSerializable | undefined
+> extends MessageComponent<ArgsType> {
   constructor(
     componentName: string,
-    buttonCallback: PermanentButtonCallback,
+    buttonCallback: PermanentButtonCallback<ArgsType>,
     options: PermanentButtonOptions = {}
   ) {
     super(componentName, options);
@@ -32,7 +36,7 @@ export default class PermanentButton extends MessageComponent {
 
   createButton(
     options: ButtonOptions,
-    args: JSONSerializable
+    args: ArgsType
   ) {
     const fullOptions = Object.assign({
       customId: this.generateCustomId(args),

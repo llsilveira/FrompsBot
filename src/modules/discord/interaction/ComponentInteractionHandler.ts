@@ -7,8 +7,9 @@ const CUSTOMID_PREFIX = "mcomp";
 const FIELD_SEPARATOR = "$";
 
 export default abstract class ComponentInteractionHandler<
-  T extends InteractionType.MessageComponent | InteractionType.ModalSubmit
-> extends InteractionHandler<T> {
+  IType extends InteractionType.MessageComponent | InteractionType.ModalSubmit,
+  ArgsType extends JSONSerializable | undefined
+> extends InteractionHandler<IType> {
 
   static getComponentNameFromCustomId(customId: string): string | null {
     const prefix = CUSTOMID_PREFIX + FIELD_SEPARATOR;
@@ -24,7 +25,7 @@ export default abstract class ComponentInteractionHandler<
   }
 
   constructor(
-    interactionType: T,
+    interactionType: IType,
     componentName: string, options?: InteractionHandlerOptions) {
     super(interactionType, options);
 
@@ -37,7 +38,7 @@ export default abstract class ComponentInteractionHandler<
     this.componentName = componentName;
   }
 
-  generateCustomId(args?: JSONSerializable) {
+  generateCustomId(args: ArgsType) {
     const argsStr = (args === undefined) ? "" : JSON.stringify(args);
 
     const value =
@@ -52,14 +53,14 @@ export default abstract class ComponentInteractionHandler<
     return value;
   }
 
-  getArguments(customId: string): JSONSerializable {
+  getArguments(customId: string): ArgsType {
     const index = CUSTOMID_PREFIX.length + FIELD_SEPARATOR.length +
       this.componentName.length + FIELD_SEPARATOR.length;
 
     const argsStr = customId.substring(index);
-    if (argsStr.length <= 0) { return null; }
+    if (argsStr.length === 0) { return undefined as ArgsType; }
 
-    return JSON.parse(argsStr) as JSONSerializable;
+    return JSON.parse(argsStr) as ArgsType;
   }
 
   // abstract handleInteraction from InteractionHandler

@@ -9,44 +9,58 @@ import { InteractionHandlerOptions } from "../interaction/InteractionHandler";
 import MessageComponent from "../interaction/MessageComponent";
 
 
-export type PaginatorUpdateMessageCallback = (
+export type PaginatorUpdateMessageCallback<
+  T extends JSONSerializable | undefined = undefined
+> = (
   interaction: MessageComponentInteraction,
   context: ContextManager,
   pageSize: number,
-  page: number,
-  extraParams?: JSONSerializable
+  pageNumber: number,
+  extra: T
 ) => unknown;
 
-type PaginatorArguments = [string, number, number, number, JSONSerializable?];
+type TypeSelector = "select" | "first" | "last" | "prev" | "next";
+
+
+type UndefinedArguments = [TypeSelector, number, number, number]
+type NonUndefinedArguments<T extends JSONSerializable> =
+  [TypeSelector, number, number, number, T]
+
+type PaginatorArguments<T extends JSONSerializable | undefined = undefined> =
+  T extends undefined ? UndefinedArguments :
+  T extends JSONSerializable ? NonUndefinedArguments<T> :
+    NonUndefinedArguments<Exclude<T, undefined>> | UndefinedArguments;
+
 
 const MAX_SELECT_OPTIONS = 11;
 
-export default class MessagePaginator extends MessageComponent {
+export default class MessagePaginator<T extends JSONSerializable | undefined>
+  extends MessageComponent<PaginatorArguments<T>> {
   constructor(
     componentName: string,
-    updateMessageCallback: PaginatorUpdateMessageCallback,
+    updateMessageCallback: PaginatorUpdateMessageCallback<T>,
     options: InteractionHandlerOptions = {}
   ) {
     super(componentName, options);
-    this.#updateMessageCallback = updateMessageCallback;
+    this.updateMessageCallback = updateMessageCallback;
   }
 
   async handleInteraction(
     interaction: MessageComponentInteraction,
     context: ContextManager
   ) {
-    const [op, currentPage, pageSize, pageCount, extra] =
-      this.getArguments(interaction.customId) as PaginatorArguments;
+    const args = this.getArguments(interaction.customId);
+    const [op, pageSize, pageNumber, pageCount, extra] = args;
 
     let page = 1;
 
     switch (op) {
     case "next": {
-      page = currentPage + 1;
+      page = pageNumber + 1;
       break;
     }
     case "prev": {
-      page = currentPage - 1;
+      page = pageNumber - 1;
       break;
     }
     case "last": {
@@ -62,10 +76,15 @@ export default class MessagePaginator extends MessageComponent {
       if (newPage > 0) { page = newPage; }
       break;
     }
+    default: {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _exhaustiveCheck: never = op;
+      throw new Error("Unhandled operation");
+    }
     }
 
-    await this.#updateMessageCallback(
-      interaction, context, pageSize, page, extra
+    await this.updateMessageCallback(
+      interaction, context, pageSize, page, extra as T
     );
   }
 
@@ -73,11 +92,10 @@ export default class MessagePaginator extends MessageComponent {
     pageSize: number,
     pageNumber: number,
     pageCount: number,
-    extra?: JSONSerializable
+    extra: T
   ) {
-
     const firstButton = this.#createButton(this.#generateId(
-      ["first", pageNumber, pageSize, pageCount, extra]
+      "first", pageNumber, pageSize, pageCount, extra
     ));
     firstButton.setEmoji("⏮");
     if (pageNumber === 1) {
@@ -85,7 +103,7 @@ export default class MessagePaginator extends MessageComponent {
     }
 
     const prevButton = this.#createButton(this.#generateId(
-      ["prev", pageNumber, pageSize, pageCount, extra]
+      "prev", pageNumber, pageSize, pageCount, extra
     ));
     prevButton.setEmoji("◀");
     if (pageNumber === 1) {
@@ -93,7 +111,7 @@ export default class MessagePaginator extends MessageComponent {
     }
 
     const nextButton = this.#createButton(this.#generateId(
-      ["next", pageNumber, pageSize, pageCount, extra]
+      "next", pageNumber, pageSize, pageCount, extra
     ));
     nextButton.setEmoji("▶");
     if (pageNumber === pageCount) {
@@ -101,14 +119,14 @@ export default class MessagePaginator extends MessageComponent {
     }
 
     const lastButton = this.#createButton(this.#generateId(
-      ["last", pageNumber, pageSize, pageCount, extra]
+      "last", pageNumber, pageSize, pageCount, extra
     ));
     lastButton.setEmoji("⏭");
     if (pageNumber === pageCount) {
       lastButton.setDisabled(true);
     }
 
-    const pageCountButton = this.#createButton(this.#generateId());
+    const pageCountButton = this.#createButton("dummy");
     pageCountButton.setLabel(`Página ${pageNumber}/${pageCount}`).setDisabled(true);
     pageCountButton.setStyle(ButtonStyle.Secondary);
 
@@ -123,10 +141,10 @@ export default class MessagePaginator extends MessageComponent {
     pageSize: number,
     pageNumber: number,
     pageCount: number,
-    extra?: JSONSerializable
+    extra: T
   ) {
     const pageSelector = this.#createSelectMenu(this.#generateId(
-      ["select", pageNumber, pageSize, pageCount, extra]
+      "select", pageSize, pageNumber, pageCount, extra
     ), pageNumber, pageCount);
 
     const actionRow = new ActionRowBuilder()
@@ -135,15 +153,21 @@ export default class MessagePaginator extends MessageComponent {
     return actionRow;
   }
 
-  #generateId(args?: PaginatorArguments) {
-    if (!args) { return this.generateCustomId(); }
-    const [op, currentPage, pageSize, pageCount, extra] = args;
-    if (extra) {
+  #generateId(
+    op: TypeSelector,
+    pageSize: number,
+    pageNumber: number,
+    pageCount: number,
+    extra: T
+  ) {
+    if (extra === undefined) {
       return this.generateCustomId(
-        [op, currentPage, pageSize, pageCount, extra]
+        [op, pageSize, pageNumber, pageCount] as PaginatorArguments<T>
       );
     }
-    return this.generateCustomId([op, currentPage, pageSize, pageCount]);
+    return this.generateCustomId(
+      [op, pageSize, pageNumber, pageCount, extra] as PaginatorArguments<T>
+    );
   }
 
   #createButton(customId: string) {
@@ -218,5 +242,5 @@ export default class MessagePaginator extends MessageComponent {
     return selectMenu;
   }
 
-  #updateMessageCallback;
+  private readonly updateMessageCallback: PaginatorUpdateMessageCallback<T>;
 }
