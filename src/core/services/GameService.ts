@@ -83,11 +83,11 @@ export default class GameService extends AppModule {
     return await this.app.models.gameMode.findAndCountAll(queryOptions);
   }
 
-  async getGameModeById(gameId: number, gameModeId: number, options?: IGameServiceGameModeOptions) {
+  async getGameModeById(gameModeId: number, options?: IGameServiceGameModeOptions) {
     const queryOptions = this.#processGameModeQueryOptions(options);
     return await this.app.models.gameMode.findOne({
       ...queryOptions,
-      where: { gameId, id: gameModeId }
+      where: { id: gameModeId }
     });
   }
 

@@ -83,7 +83,7 @@ export default class GameModeAutocompleteField extends AutocompleteField {
       return null;
     }
 
-    return await gameService.getGameModeById(game.id, gameModeId, options);
+    return await gameService.getGameModeById(gameModeId, options);
   }
 
   #gameField;
