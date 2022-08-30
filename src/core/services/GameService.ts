@@ -164,6 +164,21 @@ export default class GameService extends AppModule {
   }
 
   @transactional()
+  @check(hasPermission(Permissions.game.update))
+  async updateGameMode(gameMode: GameModeModel, name: string, description: string) {
+    const otherGameMode = await this.getGameModeByName(gameMode.gameId, name);
+    if (otherGameMode && otherGameMode.id !== gameMode.id) {
+      throw new FrompsBotError(
+        `O nome ${name} já esta sendo usado em outro modo do mesmo jogo selecionado.`
+      );
+    }
+
+    gameMode.name = name;
+    gameMode.description = description;
+    await gameMode.save();
+  }
+
+  @transactional()
   @check(hasPermission(Permissions.game.removeMode))
   async removeGameMode(gameMode: GameModeModel) {
     await gameMode.destroy();

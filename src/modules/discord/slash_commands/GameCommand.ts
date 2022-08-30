@@ -13,6 +13,7 @@ import GameModeAutocompleteField from "../autocomplete_fields/GameModeAutocomple
 import ApplicationCommand from "../interaction/ApplicationCommand";
 import MessagePaginator from "../message_components/MessagePaginator";
 import GameModal from "../modals/GameModal";
+import GameModeModal from "../modals/GameModeModal";
 
 
 type GameCommandPaginatorArgs =
@@ -37,10 +38,17 @@ export default class GameCommand extends ApplicationCommand {
       this.updateGameCallback.bind(this)
     );
 
+    this.gameModeModal = new GameModeModal(
+      "gameModeModal",
+      this.createGameModeCallback.bind(this),
+      this.updateGameModeCallback.bind(this)
+    );
+
     discord.registerInteractionHandler(this.gameField);
     discord.registerInteractionHandler(this.gameModeField);
     discord.registerInteractionHandler(this.gamePaginator);
     discord.registerInteractionHandler(this.gameModal);
+    discord.registerInteractionHandler(this.gameModeModal);
 
     this.builder.addSubcommand(subcommand =>
       subcommand.setName("list")
@@ -96,15 +104,15 @@ export default class GameCommand extends ApplicationCommand {
         .setDescription("Adiciona um novo modo para um jogo");
 
       this.gameField.addTo(subcommand, "Escolha o jogo.", true);
+      return subcommand;
+    });
 
-      subcommand.addStringOption(option =>
-        option.setName("name")
-          .setDescription("Nome do modo de jogo.")
-          .setRequired(true)
-      ).addStringOption(option =>
-        option.setName("description")
-          .setDescription("Descrição do modo (máximo 80 caracteres).")
-          .setRequired(true)
+    this.builder.addSubcommand(subcommand => {
+      subcommand.setName("update_mode")
+        .setDescription("Altera um modo de jogo.");
+      this.gameField.addTo(subcommand, "Escolha o jogo.", true);
+      this.gameModeField.addTo(
+        subcommand, "Modo de jogo a ser alterado.", true
       );
       return subcommand;
     });
@@ -148,6 +156,10 @@ export default class GameCommand extends ApplicationCommand {
     }
     case "add_mode": {
       await this.handleAddGameMode(interaction, context);
+      break;
+    }
+    case "update_mode": {
+      await this.handleUpdateGameMode(interaction, context);
       break;
     }
     case "remove_mode": {
@@ -238,15 +250,27 @@ export default class GameCommand extends ApplicationCommand {
       throw new FrompsBotError("Jogo não encontrado!");
     }
 
-    const name = interaction.options.getString("name", true);
-    const description = interaction.options.getString("description", true);
-    const { game: gameService } = context.app.services;
+    const modal = this.gameModeModal.createModal(game);
+    await interaction.showModal(modal);
+  }
 
-    await gameService.createGameMode(game, name, description);
-    await interaction.reply({
-      content: `O modo '${name}' foi criado com sucesso!`,
-      ephemeral: true
-    });
+  async handleUpdateGameMode(
+    interaction: ChatInputCommandInteraction,
+    context: ContextManager
+  ) {
+    const gameMode = await this.gameModeField.getValue(
+      interaction, context, { includeGame: true }
+    );
+    if (!gameMode) {
+      const game = await this.gameField.getValue(interaction, context);
+      if (!game) {
+        throw new FrompsBotError("Jogo não encontrado!");
+      }
+      throw new FrompsBotError("Modo de jogo não encontrado!");
+    }
+
+    const modal = this.gameModeModal.createModal(gameMode.game as GameModel, gameMode);
+    await interaction.showModal(modal);
   }
 
   async handleRemoveGameMode(
@@ -434,21 +458,60 @@ export default class GameCommand extends ApplicationCommand {
   ) {
     const game = await context.app.services.game.getGameById(id);
     if (!game) {
-      await interaction.reply({
-        content: "O jogo selecionado não existe mais.",
-        ephemeral: true
-      });
-    } else {
-      await context.app.services.game.updateGame(game, code, name, shortName);
-      await interaction.reply({
-        content: "Jogo atualizado com sucesso!",
-        ephemeral: true
-      });
+      throw new FrompsBotError("O jogo selecionado não existe mais.");
     }
+
+    await context.app.services.game.updateGame(game, code, name, shortName);
+    await interaction.reply({
+      content: "Jogo atualizado com sucesso!",
+      ephemeral: true
+    });
+  }
+
+  private async createGameModeCallback(
+    interaction: ModalSubmitInteraction,
+    context: ContextManager,
+    gameId: number,
+    name: string,
+    description: string
+  ) {
+    const { game: gameService } = context.app.services;
+
+    const game = await gameService.getGameById(gameId);
+    if (!game) {
+      throw new FrompsBotError("O jogo informado não está cadastrado neste bot.");
+    }
+
+    await gameService.createGameMode(game, name, description);
+    await interaction.reply({
+      content: "Modo de jogo criado com sucesso!",
+      ephemeral: true
+    });
+  }
+
+  private async updateGameModeCallback(
+    interaction: ModalSubmitInteraction,
+    context: ContextManager,
+    gameModeId: number,
+    name: string,
+    description: string
+  ) {
+    const { game: gameService } = context.app.services;
+
+    const gameMode = await gameService.getGameModeById(gameModeId);
+    if (!gameMode) {
+      throw new FrompsBotError("O modo selecionado não existe mais.");
+    }
+    await context.app.services.game.updateGameMode(gameMode, name, description);
+    await interaction.reply({
+      content: "Modo de jogo atualizado com sucesso!",
+      ephemeral: true
+    });
   }
 
   private readonly gameField;
   private readonly gameModeField;
   private readonly gamePaginator;
   private readonly gameModal;
+  private readonly gameModeModal;
 }
