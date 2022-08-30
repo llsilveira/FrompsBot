@@ -1,34 +1,46 @@
 import {
   ChatInputCommandInteraction, EmbedBuilder, InteractionReplyOptions,
-  InteractionUpdateOptions, MessageComponentInteraction, MessageOptions
+  InteractionUpdateOptions, MessageComponentInteraction, MessageOptions, ModalSubmitInteraction
 } from "discord.js";
 
 import { GameModel } from "../../../core/models/gameModel";
 import ContextManager from "../../../core/modules/ContextManager";
 import { IGameServiceGameModeOptions, IGameServiceGameOptions } from "../../../core/services/GameService";
-import { JSONSerializable } from "../../../core/type";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import Discord from "../../Discord";
 import GameAutocompleteField from "../autocomplete_fields/GameAutocompleteField";
 import GameModeAutocompleteField from "../autocomplete_fields/GameModeAutocompleteField";
 import ApplicationCommand from "../interaction/ApplicationCommand";
 import MessagePaginator from "../message_components/MessagePaginator";
+import GameModal from "../modals/GameModal";
+
+
+type GameCommandPaginatorArgs =
+  ["game", string] | ["gameMode", number, string, boolean];
+
 
 export default class GameCommand extends ApplicationCommand {
   constructor(discord: Discord) {
     super("game", "Gerencia os jogos cadastrados no bot.");
 
-    this.#gameField = new GameAutocompleteField(this, "game");
-    this.#gameModeField =
-      new GameModeAutocompleteField(this, "game_mode", this.#gameField);
+    this.gameField = new GameAutocompleteField(this, "game");
+    this.gameModeField =
+      new GameModeAutocompleteField(this, "game_mode", this.gameField);
 
-    this.#gamePaginator = new MessagePaginator(
-      "gameListGame", this.#updateListGamesMessage.bind(this), { annonymous: true }
+    this.gamePaginator = new MessagePaginator<GameCommandPaginatorArgs>(
+      "gameListGame", this.updateListGamesMessage.bind(this), { annonymous: true }
     );
 
-    discord.registerInteractionHandler(this.#gameField);
-    discord.registerInteractionHandler(this.#gameModeField);
-    discord.registerInteractionHandler(this.#gamePaginator);
+    this.gameModal = new GameModal(
+      "gameModal",
+      this.createGameCallback.bind(this),
+      this.updateGameCallback.bind(this)
+    );
+
+    discord.registerInteractionHandler(this.gameField);
+    discord.registerInteractionHandler(this.gameModeField);
+    discord.registerInteractionHandler(this.gamePaginator);
+    discord.registerInteractionHandler(this.gameModal);
 
     this.builder.addSubcommand(subcommand =>
       subcommand.setName("list")
@@ -44,26 +56,19 @@ export default class GameCommand extends ApplicationCommand {
     this.builder.addSubcommand(subcommand =>
       subcommand.setName("add")
         .setDescription("Adiciona um novo jogo")
-        .addStringOption(option =>
-          option.setName("code")
-            .setDescription("Código do jogo. Ex: ALTTPR.")
-            .setRequired(true)
-        )
-        .addStringOption(option =>
-          option.setName("name")
-            .setDescription("Nome do jogo.")
-            .setRequired(true)
-        )
-        .addStringOption(option =>
-          option.setName("short_name")
-            .setDescription("Nome abreviado (máximo 32 caracteres).")
-        )
     );
+
+    this.builder.addSubcommand(subcommand => {
+      subcommand.setName("update")
+        .setDescription("Altera um jogo");
+      this.gameField.addTo(subcommand, "Jogo a ser alterado", true);
+      return subcommand;
+    });
 
     this.builder.addSubcommand(subcommand => {
       subcommand.setName("remove")
         .setDescription("Remove um jogo");
-      this.#gameField.addTo(subcommand, "Jogo a ser removido", true);
+      this.gameField.addTo(subcommand, "Jogo a ser removido", true);
       return subcommand;
     });
 
@@ -71,12 +76,18 @@ export default class GameCommand extends ApplicationCommand {
       subcommand.setName("list_modes")
         .setDescription("Lista os modos cadastrados para um jogo");
 
-      this.#gameField.addTo(subcommand, "Escolha o jogo.", true);
+      this.gameField.addTo(subcommand, "Escolha o jogo.", true);
 
-      subcommand.addBooleanOption(option =>
-        option.setName("include_all")
-          .setDescription("Incluir todos os modos (inclusive desativados).")
-      );
+      subcommand.addStringOption(option =>
+        option.setName("filter")
+          .setDescription(
+            "Os resultados serão filtrados utilizando este valor."
+          )
+      )
+        .addBooleanOption(option =>
+          option.setName("include_all")
+            .setDescription("Incluir todos os modos (inclusive desativados).")
+        );
       return subcommand;
     });
 
@@ -84,7 +95,7 @@ export default class GameCommand extends ApplicationCommand {
       subcommand.setName("add_mode")
         .setDescription("Adiciona um novo modo para um jogo");
 
-      this.#gameField.addTo(subcommand, "Escolha o jogo.", true);
+      this.gameField.addTo(subcommand, "Escolha o jogo.", true);
 
       subcommand.addStringOption(option =>
         option.setName("name")
@@ -101,8 +112,8 @@ export default class GameCommand extends ApplicationCommand {
     this.builder.addSubcommand(subcommand => {
       subcommand.setName("remove_mode")
         .setDescription("Remove um modo de um jogo");
-      this.#gameField.addTo(subcommand, "Escolha o jogo.", true);
-      this.#gameModeField.addTo(
+      this.gameField.addTo(subcommand, "Escolha o jogo.", true);
+      this.gameModeField.addTo(
         subcommand, "Modo de jogo a ser removido.", true
       );
       return subcommand;
@@ -120,7 +131,11 @@ export default class GameCommand extends ApplicationCommand {
       break;
     }
     case "add": {
-      await this.handleAddGame(interaction, context);
+      await this.handleAddGame(interaction);
+      break;
+    }
+    case "update": {
+      await this.handleUpdateGame(interaction, context);
       break;
     }
     case "remove": {
@@ -147,7 +162,7 @@ export default class GameCommand extends ApplicationCommand {
     context: ContextManager
   ) {
     const filter = interaction.options.getString("filter");
-    const message = await this.#listGamesMessage(context, 10, 1, filter || undefined);
+    const message = await this.listGamesMessage(context, 10, 1, filter || undefined);
     await interaction.reply({
       ...(message as InteractionReplyOptions),
       ephemeral: true
@@ -155,27 +170,30 @@ export default class GameCommand extends ApplicationCommand {
   }
 
   async handleAddGame(
+    interaction: ChatInputCommandInteraction
+  ) {
+    const modal = this.gameModal.createModal();
+    await interaction.showModal(modal);
+  }
+
+  async handleUpdateGame(
     interaction: ChatInputCommandInteraction,
     context: ContextManager
   ) {
-    const { game: gameService } = context.app.services;
+    const game = await this.gameField.getValue(interaction, context);
+    if (!game) {
+      throw new FrompsBotError("Jogo não encontrado!");
+    }
 
-    const code = interaction.options.getString("code", true);
-    const name = interaction.options.getString("name", true);
-    const shortName = interaction.options.getString("short_name");
-
-    await gameService.createGame(code, name, shortName || undefined);
-    await interaction.reply({
-      content: `O jogo '${name}' foi adicionado com sucesso!`,
-      ephemeral: true
-    });
+    const modal = this.gameModal.createModal(game);
+    await interaction.showModal(modal);
   }
 
   async handleRemoveGame(
     interaction: ChatInputCommandInteraction,
     context: ContextManager
   ) {
-    const game = await this.#gameField.getValue(interaction, context);
+    const game = await this.gameField.getValue(interaction, context);
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
     }
@@ -194,7 +212,7 @@ export default class GameCommand extends ApplicationCommand {
     interaction: ChatInputCommandInteraction,
     context: ContextManager
   ) {
-    const game = await this.#gameField.getValue(interaction, context);
+    const game = await this.gameField.getValue(interaction, context);
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
     }
@@ -202,7 +220,7 @@ export default class GameCommand extends ApplicationCommand {
     const filter = interaction.options.getString("filter") || "";
     const includeAll = interaction.options.getBoolean("include_all") || false;
 
-    const message = await this.#listGameModesMessage(
+    const message = await this.listGameModesMessage(
       context, 10, 1, game.id, filter, includeAll
     );
     await interaction.reply({
@@ -215,7 +233,7 @@ export default class GameCommand extends ApplicationCommand {
     interaction: ChatInputCommandInteraction,
     context: ContextManager
   ) {
-    const game = await this.#gameField.getValue(interaction, context);
+    const game = await this.gameField.getValue(interaction, context);
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
     }
@@ -235,11 +253,11 @@ export default class GameCommand extends ApplicationCommand {
     interaction: ChatInputCommandInteraction,
     context: ContextManager
   ) {
-    const gameMode = await this.#gameModeField.getValue(
+    const gameMode = await this.gameModeField.getValue(
       interaction, context, { includeGame: true }
     );
     if (!gameMode) {
-      const game = await this.#gameField.getValue(interaction, context);
+      const game = await this.gameField.getValue(interaction, context);
       if (!game) {
         throw new FrompsBotError("Jogo não encontrado!");
       }
@@ -254,47 +272,47 @@ export default class GameCommand extends ApplicationCommand {
     });
   }
 
-  async #updateListGamesMessage(
+  private async updateListGamesMessage(
     interaction: MessageComponentInteraction,
     context: ContextManager,
     pageSize: number,
     pageNumber: number,
-    extraParams?: JSONSerializable
+    extraParams: GameCommandPaginatorArgs
   ) {
-    // TODO: maybe throw an error
-    if (!extraParams || !Array.isArray(extraParams)) { return; }
-
-    const [ selector ] = extraParams as [string];
-    const values = (extraParams as unknown[]).slice(1);
+    const [ selector ] = extraParams;
 
     let message: MessageOptions;
     if (selector === "game") {
-      message = await this.#listGamesMessage(
-        context, pageSize, pageNumber, values.length > 0 ? values[0] as string : undefined
+      const [, filter] = extraParams;
+      message = await this.listGamesMessage(
+        context, pageSize, pageNumber, filter
       );
     } else if (selector === "gameMode") {
-      message = await this.#listGameModesMessage(
-        context, pageSize, pageNumber, ...(values as [number, string?, boolean?])
+      const [, gameId, filter, includeAll] = extraParams;
+      message = await this.listGameModesMessage(
+        context, pageSize, pageNumber, gameId, filter, includeAll
       );
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _exhaustiveCheck: never = selector;
       throw new Error("Invalid selector on interaction");
     }
 
     await interaction.update(message as InteractionUpdateOptions);
   }
 
-  async #listGamesMessage(
+  private async listGamesMessage(
     context: ContextManager,
     pageSize = 10,
     pageNumber = 1,
-    filter?: string
+    filter = ""
   ): Promise<MessageOptions> {
     const params: IGameServiceGameOptions = {
       ordered: true,
       pagination: { pageSize, pageNumber }
     };
 
-    if (filter) { params.filter = filter; }
+    if (filter.length > 0) { params.filter = filter; }
 
     const { game: gameService } = context.app.services;
     const results = await gameService.listAndCountGames(params);
@@ -310,7 +328,7 @@ export default class GameCommand extends ApplicationCommand {
 
     const embed = new EmbedBuilder().setTitle("Jogos cadastrados");
     let description = "Lista de jogos cadastrados no bot";
-    if (filter) {
+    if (filter.length > 0) {
       description += ` contendo '${filter}'`;
     }
 
@@ -327,16 +345,9 @@ export default class GameCommand extends ApplicationCommand {
     const totalPages = Math.ceil(results.count / pageSize);
     let message: MessageOptions = {};
     if (totalPages > 1) {
-      let paginator;
-      if (filter) {
-        paginator = this.#gamePaginator.getButtons(
-          pageSize, pageNumber, totalPages, ["game", filter]
-        );
-      } else {
-        paginator = this.#gamePaginator.getButtons(
-          pageSize, pageNumber, totalPages, ["game"]
-        );
-      }
+      const paginator = this.gamePaginator.getButtons(
+        pageSize, pageNumber, totalPages, ["game", filter]
+      );
       message = { embeds: [embed], components: [paginator] };
     } else {
       message = { embeds: [embed] };
@@ -344,11 +355,11 @@ export default class GameCommand extends ApplicationCommand {
     return message;
   }
 
-  async #listGameModesMessage(
+  private async listGameModesMessage(
     context: ContextManager,
     pageSize = 10,
     pageNumber = 1,
-    gameId: number,
+    gameId: number = -1,
     filter = "",
     includeAll = false
   ): Promise<MessageOptions> {
@@ -365,7 +376,7 @@ export default class GameCommand extends ApplicationCommand {
       pagination: { pageSize, pageNumber }
     };
 
-    if (filter) { params.filter = filter; }
+    if (filter.length > 0) { params.filter = filter; }
 
     const results = await gameService.listAndCountGameModes(params);
     const modes = results.rows;
@@ -390,7 +401,7 @@ export default class GameCommand extends ApplicationCommand {
 
     const totalPages = Math.ceil(results.count / pageSize);
     if (totalPages > 1) {
-      const paginator = this.#gamePaginator.getButtons(
+      const paginator = this.gamePaginator.getButtons(
         pageSize, pageNumber, totalPages, ["gameMode", gameId, filter, includeAll]
       );
       return { embeds: [embed], components: [paginator] };
@@ -399,7 +410,45 @@ export default class GameCommand extends ApplicationCommand {
     }
   }
 
-  #gameField;
-  #gameModeField;
-  #gamePaginator;
+  private async createGameCallback(
+    interaction: ModalSubmitInteraction,
+    context: ContextManager,
+    code: string,
+    name: string,
+    shortName?: string
+  ) {
+    await context.app.services.game.createGame(code, name, shortName);
+    await interaction.reply({
+      content: "Jogo criado com sucesso!",
+      ephemeral: true
+    });
+  }
+
+  private async updateGameCallback(
+    interaction: ModalSubmitInteraction,
+    context: ContextManager,
+    id: number,
+    code: string,
+    name: string,
+    shortName?: string
+  ) {
+    const game = await context.app.services.game.getGameById(id);
+    if (!game) {
+      await interaction.reply({
+        content: "O jogo selecionado não existe mais.",
+        ephemeral: true
+      });
+    } else {
+      await context.app.services.game.updateGame(game, code, name, shortName);
+      await interaction.reply({
+        content: "Jogo atualizado com sucesso!",
+        ephemeral: true
+      });
+    }
+  }
+
+  private readonly gameField;
+  private readonly gameModeField;
+  private readonly gamePaginator;
+  private readonly gameModal;
 }
