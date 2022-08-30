@@ -12,8 +12,7 @@ export default class GameModeAutocompleteField extends AutocompleteField {
     gameField: GameAutocompleteField,
     options = {}
   ) {
-    const optionsCombined = Object.assign({ annonymous: true }, options);
-    super(command.commandName, fieldName, optionsCombined);
+    super(command.commandName, fieldName, options);
 
     this.#gameField = gameField;
   }

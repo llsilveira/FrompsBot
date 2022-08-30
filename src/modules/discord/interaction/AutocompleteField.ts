@@ -17,7 +17,9 @@ export default abstract class AutocompleteField
     fieldName: string,
     options?: InteractionHandlerOptions
   ) {
-    super(InteractionType.ApplicationCommandAutocomplete, options);
+    // Autocomplete fields should not require login by default
+    const handlerOptions = Object.assign({ annonymous: true }, options);
+    super(InteractionType.ApplicationCommandAutocomplete, handlerOptions);
 
     this.commandName = commandName;
     this.fieldName = fieldName;

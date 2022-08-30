@@ -14,8 +14,7 @@ export default class TimezoneAutocompleteField extends AutocompleteField {
     command: ApplicationCommand,
     fieldName: string,
     options: InteractionHandlerOptions = {}) {
-    const optionsCombined = Object.assign({ annonymous: true }, options);
-    super(command.commandName, fieldName, optionsCombined);
+    super(command.commandName, fieldName, options);
 
     const preferredZones = [
       "America/Sao_Paulo",

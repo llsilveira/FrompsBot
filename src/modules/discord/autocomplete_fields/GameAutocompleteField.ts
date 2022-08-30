@@ -13,8 +13,7 @@ export default class GameAutocompleteField extends AutocompleteField {
     fieldName: string,
     options?: InteractionHandlerOptions
   ) {
-    const optionsCombined = Object.assign({ annonymous: true }, options);
-    super(command.commandName, fieldName, optionsCombined);
+    super(command.commandName, fieldName, options);
   }
 
   async handleInteraction(
