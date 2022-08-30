@@ -31,9 +31,9 @@ export default class InteractionHandlerContainer {
     } else if (interactionHandler instanceof AutocompleteField) {
       this.#registerAutocompleteField(interactionHandler);
     } else if (interactionHandler instanceof MessageComponent) {
-      this.#registerMessageComponent(interactionHandler);
+      this.#registerMessageComponent(interactionHandler as MessageComponent);
     } else if (interactionHandler instanceof ModalSubmit) {
-      this.#registerModalSubmit(interactionHandler);
+      this.#registerModalSubmit(interactionHandler as ModalSubmit);
     } else {
       throw new TypeError("Unrecognized interaction handler type");
     }
@@ -139,7 +139,7 @@ export default class InteractionHandlerContainer {
     const customId = interaction.customId;
     const key = MessageComponent.getComponentNameFromCustomId(customId) || "";
 
-    return this.#containerGet(InteractionType.MessageComponent, key);
+    return this.#containerGet(InteractionType.ModalSubmit, key);
   }
 
   #containerGet(
