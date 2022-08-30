@@ -14,6 +14,8 @@ import Database from "../modules/Database";
 
 import type { RaceModel } from "./raceModel";
 
+export const RACEGROUP_MAX_NAME_LENGTH = 24;
+
 
 export interface RaceGroupData extends ModelData {}
 
@@ -87,7 +89,7 @@ export default function createRaceGroupModel(
 
     name: {
       field: "name",
-      type: DataTypes.STRING(24),
+      type: DataTypes.STRING(RACEGROUP_MAX_NAME_LENGTH),
       allowNull: false,
       unique: true
     },

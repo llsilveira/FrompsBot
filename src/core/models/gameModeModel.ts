@@ -15,6 +15,9 @@ import Database from "../modules/Database";
 import type { GameModel, GameModelClass } from "./gameModel";
 import type { RaceModel } from "./raceModel";
 
+export const GAMEMODE_MAX_NAME_LENGTH = 24;
+export const GAMEMODE_MAX_DESCRIPTION_LENGTH = 80;
+
 
 // Data types for models are empty because they are meant to be merged with
 // later definitions done by consumers
@@ -69,13 +72,13 @@ export default function createGameModeModel(
 
     name: {
       field: "name",
-      type: DataTypes.STRING(24),
+      type: DataTypes.STRING(GAMEMODE_MAX_NAME_LENGTH),
       allowNull: false
     },
 
     description: {
       field: "description",
-      type: DataTypes.STRING(80),
+      type: DataTypes.STRING(GAMEMODE_MAX_DESCRIPTION_LENGTH),
       allowNull: false
     },
 

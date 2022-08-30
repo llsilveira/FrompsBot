@@ -14,6 +14,10 @@ import Database from "../modules/Database";
 import type { GameModeModel } from "./gameModeModel";
 import type { RaceModel } from "./raceModel";
 
+export const GAME_MAX_CODE_LENGTH = 24;
+export const GAME_MAX_NAME_LENGTH = 64;
+export const GAME_MAX_SHORTNAME_LENGTH = 32;
+
 
 // Data types for models are empty because they are meant to be merged with
 // later definitions done by consumers
@@ -70,7 +74,7 @@ export default function createGameModel(db: Database): GameModelClass {
 
     code: {
       field: "code",
-      type: DataTypes.STRING(24),
+      type: DataTypes.STRING(GAME_MAX_CODE_LENGTH),
       allowNull:false,
       // unique constraint below
       set(value: string) {
@@ -80,14 +84,14 @@ export default function createGameModel(db: Database): GameModelClass {
 
     name: {
       field: "name",
-      type: DataTypes.STRING(64),
+      type: DataTypes.STRING(GAME_MAX_NAME_LENGTH),
       allowNull: false,
       unique: true
     },
 
     shortName: {
       field: "short_name",
-      type: DataTypes.STRING(32),
+      type: DataTypes.STRING(GAME_MAX_SHORTNAME_LENGTH),
       get() {
         const raw = this.getDataValue("shortName");
         if (!raw) { return this.name; }

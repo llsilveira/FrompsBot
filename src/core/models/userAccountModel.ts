@@ -12,6 +12,8 @@ import AccountProvider from "../constants/AccountProvider";
 import Database from "../modules/Database";
 import type { UserModelClass, UserModel } from "./userModel";
 
+export const USERACCOUNT_MAX_PROVIDERID_LENGTH = 32;
+
 
 export interface UserAccountData extends ModelData {}
 
@@ -63,7 +65,7 @@ export default function createUserAccountModel(
 
     providerId: {
       field: "provider_id",
-      type: DataTypes.STRING(32),
+      type: DataTypes.STRING(USERACCOUNT_MAX_PROVIDERID_LENGTH),
       allowNull: false,
       unique: "provider_identity",
     },

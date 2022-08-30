@@ -15,6 +15,8 @@ import type { RaceEntryModel } from "./raceEntryModel";
 import type { RaceModel } from "./raceModel";
 import type { UserAccountModel } from "./userAccountModel";
 
+export const USER_MAX_NAME_LENGTH = 32;
+
 
 // Data types for models are empty because they are meant to be merged with
 // later definitions done by consumers
@@ -83,7 +85,7 @@ export default function createUserModel(db: Database): UserModelClass {
 
     name: {
       field: "name",
-      type: DataTypes.STRING(32),
+      type: DataTypes.STRING(USER_MAX_NAME_LENGTH),
       allowNull: false
     },
 
