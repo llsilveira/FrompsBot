@@ -199,6 +199,12 @@ async function up({ context: queryInterface }) {
       allowNull: false
     },
 
+    longDescription: {
+      field: "long_description",
+      type: Sequelize.TEXT,
+      defaultValue: ""
+    },
+
     data: {
       field: "data",
       type: Sequelize.JSONB,
@@ -577,11 +583,18 @@ async function up({ context: queryInterface }) {
   }];
 
   /* Creating legacy mode for existing races */
+  const description = "Modo de jogo padrão para as antigas corridas semanais da Randomizer Brasil.";
   const gameModes = gamesList.map(game => ({
     id: game.id,
     game_id: game.id,
     name: "Semanal RBR",
-    description: "Modo de jogo padrão para as antigas corridas semanais da Randomizer Brasil.",
+    description,
+    long_description: `\
+${description}
+
+Este modo existe apenas para englobar as corridas semanais criadas antes de ser \
+possível criar modos de jogo neste bot.\
+`,
     data: JSON.stringify({
       disabled: true
     })

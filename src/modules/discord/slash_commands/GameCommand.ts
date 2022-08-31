@@ -473,7 +473,8 @@ export default class GameCommand extends ApplicationCommand {
     context: ContextManager,
     gameId: number,
     name: string,
-    description: string
+    description: string,
+    longDescription: string
   ) {
     const { game: gameService } = context.app.services;
 
@@ -482,7 +483,7 @@ export default class GameCommand extends ApplicationCommand {
       throw new FrompsBotError("O jogo informado não está cadastrado neste bot.");
     }
 
-    await gameService.createGameMode(game, name, description);
+    await gameService.createGameMode(game, name, description, longDescription);
     await interaction.reply({
       content: "Modo de jogo criado com sucesso!",
       ephemeral: true
@@ -494,7 +495,8 @@ export default class GameCommand extends ApplicationCommand {
     context: ContextManager,
     gameModeId: number,
     name: string,
-    description: string
+    description: string,
+    longDescription: string
   ) {
     const { game: gameService } = context.app.services;
 
@@ -502,7 +504,9 @@ export default class GameCommand extends ApplicationCommand {
     if (!gameMode) {
       throw new FrompsBotError("O modo selecionado não existe mais.");
     }
-    await context.app.services.game.updateGameMode(gameMode, name, description);
+    await context.app.services.game.updateGameMode(
+      gameMode, name, description, longDescription
+    );
     await interaction.reply({
       content: "Modo de jogo atualizado com sucesso!",
       ephemeral: true

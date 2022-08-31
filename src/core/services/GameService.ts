@@ -144,7 +144,12 @@ export default class GameService extends AppModule {
 
   @transactional()
   @check(hasPermission(Permissions.game.createMode))
-  async createGameMode(game: GameModel, gameModeName: string, gameModeDescription: string) {
+  async createGameMode(
+    game: GameModel,
+    gameModeName: string,
+    gameModeDescription: string,
+    gameModeLongDescription: string
+  ) {
     if (typeof gameModeDescription !== typeof "" || gameModeDescription.length <= 0) {
       throw new FrompsBotError("A descrição deve ter até 80 caracteres.");
     }
@@ -157,7 +162,10 @@ export default class GameService extends AppModule {
     }
 
     mode = await this.app.models.gameMode.create({
-      gameId: game.id, name: gameModeName, description: gameModeDescription
+      gameId: game.id,
+      name: gameModeName,
+      description: gameModeDescription,
+      longDescription: gameModeLongDescription
     });
 
     return mode;
@@ -165,7 +173,12 @@ export default class GameService extends AppModule {
 
   @transactional()
   @check(hasPermission(Permissions.game.update))
-  async updateGameMode(gameMode: GameModeModel, name: string, description: string) {
+  async updateGameMode(
+    gameMode: GameModeModel,
+    name: string,
+    description: string,
+    longDescription: string
+  ) {
     const otherGameMode = await this.getGameModeByName(gameMode.gameId, name);
     if (otherGameMode && otherGameMode.id !== gameMode.id) {
       throw new FrompsBotError(
@@ -175,6 +188,7 @@ export default class GameService extends AppModule {
 
     gameMode.name = name;
     gameMode.description = description;
+    gameMode.longDescription = longDescription;
     await gameMode.save();
   }
 

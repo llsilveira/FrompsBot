@@ -17,6 +17,7 @@ import type { RaceModel } from "./raceModel";
 
 export const GAMEMODE_MAX_NAME_LENGTH = 24;
 export const GAMEMODE_MAX_DESCRIPTION_LENGTH = 80;
+export const GAMEMODE_MAX_LONGDESCRIPTION_LENGTH = 1500;
 
 
 // Data types for models are empty because they are meant to be merged with
@@ -30,6 +31,7 @@ export interface GameModeModel extends ModelWithData<
   id: CreationOptional<number>;
   name: string;
   description: string;
+  longDescription: CreationOptional<string>;
 
   gameId: ForeignKey<GameModel["id"]>;
 
@@ -80,6 +82,15 @@ export default function createGameModeModel(
       field: "description",
       type: DataTypes.STRING(GAMEMODE_MAX_DESCRIPTION_LENGTH),
       allowNull: false
+    },
+
+    longDescription: {
+      field: "long_description",
+      type: DataTypes.TEXT,
+      validate: {
+        "len": [0, GAMEMODE_MAX_LONGDESCRIPTION_LENGTH]
+      },
+      defaultValue: ""
     },
 
     gameId: {
