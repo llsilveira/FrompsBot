@@ -118,6 +118,16 @@ export default class GameCommand extends ApplicationCommand {
     });
 
     this.builder.addSubcommand(subcommand => {
+      subcommand.setName("describe_mode")
+        .setDescription("Descreve um modo de jogo");
+      this.gameField.addTo(subcommand, "Escolha o jogo.", true);
+      this.gameModeField.addTo(
+        subcommand, "Selecione o dodo de jogo.", true
+      );
+      return subcommand;
+    });
+
+    this.builder.addSubcommand(subcommand => {
       subcommand.setName("remove_mode")
         .setDescription("Remove um modo de um jogo");
       this.gameField.addTo(subcommand, "Escolha o jogo.", true);
@@ -160,6 +170,10 @@ export default class GameCommand extends ApplicationCommand {
     }
     case "update_mode": {
       await this.handleUpdateGameMode(interaction, context);
+      break;
+    }
+    case "describe_mode": {
+      await this.handleDescribeGameMode(interaction, context);
       break;
     }
     case "remove_mode": {
@@ -271,6 +285,38 @@ export default class GameCommand extends ApplicationCommand {
 
     const modal = this.gameModeModal.createModal(gameMode.game as GameModel, gameMode);
     await interaction.showModal(modal);
+  }
+
+  async handleDescribeGameMode(
+    interaction: ChatInputCommandInteraction,
+    context: ContextManager
+  ) {
+    const gameMode = await this.gameModeField.getValue(
+      interaction, context, { includeGame: true }
+    );
+    if (!gameMode) {
+      const game = await this.gameField.getValue(interaction, context);
+      if (!game) {
+        throw new FrompsBotError("Jogo não encontrado!");
+      }
+      throw new FrompsBotError("Modo de jogo não encontrado!");
+    }
+
+    const game = gameMode.game as GameModel;
+
+    const embed = new EmbedBuilder().setTitle(`${gameMode.name}`)
+      .setDescription(`\
+**Jogo**: ${game.name}
+
+**${gameMode.description}**
+
+${gameMode.longDescription}
+`);
+
+    await interaction.reply({
+      embeds: [embed],
+      ephemeral: true
+    });
   }
 
   async handleRemoveGameMode(
