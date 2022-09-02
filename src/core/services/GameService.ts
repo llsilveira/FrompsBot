@@ -199,7 +199,9 @@ export default class GameService extends AppModule {
     return gameMode;
   }
 
-  #processQueryOptions<T extends GameModel | GameModeModel>(options: IGameServiceOptions = {}) {
+  #processQueryOptions<T extends GameModel | GameModeModel>(
+    options: IGameServiceOptions = {}
+  ) {
     const queryOptions: FindOptions<Attributes<T>> = {};
 
     if (options?.ordered) {

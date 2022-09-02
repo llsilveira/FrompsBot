@@ -25,15 +25,17 @@ export default class Permissions {
     static readonly createMode: unique symbol = Symbol("Permission.game.createMode");
     static readonly removeMode: unique symbol = Symbol("Permission.game.removeMode");
   };
-/*
+
   static readonly race = class {
     static readonly create: unique symbol = Symbol("Permission.race.create");
     static readonly remove: unique symbol = Symbol("Permission.race.remove");
     static readonly update: unique symbol = Symbol("Permission.race.update");
+    /*
     static readonly createGroup: unique symbol = Symbol("Permission.race.createGroup");
     static readonly removeGroup: unique symbol = Symbol("Permission.race.removeGroup");
     static readonly updateGroup: unique symbol = Symbol("Permission.race.updateGroup");
     static readonly updateEntry: unique symbol = Symbol("Permission.race.updateEntry");
+    */
   };
-  */
+
 }

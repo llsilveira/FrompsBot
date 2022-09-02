@@ -104,5 +104,20 @@ export default class PermissionService extends AppModule implements IPermissionS
     );
   }
 
+  [Permissions.race.create](game: GameModel) {
+    const user = this.#services.auth.getLoggedUser();
+    return this.#services.bot.isMonitor(user, game);
+  }
+
+  [Permissions.race.update](game: GameModel) {
+    const user = this.#services.auth.getLoggedUser();
+    return this.#services.bot.isMonitor(user, game);
+  }
+
+  [Permissions.race.remove](game: GameModel) {
+    const user = this.#services.auth.getLoggedUser();
+    return this.#services.bot.isMonitor(user, game);
+  }
+
   #services;
 }
