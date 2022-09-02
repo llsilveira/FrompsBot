@@ -8,7 +8,7 @@ import {
 } from "sequelize";
 
 import {
-  createModelWithData, ModelClass, ModelData, ModelWithData
+  createModelWithData, ModelClass, ModelData, AppModelWithData
 } from "../../app/AppModel";
 import Database from "../modules/Database";
 
@@ -19,7 +19,7 @@ export const RACEGROUP_MAX_NAME_LENGTH = 24;
 
 export interface RaceGroupData extends ModelData {}
 
-export interface RaceGroupModel extends ModelWithData<
+export interface RaceGroupModel extends AppModelWithData<
   RaceGroupData,
   InferAttributes<RaceGroupModel>,
   InferCreationAttributes<RaceGroupModel>
@@ -68,14 +68,6 @@ export default function createRaceGroupModel(
   const sequelize = db.sequelize;
 
   const RaceGroup = createModelWithData<RaceGroupModel>("RaceGroup", {
-    id: {
-      field: "id",
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      autoIncrementIdentity: true,
-      primaryKey: true
-    },
-
     parentId: {
       field: "parent_id",
       type: DataTypes.INTEGER,

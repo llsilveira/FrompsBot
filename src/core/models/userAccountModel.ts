@@ -5,7 +5,7 @@ import {
 } from "sequelize";
 
 import {
-  ModelData, ModelWithData, createModelWithData, ModelClass
+  ModelData, AppModelWithData, createModelWithData, ModelClass
 } from "../../app/AppModel";
 
 import AccountProvider from "../constants/AccountProvider";
@@ -17,7 +17,7 @@ export const USERACCOUNT_MAX_PROVIDERID_LENGTH = 32;
 
 export interface UserAccountData extends ModelData {}
 
-export interface UserAccountModel extends ModelWithData<
+export interface UserAccountModel extends AppModelWithData<
   UserAccountData,
   InferAttributes<UserAccountModel>,
   InferCreationAttributes<UserAccountModel>
@@ -47,14 +47,6 @@ export default function createUserAccountModel(
   const sequelize = db.sequelize;
 
   const UserAccount = createModelWithData<UserAccountModel>("UserAccount", {
-    id: {
-      field: "id",
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      autoIncrementIdentity: true,
-      primaryKey: true
-    },
-
     provider: {
       field: "provider",
       type: DataTypes.ENUM,

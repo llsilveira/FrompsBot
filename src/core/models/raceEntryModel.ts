@@ -5,7 +5,7 @@ import {
 } from "sequelize";
 
 import {
-  createModelWithData, ModelClass, ModelData, ModelWithData
+  createModelWithData, ModelClass, ModelData, AppModelWithData
 } from "../../app/AppModel";
 
 import RaceEntryStatus from "../constants/RaceEntryStatus";
@@ -20,7 +20,7 @@ import type { UserModel, UserModelClass } from "./userModel";
 export interface RaceEntryData extends ModelData {}
 
 
-export interface RaceEntryModel extends ModelWithData<
+export interface RaceEntryModel extends AppModelWithData<
   RaceEntryData,
   InferAttributes<RaceEntryModel>,
   InferCreationAttributes<RaceEntryModel>
@@ -59,14 +59,6 @@ export default function createRaceEntryModel(
   const sequelize = db.sequelize;
 
   const RaceEntry = createModelWithData<RaceEntryModel>("RaceEntry", {
-    id: {
-      field: "id",
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      autoIncrementIdentity: true,
-      primaryKey: true
-    },
-
     raceId: {
       field: "race_id",
       type: DataTypes.INTEGER,

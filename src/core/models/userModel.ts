@@ -7,7 +7,7 @@ import {
 } from "sequelize";
 
 import {
-  ModelData, ModelWithData, createModelWithData, ModelClass
+  ModelData, AppModelWithData, createModelWithData, ModelClass
 } from "../../app/AppModel";
 import Database from "../modules/Database";
 
@@ -22,7 +22,7 @@ export const USER_MAX_NAME_LENGTH = 32;
 // later definitions done by consumers
 export interface UserData extends ModelData {}
 
-export interface UserModel extends ModelWithData<
+export interface UserModel extends AppModelWithData<
   UserData, InferAttributes<UserModel>, InferCreationAttributes<UserModel>
   > {
   id: CreationOptional<number>;
@@ -75,14 +75,6 @@ export default function createUserModel(db: Database): UserModelClass {
   const sequelize = db.sequelize;
 
   return createModelWithData<UserModel>("User", {
-    id: {
-      field: "id",
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      autoIncrementIdentity: true,
-      primaryKey: true
-    },
-
     name: {
       field: "name",
       type: DataTypes.STRING(USER_MAX_NAME_LENGTH),

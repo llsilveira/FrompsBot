@@ -7,7 +7,7 @@ import { BelongsToCreateAssociationMixin, BelongsToGetAssociationMixin, BelongsT
 } from "sequelize";
 
 import {
-  createModelWithData, ModelClass, ModelData, ModelWithData
+  createModelWithData, ModelClass, ModelData, AppModelWithData
 } from "../../app/AppModel";
 
 import RaceStatus from "../constants/RaceStatus";
@@ -22,13 +22,13 @@ import type { UserModel, UserModelClass } from "./userModel";
 
 export interface RaceData extends ModelData {}
 
-export interface RaceModel extends ModelWithData<
+export interface RaceModel extends AppModelWithData<
   RaceData,
   InferAttributes<RaceModel>,
   InferCreationAttributes<RaceModel>
 > {
   id: CreationOptional<number>;
-  status: typeof RaceStatus;
+  status: RaceStatus;
   registrationDeadline: Date;
 
   creatorId: ForeignKey<UserModel["id"]>;
@@ -89,14 +89,6 @@ export default function createRaceModel(
   const sequelize = db.sequelize;
 
   const Race = createModelWithData<RaceModel>("Race", {
-    id: {
-      field: "id",
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      autoIncrementIdentity: true,
-      primaryKey: true
-    },
-
     creatorId: {
       field: "creator_id",
       type: DataTypes.INTEGER,

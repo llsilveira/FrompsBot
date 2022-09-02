@@ -7,7 +7,7 @@ import {
 } from "sequelize";
 
 import {
-  createModelWithData, ModelClass, ModelData, ModelWithData
+  createModelWithData, ModelClass, ModelData, AppModelWithData
 } from "../../app/AppModel";
 import Database from "../modules/Database";
 
@@ -23,7 +23,7 @@ export const GAME_MAX_SHORTNAME_LENGTH = 32;
 // later definitions done by consumers
 export interface GameData extends ModelData {}
 
-export interface GameModel extends ModelWithData<
+export interface GameModel extends AppModelWithData<
   GameData, InferAttributes<GameModel>, InferCreationAttributes<GameModel>
   > {
   id: CreationOptional<number>;
@@ -64,14 +64,6 @@ export default function createGameModel(db: Database): GameModelClass {
   const sequelize = db.sequelize;
 
   return createModelWithData<GameModel>("Game", {
-    id: {
-      field: "id",
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      autoIncrementIdentity: true,
-      primaryKey: true
-    },
-
     code: {
       field: "code",
       type: DataTypes.STRING(GAME_MAX_CODE_LENGTH),

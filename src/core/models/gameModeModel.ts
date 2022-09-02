@@ -8,7 +8,7 @@ import {
 } from "sequelize";
 
 import {
-  createModelWithData, ModelClass, ModelData, ModelWithData
+  createModelWithData, ModelClass, ModelData, AppModelWithData
 } from "../../app/AppModel";
 import Database from "../modules/Database";
 
@@ -25,7 +25,7 @@ export const GAMEMODE_MAX_LONGDESCRIPTION_LENGTH = 1500;
 export interface GameModeData extends ModelData {}
 
 
-export interface GameModeModel extends ModelWithData<
+export interface GameModeModel extends AppModelWithData<
   GameModeData, InferAttributes<GameModeModel>, InferCreationAttributes<GameModeModel>
   > {
   id: CreationOptional<number>;
@@ -64,14 +64,6 @@ export default function createGameModeModel(
   const sequelize = db.sequelize;
 
   const GameMode = createModelWithData<GameModeModel>("GameMode", {
-    id: {
-      field: "id",
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      autoIncrementIdentity: true,
-      primaryKey: true
-    },
-
     name: {
       field: "name",
       type: DataTypes.STRING(GAMEMODE_MAX_NAME_LENGTH),

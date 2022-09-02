@@ -1,16 +1,22 @@
 import {
-  Attributes, CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, ModelAttributes,
-  ModelOptions, ModelStatic, Sequelize
+  Attributes, CreationOptional, DataTypes, InferAttributes, InferCreationAttributes,
+  Model, ModelAttributes, ModelOptions, ModelStatic, Sequelize
 } from "sequelize";
 import { JSONSerializable, RequiredProperties } from "../core/type";
 
 import structuredClone from "../helpers/structuredClone";
 
-
 export { Model } from "sequelize";
 
 
 export type ModelClass<M extends Model> = ModelStatic<M>;
+
+export interface AppModel<
+  AttributeType extends InferAttributes<AppModel> = { id: CreationOptional<number> },
+  CreationAttributeType extends InferCreationAttributes<AppModel> = { id: CreationOptional<number> | undefined }
+> extends Model<AttributeType, CreationAttributeType> {
+  id: CreationOptional<number>
+}
 
 
 type NonSymbolKey = Exclude<PropertyKey, symbol>
@@ -21,42 +27,59 @@ export interface ModelData {
   // Nontheless, symbol keys are not stored in database.
 }
 
-
-type getDataMethod = <M extends ModelWithData, K extends keyof M["data"] & NonSymbolKey>(
+type getDataMethod = <M extends AppModelWithData, K extends keyof M["data"] & NonSymbolKey>(
   this: M, key: K) => M["data"][K] | undefined;
 
-type setDataMethod = <M extends ModelWithData, K extends keyof M["data"] & NonSymbolKey>(
+type setDataMethod = <M extends AppModelWithData, K extends keyof M["data"] & NonSymbolKey>(
   this: M, key: K, value?: M["data"][K]) => void;
 
-export interface ModelWithData<
+
+export interface AppModelWithData<
   DataType extends ModelData = ModelData,
-  AttributeType extends InferAttributes<ModelWithData> = { data: CreationOptional<DataType> },
-  CreationAttributeType extends InferCreationAttributes<ModelWithData> = { data: CreationOptional<DataType> | undefined }
-> extends Model<AttributeType, CreationAttributeType> {
+  AttributeType extends InferAttributes<AppModelWithData> = {
+    id: CreationOptional<number>,
+    data: CreationOptional<DataType>
+  },
+  CreationAttributeType extends InferCreationAttributes<AppModelWithData> = {
+    id: CreationOptional<number> | undefined,
+    data: CreationOptional<DataType> | undefined
+  }
+> extends AppModel<AttributeType, CreationAttributeType> {
 
   data: CreationOptional<DataType>,
   getData: getDataMethod,
   setData: setDataMethod
 }
 
-export function createModel<M extends Model, TAttributes = Attributes<M>>(
+export function createModel<M extends AppModel, TAttributes = Attributes<M>>(
   modelName: string,
-  attributes: ModelAttributes<M, TAttributes>,
+  attributes: Omit<ModelAttributes<M, TAttributes>, "id">,
   options: RequiredProperties<ModelOptions<M>, "tableName">,
   sequelize: Sequelize,
 ): ModelClass<M> {
-  return sequelize.define<M, TAttributes>(modelName, attributes, options);
+
+  const newAttributes = {
+    ...attributes,
+    id: {
+      field: "id",
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      autoIncrementIdentity: true,
+      primaryKey: true
+    },
+  } as ModelAttributes<M, TAttributes>;
+  return sequelize.define<M, TAttributes>(modelName, newAttributes, options);
 }
 
 
 export function createModelWithData<
-  M extends ModelWithData, TAttributes = Attributes<M>
+  M extends AppModelWithData, TAttributes = Attributes<M>
 >(
   modelName: string,
-  attributes: Omit<ModelAttributes<M, TAttributes>, "data">,
+  attributes: Omit<ModelAttributes<M, TAttributes>, "id" | "data">,
   options: RequiredProperties<ModelOptions<M>, "tableName">,
   sequelize: Sequelize,
-): ModelStatic<M> {
+): ModelClass<M> {
 
   const newAttributes = {
     ...attributes,
@@ -68,12 +91,10 @@ export function createModelWithData<
     }
   } as ModelAttributes<M, TAttributes>;
 
-  const ModelClass = sequelize.define<M, TAttributes>(
-    modelName, newAttributes, options
-  );
+  const ModelClass = createModel(modelName, newAttributes, options, sequelize);
 
-  (ModelClass.prototype as ModelWithData).getData = function getData<
-    Md extends ModelWithData, K extends keyof Md["data"] &(string | number)
+  (ModelClass.prototype as AppModelWithData).getData = function getData<
+    Md extends AppModelWithData, K extends keyof Md["data"] &(string | number)
   >(this: Md, key: K): M["data"][K] | undefined {
     const data = this.data[key];
     if (data) {
@@ -81,8 +102,8 @@ export function createModelWithData<
     }
   };
 
-  (ModelClass.prototype as ModelWithData).setData = function setData<
-    Md extends ModelWithData, K extends keyof Md["data"] & NonSymbolKey
+  (ModelClass.prototype as AppModelWithData).setData = function setData<
+    Md extends AppModelWithData, K extends keyof Md["data"] & NonSymbolKey
   >(this: Md, key: K, value?: M["data"][K]) {
     const data = this.data;
 
