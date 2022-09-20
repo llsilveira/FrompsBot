@@ -1,11 +1,11 @@
-import Application from "../../app/Application";
-import AppModule from "../../app/AppModule";
-import { GameModelClass } from "../models/gameModel";
-import { GameModeModelClass } from "../models/gameModeModel";
-import { RaceEntryModelClass } from "../models/raceEntryModel";
-import { RaceModelClass } from "../models/raceModel";
-import { UserAccountModelClass } from "../models/userAccountModel";
-import { UserModelClass } from "../models/userModel";
+import Application from "../app/Application";
+import AppModule from "../app/AppModule";
+import { GameModelClass } from "../app/core/models/gameModel";
+import { GameModeModelClass } from "../app/core/models/gameModeModel";
+import { RaceEntryModelClass } from "../app/core/models/raceEntryModel";
+import { RaceModelClass } from "../app/core/models/raceModel";
+import { UserAccountModelClass } from "../app/core/models/userAccountModel";
+import { UserModelClass } from "../app/core/models/userModel";
 
 
 export default class Models extends AppModule {

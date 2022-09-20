@@ -8,10 +8,10 @@ import { BelongsToCreateAssociationMixin, BelongsToGetAssociationMixin, BelongsT
 
 import {
   createModelWithData, ModelClass, ModelData, AppModelWithData
-} from "../../app/AppModel";
+} from "../../AppModel";
 
-import RaceStatus from "../constants/RaceStatus";
-import Database from "../modules/Database";
+import RaceStatus from "../../../constants/RaceStatus";
+import Database from "../../../modules/Database";
 
 import type { GameModel, GameModelClass } from "./gameModel";
 import type { GameModeModel, GameModeModelClass } from "./gameModeModel";

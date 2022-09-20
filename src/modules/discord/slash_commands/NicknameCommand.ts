@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import AccountProvider from "../../../core/constants/AccountProvider";
-import ContextManager from "../../../core/modules/ContextManager";
+import AccountProvider from "../../../constants/AccountProvider";
+import ContextManager from "../../ContextManager";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import ApplicationCommand from "../interaction/ApplicationCommand";
 

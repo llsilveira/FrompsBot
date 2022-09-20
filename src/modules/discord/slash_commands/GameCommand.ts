@@ -3,8 +3,8 @@ import {
   InteractionUpdateOptions, MessageComponentInteraction, MessageOptions, ModalSubmitInteraction
 } from "discord.js";
 
-import ContextManager from "../../../core/modules/ContextManager";
-import { IGameServiceGameOptions } from "../../../core/services/GameService";
+import ContextManager from "../../ContextManager";
+import { IGameServiceGameOptions } from "../../../app/core/services/GameService";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import Discord from "../../Discord";
 import GameAutocompleteField from "../autocomplete_fields/GameAutocompleteField";

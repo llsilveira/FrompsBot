@@ -3,8 +3,8 @@ import {
   MessageComponentInteraction, SelectMenuInteraction, MessageActionRowComponentBuilder
 } from "discord.js";
 
-import ContextManager from "../../../core/modules/ContextManager";
-import { JSONSerializable } from "../../../core/type";
+import ContextManager from "../../ContextManager";
+import { JSONSerializable } from "../../../app/core/type";
 import { InteractionHandlerOptions } from "../interaction/InteractionHandler";
 import MessageComponent from "../interaction/MessageComponent";
 

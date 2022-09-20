@@ -1,11 +1,11 @@
 import { Attributes, FindOptions, WhereOptions } from "sequelize";
-import Application from "../../app/Application";
-import AppModule from "../../app/AppModule";
-import hasPermission from "../../constraints/hasPermission";
-import check from "../../decorators/check";
-import transactional from "../../decorators/transactional";
-import AccountProvider from "../constants/AccountProvider";
-import Permissions from "../constants/Permissions";
+import Application from "../../Application";
+import AppModule from "../../AppModule";
+import hasPermission from "../../../constraints/hasPermission";
+import check from "../../../decorators/check";
+import transactional from "../../../decorators/transactional";
+import AccountProvider from "../../../constants/AccountProvider";
+import Permissions from "../../../constants/Permissions";
 import { UserModel } from "../models/userModel";
 
 

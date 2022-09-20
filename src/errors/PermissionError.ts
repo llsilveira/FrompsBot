@@ -1,4 +1,4 @@
-import { type Permission } from "../core/constants/Permissions";
+import { type Permission } from "../constants/Permissions";
 import CheckError from "./CheckError";
 
 

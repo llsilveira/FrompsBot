@@ -1,14 +1,14 @@
 import path = require("path");
 import awilix = require("awilix");
 
-import ConfigLoader from "./ConfigLoader";
-import LoggerFactory from "./LoggerFactory";
+import ConfigLoader from "./core/ConfigLoader";
+import LoggerFactory from "./core/LoggerFactory";
 
 import { type AwilixContainer } from "awilix";
-import type ContextManager from "../core/modules/ContextManager";
-import type Models from "../core/modules/Models";
-import type Services from "../core/modules/Services";
-import type Database from "../core/modules/Database";
+import type ContextManager from "../modules/ContextManager";
+import type Models from "../modules/Models";
+import type Services from "../modules/Services";
+import type Database from "../modules/Database";
 
 
 export default class Application {
@@ -38,7 +38,7 @@ export default class Application {
 
     // Register core modules
     this.container.loadModules([
-      this.applicationRoot + "/core/modules/*.js"
+      this.applicationRoot + "/app/core/modules/*.js"
     ], {
       formatName: "camelCase",
       resolverOptions: {
@@ -49,7 +49,7 @@ export default class Application {
 
     // Register core models
     this.container.loadModules([
-      this.applicationRoot + "/core/models/*.js"
+      this.applicationRoot + "/app/core/models/*.js"
     ], {
       formatName: "camelCase",
       resolverOptions: {
@@ -60,7 +60,7 @@ export default class Application {
 
     // Register core services
     this.container.loadModules([
-      this.applicationRoot + "/core/services/*.js"
+      this.applicationRoot + "/app/core/services/*.js"
     ], {
       formatName: "camelCase",
       resolverOptions: {
@@ -113,8 +113,8 @@ export default class Application {
     return this._database;
   }
 
-  getModule(moduleName: string): unknown {
-    return this.container.resolve(moduleName);
+  getModule<T>(moduleName: string): T {
+    return this.container.resolve(moduleName) as T;
   }
 
   private _context: ContextManager | undefined;

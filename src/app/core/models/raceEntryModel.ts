@@ -6,10 +6,10 @@ import {
 
 import {
   createModelWithData, ModelClass, ModelData, AppModelWithData
-} from "../../app/AppModel";
+} from "../../AppModel";
 
-import RaceEntryStatus from "../constants/RaceEntryStatus";
-import Database from "../modules/Database";
+import RaceEntryStatus from "../../../constants/RaceEntryStatus";
+import Database from "../../../modules/Database";
 
 import type { RaceModel, RaceModelClass } from "./raceModel";
 import type { UserModel, UserModelClass } from "./userModel";

@@ -1,5 +1,5 @@
 import { InteractionType } from "discord.js";
-import { JSONSerializable } from "../../../core/type";
+import { JSONSerializable } from "../../../app/core/type";
 import InteractionHandler, { InteractionHandlerOptions } from "./InteractionHandler";
 
 

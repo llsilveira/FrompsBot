@@ -1,16 +1,16 @@
 import { Attributes, FindOptions } from "sequelize";
 
-import Application from "../../app/Application";
-import Permissions from "../constants/Permissions";
-import AppModule from "../../app/AppModule";
+import Application from "../../Application";
+import Permissions from "../../../constants/Permissions";
+import AppModule from "../../AppModule";
 import { GameModeModel } from "../models/gameModeModel";
 
-import check from "../../decorators/check";
-import transactional from "../../decorators/transactional";
-import hasPermission from "../../constraints/hasPermission";
+import check from "../../../decorators/check";
+import transactional from "../../../decorators/transactional";
+import hasPermission from "../../../constraints/hasPermission";
 import { RaceModel } from "../models/raceModel";
 import { GameModel } from "../models/gameModel";
-import RaceStatus from "../constants/RaceStatus";
+import RaceStatus from "../../../constants/RaceStatus";
 
 
 export type RandomizerRaceData = {

@@ -3,11 +3,15 @@ import {
   ModalSubmitInteraction, TextInputBuilder, TextInputStyle
 } from "discord.js";
 
-import { type GameModeModel, GAMEMODE_MAX_NAME_LENGTH, GAMEMODE_MAX_DESCRIPTION_LENGTH, GAMEMODE_MAX_LONGDESCRIPTION_LENGTH } from "../../../core/models/gameModeModel";
+import {
+  type GameModeModel, GAMEMODE_MAX_NAME_LENGTH, GAMEMODE_MAX_DESCRIPTION_LENGTH,
+  GAMEMODE_MAX_LONGDESCRIPTION_LENGTH
+} from "../../../app/core/models/gameModeModel";
+
 import { type InteractionHandlerOptions } from "../interaction/InteractionHandler";
-import ContextManager from "../../../core/modules/ContextManager";
+import ContextManager from "../../ContextManager";
 import ModalSubmit from "../interaction/ModalSubmit";
-import { GameModel } from "../../../core/models/gameModel";
+import { GameModel } from "../../../app/core/models/gameModel";
 
 export type GameModeModalCreateCallback = (
   interaction: ModalSubmitInteraction,

@@ -1,14 +1,14 @@
-import AppModule from "../../app/AppModule";
-import Permissions from "../constants/Permissions";
-import hasPermission from "../../constraints/hasPermission";
-import check from "../../decorators/check";
-import transactional from "../../decorators/transactional";
-import FrompsBotError from "../../errors/FrompsBotError";
+import AppModule from "../../AppModule";
+import Permissions from "../../../constants/Permissions";
+import hasPermission from "../../../constraints/hasPermission";
+import check from "../../../decorators/check";
+import transactional from "../../../decorators/transactional";
+import FrompsBotError from "../../../errors/FrompsBotError";
 import { UserModel } from "../models/userModel";
 import { GameModel } from "../models/gameModel";
 import { UserServiceOptions } from "./UserService";
 import { Op } from "sequelize";
-import Application from "../../app/Application";
+import Application from "../../Application";
 
 
 type BotUserData = {

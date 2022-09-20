@@ -1,7 +1,7 @@
-import Application from "../../app/Application";
-import AppModule from "../../app/AppModule";
+import Application from "../../Application";
+import AppModule from "../../AppModule";
 
-import AuthenticationError from "../../errors/AuthenticationError";
+import AuthenticationError from "../../../errors/AuthenticationError";
 import { UserModel } from "../models/userModel";
 
 

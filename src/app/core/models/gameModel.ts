@@ -8,8 +8,8 @@ import {
 
 import {
   createModelWithData, ModelClass, ModelData, AppModelWithData
-} from "../../app/AppModel";
-import Database from "../modules/Database";
+} from "../../AppModel";
+import Database from "../../../modules/Database";
 
 import type { GameModeModel } from "./gameModeModel";
 import type { RaceModel } from "./raceModel";

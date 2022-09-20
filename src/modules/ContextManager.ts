@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from "async_hooks";
 
-import Application from "../../app/Application";
-import AppModule from "../../app/AppModule";
+import Application from "../app/Application";
+import AppModule from "../app/AppModule";
 
 export default class ContextManager extends AppModule {
   constructor(app: Application) {

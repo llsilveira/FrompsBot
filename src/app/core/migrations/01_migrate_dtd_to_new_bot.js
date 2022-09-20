@@ -5,9 +5,6 @@
 // USERACCOUNT TOO
 
 const { Sequelize } = require("sequelize");
-const { default: AccountProvider } = require("../core/constants/AccountProvider");
-const { default: RaceStatus } = require("../core/constants/RaceStatus");
-const { default: RaceEntryStatus } = require("../core/constants/RaceEntryStatus");
 
 async function up({ context: queryInterface }) {
   const sequelize = queryInterface.sequelize;
@@ -68,7 +65,7 @@ async function up({ context: queryInterface }) {
       type: Sequelize.ENUM,
       allowNull: false,
       unique: "provider_identity",
-      values: Object.keys(AccountProvider),
+      values: ["DISCORD", "TWITCH"],
     },
 
     providerId: {
@@ -320,7 +317,7 @@ async function up({ context: queryInterface }) {
     status: {
       field: "status",
       type: Sequelize.ENUM,
-      values: Object.keys(RaceStatus),
+      values: ["OPEN", "CLOSED"],
       allowNull: false,
     },
 
@@ -414,7 +411,7 @@ async function up({ context: queryInterface }) {
     status: {
       field: "status",
       type: Sequelize.ENUM,
-      values: Object.keys(RaceEntryStatus),
+      values: ["REGISTERED", "TIME_SUBMITTED", "DONE", "DNF"],
       allowNull: false,
     },
 

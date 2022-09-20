@@ -1,10 +1,10 @@
 import { AutocompleteInteraction, ChatInputCommandInteraction } from "discord.js";
 
 import AutocompleteField, { AutocompleteFieldParent } from "../interaction/AutocompleteField";
-import type ContextManager from "../../../core/modules/ContextManager";
+import type ContextManager from "../../ContextManager";
 import type ApplicationCommand from "../interaction/ApplicationCommand";
 import { type InteractionHandlerOptions } from "../interaction/InteractionHandler";
-import { IGameServiceGameOptions } from "../../../core/services/GameService";
+import { IGameServiceGameOptions } from "../../../app/core/services/GameService";
 
 export default class GameAutocompleteField extends AutocompleteField {
 

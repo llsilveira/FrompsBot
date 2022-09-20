@@ -1,7 +1,7 @@
 import commander = require("commander");
 import Application from "./app/Application";
-import AccountProvider from "./core/constants/AccountProvider";
-import Database from "./core/modules/Database";
+import AccountProvider from "./constants/AccountProvider";
+import Database from "./modules/Database";
 import runAsBot from "./helpers/runAsBot";
 import Discord from "./modules/Discord";
 
@@ -46,7 +46,7 @@ export default async function cli(args: string[]) {
 }
 
 async function run(app: Application) {
-  const discord = app.getModule("discord") as Discord;
+  const discord = app.getModule<Discord>("discord");
   await discord.start();
 }
 
@@ -64,13 +64,13 @@ async function botAddAdmin(app: Application, userDiscordId: string) {
 }
 
 async function discordUpdate(app: Application) {
-  const discord = app.getModule("discord") as Discord;
+  const discord = app.getModule<Discord>("discord");
   await discord.updateCommands();
   console.log("Comandos atualizados!");
 }
 
 async function dbMigrate(app: Application, version: string) {
-  const db = app.getModule("db") as Database;
+  const db = app.getModule<Database>("db");
   await db.migrate(version);
   console.log("Migração concluída!");
 }

@@ -3,9 +3,9 @@ import {
   InteractionUpdateOptions, MessageComponentInteraction, MessageOptions, ModalSubmitInteraction
 } from "discord.js";
 
-import { GameModel } from "../../../core/models/gameModel";
-import ContextManager from "../../../core/modules/ContextManager";
-import { IGameServiceGameModeOptions } from "../../../core/services/GameService";
+import { GameModel } from "../../../app/core/models/gameModel";
+import ContextManager from "../../ContextManager";
+import { IGameServiceGameModeOptions } from "../../../app/core/services/GameService";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import Discord from "../../Discord";
 import GameAutocompleteField from "../autocomplete_fields/GameAutocompleteField";

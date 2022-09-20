@@ -6,10 +6,10 @@ import {
 
 import {
   ModelData, AppModelWithData, createModelWithData, ModelClass
-} from "../../app/AppModel";
+} from "../../AppModel";
 
-import AccountProvider from "../constants/AccountProvider";
-import Database from "../modules/Database";
+import AccountProvider from "../../../constants/AccountProvider";
+import Database from "../../../modules/Database";
 import type { UserModelClass, UserModel } from "./userModel";
 
 export const USERACCOUNT_MAX_PROVIDERID_LENGTH = 32;

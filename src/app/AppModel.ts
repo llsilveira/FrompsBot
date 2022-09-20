@@ -2,7 +2,7 @@ import {
   Attributes, CreationOptional, DataTypes, InferAttributes, InferCreationAttributes,
   Model, ModelAttributes, ModelOptions, ModelStatic, Sequelize
 } from "sequelize";
-import { JSONSerializable, RequiredProperties } from "../core/type";
+import { JSONSerializable, RequiredProperties } from "./core/type";
 
 import structuredClone from "../helpers/structuredClone";
 

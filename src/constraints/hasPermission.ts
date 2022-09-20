@@ -1,6 +1,6 @@
-import { Permission } from "../core/constants/Permissions";
-import type { IPermissionService } from "../core/services/PermissionService";
-import { type AppBound } from "../core/type";
+import { Permission } from "../constants/Permissions";
+import type { IPermissionService } from "../app/core/services/PermissionService";
+import { type AppBound } from "../app/core/type";
 import { Constraint } from "../decorators/check";
 import PermissionError from "../errors/PermissionError";
 

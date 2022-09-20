@@ -1,15 +1,15 @@
-import check from "../../decorators/check";
-import Permissions from "../constants/Permissions";
-import FrompsBotError from "../../errors/FrompsBotError";
-import AppModule from "../../app/AppModule";
+import check from "../../../decorators/check";
+import Permissions from "../../../constants/Permissions";
+import FrompsBotError from "../../../errors/FrompsBotError";
+import AppModule from "../../AppModule";
 import { GameModel } from "../models/gameModel";
 import { Attributes, FindOptions } from "sequelize";
 import { GameModeModel } from "../models/gameModeModel";
 
 import sequelize = require("sequelize");
-import transactional from "../../decorators/transactional";
-import hasPermission from "../../constraints/hasPermission";
-import Application from "../../app/Application";
+import transactional from "../../../decorators/transactional";
+import hasPermission from "../../../constraints/hasPermission";
+import Application from "../../Application";
 
 
 declare module "../models/gameModeModel" {

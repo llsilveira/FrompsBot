@@ -1,9 +1,11 @@
 import { ActionRowBuilder, ModalActionRowComponentBuilder, ModalBuilder, ModalSubmitInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
 
 import { type InteractionHandlerOptions } from "../interaction/InteractionHandler";
-import ContextManager from "../../../core/modules/ContextManager";
+import ContextManager from "../../ContextManager";
 import ModalSubmit from "../interaction/ModalSubmit";
-import { GameModel, GAME_MAX_CODE_LENGTH, GAME_MAX_NAME_LENGTH, GAME_MAX_SHORTNAME_LENGTH } from "../../../core/models/gameModel";
+import {
+  GameModel, GAME_MAX_CODE_LENGTH, GAME_MAX_NAME_LENGTH, GAME_MAX_SHORTNAME_LENGTH
+} from "../../../app/core/models/gameModel";
 
 export type GameModalCreateCallback = (
   interaction: ModalSubmitInteraction,

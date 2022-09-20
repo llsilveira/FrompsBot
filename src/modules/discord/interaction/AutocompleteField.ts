@@ -3,7 +3,7 @@ import {
   AutocompleteInteraction, ChatInputCommandInteraction,
 } from "discord.js";
 
-import ContextManager from "../../../core/modules/ContextManager";
+import ContextManager from "../../ContextManager";
 import InteractionHandler, { type InteractionHandlerOptions } from "./InteractionHandler";
 
 

@@ -4,9 +4,9 @@ import cls = require("cls-hooked");
 import { Dialect, Sequelize, Transaction } from "sequelize";
 import { Umzug, SequelizeStorage } from "umzug";
 
-import transactional from "../../decorators/transactional";
-import AppModule from "../../app/AppModule";
-import Application from "../../app/Application";
+import transactional from "../decorators/transactional";
+import AppModule from "../app/AppModule";
+import Application from "../app/Application";
 
 
 const namespace: cls.Namespace = cls.createNamespace("fromps-bot-database");
@@ -74,7 +74,7 @@ export default class Database extends AppModule {
   async migrate(version: string) {
     const sequelize = this.sequelize;
     const migrationsPath = path.resolve(
-      this.app.applicationRoot, "migrations");
+      this.app.applicationRoot, "app/core/migrations");
 
     const umzug = new Umzug({
       migrations: { glob: migrationsPath + "/*.js" },

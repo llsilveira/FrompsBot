@@ -1,4 +1,4 @@
-import type Application from "../app/Application";
+import type Application from "../Application";
 
 export type JSONSerializable = null | boolean | number | string | JSONSerializable[] | {
   [key: string | number]: JSONSerializable

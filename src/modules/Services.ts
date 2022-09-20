@@ -1,12 +1,12 @@
-import AppModule from "../../app/AppModule";
+import AppModule from "../app/AppModule";
 
-import type Application from "../../app/Application";
-import type AuthService from "../services/AuthService";
-import type BotService from "../services/BotService";
-import type GameService from "../services/GameService";
-import type PermissionService from "../services/PermissionService";
-import type UserService from "../services/UserService";
-import RaceService from "../services/RaceService";
+import type Application from "../app/Application";
+import type AuthService from "../app/core/services/AuthService";
+import type BotService from "../app/core/services/BotService";
+import type GameService from "../app/core/services/GameService";
+import type PermissionService from "../app/core/services/PermissionService";
+import type UserService from "../app/core/services/UserService";
+import RaceService from "../app/core/services/RaceService";
 
 
 export default class Services extends AppModule {

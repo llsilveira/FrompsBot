@@ -1,7 +1,7 @@
 import path = require("path");
 
-import structuredClone from "../helpers/structuredClone";
-import type Application from "./Application";
+import structuredClone from "../../helpers/structuredClone";
+import type Application from "../Application";
 
 
 export default class ConfigLoader {
@@ -10,7 +10,7 @@ export default class ConfigLoader {
     this._cache = new Map<string, unknown>();
   }
 
-  get<T>(name: string = "config", overrides: Partial<T> = {}): T {
+  get<T extends Object>(name: string = "config", overrides: Partial<T> = {}): T {
     if (!this._cache.has(name)) {
       const configPath = path.resolve(this.app.instancePath, "config");
       const configFile = path.resolve(configPath, name);

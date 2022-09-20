@@ -1,6 +1,6 @@
 import { AutocompleteInteraction, ChatInputCommandInteraction } from "discord.js";
-import ContextManager from "../../../core/modules/ContextManager";
-import { IGameServiceGameModeOptions } from "../../../core/services/GameService";
+import ContextManager from "../../ContextManager";
+import { IGameServiceGameModeOptions } from "../../../app/core/services/GameService";
 import ApplicationCommand from "../interaction/ApplicationCommand";
 import AutocompleteField, { AutocompleteFieldParent } from "../interaction/AutocompleteField";
 import GameAutocompleteField from "./GameAutocompleteField";

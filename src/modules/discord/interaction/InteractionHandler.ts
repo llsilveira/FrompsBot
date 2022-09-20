@@ -1,5 +1,5 @@
 import type { Interaction, InteractionType } from "discord.js";
-import ContextManager from "../../../core/modules/ContextManager";
+import ContextManager from "../../ContextManager";
 
 
 export interface InteractionHandlerOptions {

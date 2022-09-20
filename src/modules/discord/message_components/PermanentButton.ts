@@ -3,9 +3,9 @@ import {
 } from "discord.js";
 
 import { type InteractionHandlerOptions } from "../interaction/InteractionHandler";
-import ContextManager from "../../../core/modules/ContextManager";
+import ContextManager from "../../ContextManager";
 import MessageComponent from "../interaction/MessageComponent";
-import { JSONSerializable } from "../../../core/type";
+import { JSONSerializable } from "../../../app/core/type";
 
 export type PermanentButtonCallback<
   ArgsType extends JSONSerializable | undefined

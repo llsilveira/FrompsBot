@@ -1,5 +1,5 @@
 import Application from "../app/Application";
-import type { AppBound } from "../core/type";
+import type { AppBound } from "../app/core/type";
 
 
 interface GetAppFunc<T> {(obj: T): Application}

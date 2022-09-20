@@ -6,8 +6,8 @@ import { REST } from "@discordjs/rest";
 import AppModule from "../app/AppModule";
 import Application from "../app/Application";
 import InteractionHandler from "./discord/interaction/InteractionHandler";
-import { UserModel } from "../core/models/userModel";
-import AccountProvider from "../core/constants/AccountProvider";
+import { UserModel } from "../app/core/models/userModel";
+import AccountProvider from "../constants/AccountProvider";
 import FrompsBotError from "../errors/FrompsBotError";
 import InteractionHandlerContainer from "./discord/InteractionHandlerContainer";
 
