@@ -6,11 +6,11 @@ import {
   HasManyRemoveAssociationsMixin, HasManySetAssociationsMixin, InferAttributes,
   InferCreationAttributes, NonAttribute
 } from "sequelize";
+import Application from "../../Application";
 
 import {
   createModelWithData, ModelClass, ModelData, AppModelWithData
-} from "../../AppModel";
-import Database from "../../../modules/Database";
+} from "../AppModel";
 
 import type { GameModel, GameModelClass } from "./gameModel";
 import type { RaceModel } from "./raceModel";
@@ -58,10 +58,10 @@ export type GameModeModelClass = ModelClass<GameModeModel>;
 
 
 export default function createGameModeModel(
-  db: Database,
+  app: Application,
   gameModel: GameModelClass
 ): GameModeModelClass {
-  const sequelize = db.sequelize;
+  const sequelize = app.db.sequelize;
 
   const GameMode = createModelWithData<GameModeModel>("GameMode", {
     name: {

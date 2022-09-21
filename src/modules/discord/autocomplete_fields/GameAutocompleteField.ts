@@ -1,7 +1,7 @@
 import { AutocompleteInteraction, ChatInputCommandInteraction } from "discord.js";
 
 import AutocompleteField, { AutocompleteFieldParent } from "../interaction/AutocompleteField";
-import type ContextManager from "../../ContextManager";
+import type Application from "../../../app/Application";
 import type ApplicationCommand from "../interaction/ApplicationCommand";
 import { type InteractionHandlerOptions } from "../interaction/InteractionHandler";
 import { IGameServiceGameOptions } from "../../../app/core/services/GameService";
@@ -18,10 +18,10 @@ export default class GameAutocompleteField extends AutocompleteField {
 
   async handleInteraction(
     interaction: AutocompleteInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const currentValue = interaction.options.getFocused();
-    const { game: gameService } = context.app.services;
+    const { game: gameService } = app.services;
 
     const params: IGameServiceGameOptions = { ordered: true, limit: 25 };
     if (currentValue?.length > 0) {
@@ -49,10 +49,10 @@ export default class GameAutocompleteField extends AutocompleteField {
 
   async getValue(
     interaction: AutocompleteInteraction | ChatInputCommandInteraction,
-    context: ContextManager,
+    app: Application,
     options?: IGameServiceGameOptions
   ) {
-    const { game: gameService } = context.app.services;
+    const { game: gameService } = app.services;
 
     let gameId;
     try {

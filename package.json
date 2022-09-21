@@ -10,7 +10,6 @@
   "private": false,
   "dependencies": {
     "@discordjs/rest": "^1.0.0",
-    "awilix": "^7.0.1",
     "cls-hooked": "^4.2.2",
     "commander": "^9.1.0",
     "discord-api-types": "^0.31.0",

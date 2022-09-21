@@ -3,7 +3,7 @@ import {
   MessageComponentInteraction, SelectMenuInteraction, MessageActionRowComponentBuilder
 } from "discord.js";
 
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 import { JSONSerializable } from "../../../app/core/type";
 import { InteractionHandlerOptions } from "../interaction/InteractionHandler";
 import MessageComponent from "../interaction/MessageComponent";
@@ -13,7 +13,7 @@ export type PaginatorUpdateMessageCallback<
   T extends JSONSerializable | undefined = undefined
 > = (
   interaction: MessageComponentInteraction,
-  context: ContextManager,
+  app: Application,
   pageSize: number,
   pageNumber: number,
   extra: T
@@ -47,7 +47,7 @@ export default class MessagePaginator<T extends JSONSerializable | undefined>
 
   async handleInteraction(
     interaction: MessageComponentInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const args = this.getArguments(interaction.customId);
     const [op, pageSize, pageNumber, pageCount, extra] = args;
@@ -84,7 +84,7 @@ export default class MessagePaginator<T extends JSONSerializable | undefined>
     }
 
     await this.updateMessageCallback(
-      interaction, context, pageSize, page, extra as T
+      interaction, app, pageSize, page, extra as T
     );
   }
 

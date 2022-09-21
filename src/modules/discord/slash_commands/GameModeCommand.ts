@@ -4,7 +4,7 @@ import {
 } from "discord.js";
 
 import { GameModel } from "../../../app/core/models/gameModel";
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 import { IGameServiceGameModeOptions } from "../../../app/core/services/GameService";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import Discord from "../../Discord";
@@ -101,28 +101,28 @@ export default class GameModeCommand extends ApplicationCommand {
 
   async handleInteraction(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const command = interaction.options.getSubcommand();
     switch (command) {
     case "list": {
-      await this.handleListGameModes(interaction, context);
+      await this.handleListGameModes(interaction, app);
       break;
     }
     case "add": {
-      await this.handleAddGameMode(interaction, context);
+      await this.handleAddGameMode(interaction, app);
       break;
     }
     case "update": {
-      await this.handleUpdateGameMode(interaction, context);
+      await this.handleUpdateGameMode(interaction, app);
       break;
     }
     case "describe": {
-      await this.handleDescribeGameMode(interaction, context);
+      await this.handleDescribeGameMode(interaction, app);
       break;
     }
     case "remove": {
-      await this.handleRemoveGameMode(interaction, context);
+      await this.handleRemoveGameMode(interaction, app);
       break;
     }
     }
@@ -130,9 +130,9 @@ export default class GameModeCommand extends ApplicationCommand {
 
   async handleListGameModes(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
-    const game = await this.gameField.getValue(interaction, context);
+    const game = await this.gameField.getValue(interaction, app);
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
     }
@@ -141,7 +141,7 @@ export default class GameModeCommand extends ApplicationCommand {
     const includeAll = interaction.options.getBoolean("include_all") || false;
 
     const message = await this.listGameModesMessage(
-      context, 10, 1, game.id, filter, includeAll
+      app, 10, 1, game.id, filter, includeAll
     );
     await interaction.reply({
       ...(message as InteractionReplyOptions),
@@ -151,9 +151,9 @@ export default class GameModeCommand extends ApplicationCommand {
 
   async handleAddGameMode(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
-    const game = await this.gameField.getValue(interaction, context);
+    const game = await this.gameField.getValue(interaction, app);
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
     }
@@ -164,13 +164,13 @@ export default class GameModeCommand extends ApplicationCommand {
 
   async handleUpdateGameMode(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const gameMode = await this.gameModeField.getValue(
-      interaction, context, { includeGame: true }
+      interaction, app, { includeGame: true }
     );
     if (!gameMode) {
-      const game = await this.gameField.getValue(interaction, context);
+      const game = await this.gameField.getValue(interaction, app);
       if (!game) {
         throw new FrompsBotError("Jogo não encontrado!");
       }
@@ -183,13 +183,13 @@ export default class GameModeCommand extends ApplicationCommand {
 
   async handleDescribeGameMode(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const gameMode = await this.gameModeField.getValue(
-      interaction, context, { includeGame: true }
+      interaction, app, { includeGame: true }
     );
     if (!gameMode) {
-      const game = await this.gameField.getValue(interaction, context);
+      const game = await this.gameField.getValue(interaction, app);
       if (!game) {
         throw new FrompsBotError("Jogo não encontrado!");
       }
@@ -215,20 +215,20 @@ ${gameMode.longDescription}
 
   async handleRemoveGameMode(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const gameMode = await this.gameModeField.getValue(
-      interaction, context, { includeGame: true }
+      interaction, app, { includeGame: true }
     );
     if (!gameMode) {
-      const game = await this.gameField.getValue(interaction, context);
+      const game = await this.gameField.getValue(interaction, app);
       if (!game) {
         throw new FrompsBotError("Jogo não encontrado!");
       }
       throw new FrompsBotError("Modo de jogo não encontrado!");
     }
 
-    const { game: gameService } = context.app.services;
+    const { game: gameService } = app.services;
     await gameService.removeGameMode(gameMode);
     await interaction.reply({
       content: `O modo '${gameMode.name}' foi removido de ${(gameMode.game as GameModel).shortName}!`,
@@ -238,28 +238,28 @@ ${gameMode.longDescription}
 
   private async updateListGameModesMessage(
     interaction: MessageComponentInteraction,
-    context: ContextManager,
+    app: Application,
     pageSize: number,
     pageNumber: number,
     extraParams: GameModeCommandPaginatorArgs
   ) {
     const [gameId, filter, includeAll] = extraParams;
     const message: MessageOptions = await this.listGameModesMessage(
-      context, pageSize, pageNumber, gameId, filter, includeAll
+      app, pageSize, pageNumber, gameId, filter, includeAll
     );
 
     await interaction.update(message as InteractionUpdateOptions);
   }
 
   private async listGameModesMessage(
-    context: ContextManager,
+    app: Application,
     pageSize = 10,
     pageNumber = 1,
     gameId: number = -1,
     filter = "",
     includeAll = false
   ): Promise<MessageOptions> {
-    const { game: gameService } = context.app.services;
+    const { game: gameService } = app.services;
     const game = await gameService.getGameById(gameId);
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
@@ -308,13 +308,13 @@ ${gameMode.longDescription}
 
   private async createGameModeCallback(
     interaction: ModalSubmitInteraction,
-    context: ContextManager,
+    app: Application,
     gameId: number,
     name: string,
     description: string,
     longDescription: string
   ) {
-    const { game: gameService } = context.app.services;
+    const { game: gameService } = app.services;
 
     const game = await gameService.getGameById(gameId);
     if (!game) {
@@ -330,19 +330,19 @@ ${gameMode.longDescription}
 
   private async updateGameModeCallback(
     interaction: ModalSubmitInteraction,
-    context: ContextManager,
+    app: Application,
     gameModeId: number,
     name: string,
     description: string,
     longDescription: string
   ) {
-    const { game: gameService } = context.app.services;
+    const { game: gameService } = app.services;
 
     const gameMode = await gameService.getGameModeById(gameModeId);
     if (!gameMode) {
       throw new FrompsBotError("O modo selecionado não existe mais.");
     }
-    await context.app.services.game.updateGameMode(
+    await app.services.game.updateGameMode(
       gameMode, name, description, longDescription
     );
     await interaction.reply({

@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import AccountProvider from "../../../constants/AccountProvider";
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import ApplicationCommand from "../interaction/ApplicationCommand";
 
@@ -21,7 +21,7 @@ export default class NicknameCommand extends ApplicationCommand {
 
   async handleInteraction(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const discordUser = interaction.options.getUser("user");
     const name = interaction.options.getString("new_nick");
@@ -29,7 +29,7 @@ export default class NicknameCommand extends ApplicationCommand {
     const {
       auth: authService,
       user: userService
-    } = context.app.services;
+    } = app.services;
 
     let user, sameUser;
     if (!discordUser || discordUser.id == interaction.user.id) {

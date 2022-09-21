@@ -1,5 +1,5 @@
 import { AutocompleteInteraction, ChatInputCommandInteraction } from "discord.js";
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 import { IGameServiceGameModeOptions } from "../../../app/core/services/GameService";
 import ApplicationCommand from "../interaction/ApplicationCommand";
 import AutocompleteField, { AutocompleteFieldParent } from "../interaction/AutocompleteField";
@@ -19,11 +19,11 @@ export default class GameModeAutocompleteField extends AutocompleteField {
 
   async handleInteraction(
     interaction: AutocompleteInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const currentValue = interaction.options.getFocused();
 
-    const game = await this.#gameField.getValue(interaction, context);
+    const game = await this.#gameField.getValue(interaction, app);
     if (!game) {
       await interaction.respond([
         { name: "Selecione um jogo válido!", value: -1 }
@@ -31,7 +31,7 @@ export default class GameModeAutocompleteField extends AutocompleteField {
       return;
     }
 
-    const { game: gameService } = context.app.services;
+    const { game: gameService } = app.services;
 
     const params: IGameServiceGameModeOptions = { gameId: game.id, ordered: true, limit: 25 };
     if (currentValue?.length > 0) {
@@ -65,15 +65,15 @@ export default class GameModeAutocompleteField extends AutocompleteField {
 
   async getValue(
     interaction: AutocompleteInteraction | ChatInputCommandInteraction,
-    context: ContextManager,
+    app: Application,
     options?: IGameServiceGameModeOptions
   ) {
-    const game = await this.#gameField.getValue(interaction, context);
+    const game = await this.#gameField.getValue(interaction, app);
     if (!game) {
       return null;
     }
 
-    const { game: gameService } = context.app.services;
+    const { game: gameService } = app.services;
 
     let gameModeId;
     try {

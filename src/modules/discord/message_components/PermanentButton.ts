@@ -3,7 +3,7 @@ import {
 } from "discord.js";
 
 import { type InteractionHandlerOptions } from "../interaction/InteractionHandler";
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 import MessageComponent from "../interaction/MessageComponent";
 import { JSONSerializable } from "../../../app/core/type";
 
@@ -11,7 +11,7 @@ export type PermanentButtonCallback<
   ArgsType extends JSONSerializable | undefined
 > = (
   interaction: MessageComponentInteraction,
-  context: ContextManager,
+  app: Application,
   args: ArgsType
 ) => unknown;
 
@@ -47,10 +47,10 @@ export default class PermanentButton<
 
   async handleInteraction(
     interaction: MessageComponentInteraction,
-    context: ContextManager
+    app: Application
   ) {
     await this.#buttonCallback(
-      interaction, context, this.getArguments(interaction.customId)
+      interaction, app, this.getArguments(interaction.customId)
     );
   }
 

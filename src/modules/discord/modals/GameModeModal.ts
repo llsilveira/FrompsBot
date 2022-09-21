@@ -9,13 +9,13 @@ import {
 } from "../../../app/core/models/gameModeModel";
 
 import { type InteractionHandlerOptions } from "../interaction/InteractionHandler";
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 import ModalSubmit from "../interaction/ModalSubmit";
 import { GameModel } from "../../../app/core/models/gameModel";
 
 export type GameModeModalCreateCallback = (
   interaction: ModalSubmitInteraction,
-  context: ContextManager,
+  app: Application,
   gameId: number,
   name: string,
   description: string,
@@ -24,7 +24,7 @@ export type GameModeModalCreateCallback = (
 
 export type GameModeModalUpdateCallback = (
   interaction: ModalSubmitInteraction,
-  context: ContextManager,
+  app: Application,
   id: number,
   name: string,
   description: string,
@@ -98,7 +98,7 @@ export default class GameModeModal extends ModalSubmit<GameModeModalArguments> {
 
   async handleInteraction(
     interaction: ModalSubmitInteraction,
-    context: ContextManager
+    app: Application
   ) {
 
     const name = interaction.fields.getTextInputValue("name");
@@ -107,9 +107,9 @@ export default class GameModeModal extends ModalSubmit<GameModeModalArguments> {
 
     const [op, id] = this.getArguments(interaction.customId);
     if (op === "create") {
-      await this.createCallback(interaction, context, id, name, description, longDescription);
+      await this.createCallback(interaction, app, id, name, description, longDescription);
     } else if (op === "update") {
-      await this.updateCallack(interaction, context, id, name, description, longDescription);
+      await this.updateCallack(interaction, app, id, name, description, longDescription);
     } else {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const _exhaustive_check: never = op;

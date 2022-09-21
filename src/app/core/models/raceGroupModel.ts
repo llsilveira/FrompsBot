@@ -6,11 +6,11 @@ import {
   HasManyRemoveAssociationsMixin, HasManySetAssociationsMixin, InferAttributes,
   InferCreationAttributes, NonAttribute
 } from "sequelize";
+import Application from "../../Application";
 
 import {
   createModelWithData, ModelClass, ModelData, AppModelWithData
-} from "../../AppModel";
-import Database from "../../../modules/Database";
+} from "../AppModel";
 
 import type { RaceModel } from "./raceModel";
 
@@ -63,9 +63,9 @@ export type RaceGroupModelClass = ModelClass<RaceGroupModel>
 
 
 export default function createRaceGroupModel(
-  db: Database
+  app: Application
 ): RaceGroupModelClass {
-  const sequelize = db.sequelize;
+  const sequelize = app.db.sequelize;
 
   const RaceGroup = createModelWithData<RaceGroupModel>("RaceGroup", {
     parentId: {

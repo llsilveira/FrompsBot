@@ -4,9 +4,9 @@ import cls = require("cls-hooked");
 import { Dialect, Sequelize, Transaction } from "sequelize";
 import { Umzug, SequelizeStorage } from "umzug";
 
-import transactional from "../decorators/transactional";
-import AppModule from "../app/AppModule";
-import Application from "../app/Application";
+import transactional from "../../../decorators/transactional";
+import AppModule from "../../AppModule";
+import Application from "../../Application";
 
 
 const namespace: cls.Namespace = cls.createNamespace("fromps-bot-database");
@@ -95,5 +95,3 @@ export default class Database extends AppModule {
     }
   }
 }
-
-AppModule.setModuleName(Database, "db");

@@ -1,7 +1,7 @@
 import winston = require("winston");
 import "winston-daily-rotate-file";
 
-import type Application from "../Application";
+import type Application from "../../Application";
 
 
 interface FileLoggerOptions {

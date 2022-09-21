@@ -1,7 +1,7 @@
 import path = require("path");
 
-import structuredClone from "../../helpers/structuredClone";
-import type Application from "../Application";
+import structuredClone from "../../../helpers/structuredClone";
+import type Application from "../../Application";
 
 
 export default class ConfigLoader {

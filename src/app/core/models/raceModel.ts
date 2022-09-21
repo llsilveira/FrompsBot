@@ -8,16 +8,16 @@ import { BelongsToCreateAssociationMixin, BelongsToGetAssociationMixin, BelongsT
 
 import {
   createModelWithData, ModelClass, ModelData, AppModelWithData
-} from "../../AppModel";
+} from "../AppModel";
 
 import RaceStatus from "../../../constants/RaceStatus";
-import Database from "../../../modules/Database";
 
 import type { GameModel, GameModelClass } from "./gameModel";
 import type { GameModeModel, GameModeModelClass } from "./gameModeModel";
 import type { RaceEntryModel } from "./raceEntryModel";
 import type { RaceGroupModel, RaceGroupModelClass } from "./raceGroupModel";
 import type { UserModel, UserModelClass } from "./userModel";
+import Application from "../../Application";
 
 
 export interface RaceData extends ModelData {}
@@ -80,13 +80,13 @@ export type RaceModelClass = ModelClass<RaceModel>
 
 
 export default function createRaceModel(
-  db: Database,
+  app: Application,
   userModel: UserModelClass,
   gameModel: GameModelClass,
   gameModeModel: GameModeModelClass,
   raceGroupModel: RaceGroupModelClass
 ): RaceModelClass {
-  const sequelize = db.sequelize;
+  const sequelize = app.db.sequelize;
 
   const Race = createModelWithData<RaceModel>("Race", {
     creatorId: {

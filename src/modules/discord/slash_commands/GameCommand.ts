@@ -3,7 +3,7 @@ import {
   InteractionUpdateOptions, MessageComponentInteraction, MessageOptions, ModalSubmitInteraction
 } from "discord.js";
 
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 import { IGameServiceGameOptions } from "../../../app/core/services/GameService";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import Discord from "../../Discord";
@@ -66,12 +66,12 @@ export default class GameCommand extends ApplicationCommand {
 
   async handleInteraction(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const command = interaction.options.getSubcommand();
     switch (command) {
     case "list": {
-      await this.handleListGames(interaction, context);
+      await this.handleListGames(interaction, app);
       break;
     }
     case "add": {
@@ -79,11 +79,11 @@ export default class GameCommand extends ApplicationCommand {
       break;
     }
     case "update": {
-      await this.handleUpdateGame(interaction, context);
+      await this.handleUpdateGame(interaction, app);
       break;
     }
     case "remove": {
-      await this.handleRemoveGame(interaction, context);
+      await this.handleRemoveGame(interaction, app);
       break;
     }
     }
@@ -91,10 +91,10 @@ export default class GameCommand extends ApplicationCommand {
 
   async handleListGames(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const filter = interaction.options.getString("filter");
-    const message = await this.listGamesMessage(context, 10, 1, filter || undefined);
+    const message = await this.listGamesMessage(app, 10, 1, filter || undefined);
     await interaction.reply({
       ...(message as InteractionReplyOptions),
       ephemeral: true
@@ -110,9 +110,9 @@ export default class GameCommand extends ApplicationCommand {
 
   async handleUpdateGame(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
-    const game = await this.gameField.getValue(interaction, context);
+    const game = await this.gameField.getValue(interaction, app);
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
     }
@@ -123,16 +123,16 @@ export default class GameCommand extends ApplicationCommand {
 
   async handleRemoveGame(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
-    const game = await this.gameField.getValue(interaction, context);
+    const game = await this.gameField.getValue(interaction, app);
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
     }
 
     // TODO: test foreign key restrictions first
 
-    const { game: gameService } = context.app.services;
+    const { game: gameService } = app.services;
     await gameService.removeGame(game);
     await interaction.reply({
       content: `O jogo '${game.name}' foi removido!`,
@@ -142,20 +142,20 @@ export default class GameCommand extends ApplicationCommand {
 
   private async updateListGamesMessage(
     interaction: MessageComponentInteraction,
-    context: ContextManager,
+    app: Application,
     pageSize: number,
     pageNumber: number,
     filter: string
   ) {
 
     const message: MessageOptions = await this.listGamesMessage(
-      context, pageSize, pageNumber, filter
+      app, pageSize, pageNumber, filter
     );
     await interaction.update(message as InteractionUpdateOptions);
   }
 
   private async listGamesMessage(
-    context: ContextManager,
+    app: Application,
     pageSize = 10,
     pageNumber = 1,
     filter = ""
@@ -167,7 +167,7 @@ export default class GameCommand extends ApplicationCommand {
 
     if (filter.length > 0) { params.filter = filter; }
 
-    const { game: gameService } = context.app.services;
+    const { game: gameService } = app.services;
     const results = await gameService.listAndCountGames(params);
 
     const games = results.rows;
@@ -210,12 +210,12 @@ export default class GameCommand extends ApplicationCommand {
 
   private async createGameCallback(
     interaction: ModalSubmitInteraction,
-    context: ContextManager,
+    app: Application,
     code: string,
     name: string,
     shortName?: string
   ) {
-    await context.app.services.game.createGame(code, name, shortName);
+    await app.services.game.createGame(code, name, shortName);
     await interaction.reply({
       content: "Jogo criado com sucesso!",
       ephemeral: true
@@ -224,18 +224,18 @@ export default class GameCommand extends ApplicationCommand {
 
   private async updateGameCallback(
     interaction: ModalSubmitInteraction,
-    context: ContextManager,
+    app: Application,
     id: number,
     code: string,
     name: string,
     shortName?: string
   ) {
-    const game = await context.app.services.game.getGameById(id);
+    const game = await app.services.game.getGameById(id);
     if (!game) {
       throw new FrompsBotError("O jogo selecionado não existe mais.");
     }
 
-    await context.app.services.game.updateGame(game, code, name, shortName);
+    await app.services.game.updateGame(game, code, name, shortName);
     await interaction.reply({
       content: "Jogo atualizado com sucesso!",
       ephemeral: true

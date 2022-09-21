@@ -5,11 +5,11 @@ import {
   HasManyHasAssociationMixin, HasManyHasAssociationsMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, NonAttribute
 } from "sequelize";
+import Application from "../../Application";
 
 import {
   ModelData, AppModelWithData, createModelWithData, ModelClass
-} from "../../AppModel";
-import Database from "../../../modules/Database";
+} from "../AppModel";
 
 import type { RaceEntryModel } from "./raceEntryModel";
 import type { RaceModel } from "./raceModel";
@@ -71,8 +71,8 @@ export interface UserModel extends AppModelWithData<
 
 export type UserModelClass = ModelClass<UserModel>;
 
-export default function createUserModel(db: Database): UserModelClass {
-  const sequelize = db.sequelize;
+export default function createUserModel(app: Application): UserModelClass {
+  const sequelize = app.db.sequelize;
 
   return createModelWithData<UserModel>("User", {
     name: {

@@ -36,8 +36,7 @@ export default function transactional<T>(getAppFunc?: GetAppFunc<T>): Transactio
         this: C, ...args: P
       ): Promise<R> {
         const app = getApp(this);
-        const db = app.database;
-        return await db.withTransaction(original.bind(this), ...args);
+        return await app.db.withTransaction(original.bind(this), ...args);
       };
 
       return {

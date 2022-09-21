@@ -6,11 +6,11 @@ import {
 
 import {
   ModelData, AppModelWithData, createModelWithData, ModelClass
-} from "../../AppModel";
+} from "../AppModel";
 
 import AccountProvider from "../../../constants/AccountProvider";
-import Database from "../../../modules/Database";
 import type { UserModelClass, UserModel } from "./userModel";
+import Application from "../../Application";
 
 export const USERACCOUNT_MAX_PROVIDERID_LENGTH = 32;
 
@@ -41,10 +41,10 @@ export type UserAccountModelClass = ModelClass<UserAccountModel>
 
 
 export default function createUserAccountModel(
-  db: Database,
+  app: Application,
   userModel: UserModelClass
 ): UserAccountModelClass {
-  const sequelize = db.sequelize;
+  const sequelize = app.db.sequelize;
 
   const UserAccount = createModelWithData<UserAccountModel>("UserAccount", {
     provider: {

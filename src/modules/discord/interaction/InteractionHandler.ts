@@ -1,5 +1,5 @@
 import type { Interaction, InteractionType } from "discord.js";
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 
 
 export interface InteractionHandlerOptions {
@@ -28,7 +28,7 @@ export default abstract class InteractionHandler<
 
   abstract handleInteraction(
     interaction: InteractionTypeHandled<IType>,
-    context: ContextManager
+    app: Application
   ): void | Promise<void>;
 
   readonly interactionType: IType;

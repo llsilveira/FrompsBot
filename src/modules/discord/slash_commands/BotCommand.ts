@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import AccountProvider from "../../../constants/AccountProvider";
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import Discord from "../../Discord";
 import GameAutocompleteField from "../autocomplete_fields/GameAutocompleteField";
@@ -73,19 +73,19 @@ export default class BotCommand extends ApplicationCommand {
 
   async handleInteraction(
     interaction: ChatInputCommandInteraction,
-    context: ContextManager
+    app: Application
   ) {
     const command = interaction.options.getSubcommand();
     const discordUser = interaction.options.getMember("user") as GuildMember;
 
-    const { bot: botService, user: userService } = context.app.services;
+    const { bot: botService, user: userService } = app.services;
 
     const user = discordUser ?
       await userService.getOrRegister(
         AccountProvider.DISCORD, discordUser.id, discordUser.displayName
       ) : null;
 
-    const game = await this.#gameField.getValue(interaction, context);
+    const game = await this.#gameField.getValue(interaction, app);
 
     let message;
     switch (command) {

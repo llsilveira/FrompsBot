@@ -6,13 +6,13 @@ import {
 
 import {
   createModelWithData, ModelClass, ModelData, AppModelWithData
-} from "../../AppModel";
+} from "../AppModel";
 
 import RaceEntryStatus from "../../../constants/RaceEntryStatus";
-import Database from "../../../modules/Database";
 
 import type { RaceModel, RaceModelClass } from "./raceModel";
 import type { UserModel, UserModelClass } from "./userModel";
+import Application from "../../Application";
 
 
 // Data types for models are empty because they are meant to be merged with
@@ -52,11 +52,11 @@ export type RaceEntryModelClass = ModelClass<RaceEntryModel>;
 
 
 export default function createRaceEntryModel(
-  db: Database,
+  app: Application,
   userModel: UserModelClass,
   raceModel: RaceModelClass
 ): RaceEntryModelClass {
-  const sequelize = db.sequelize;
+  const sequelize = app.db.sequelize;
 
   const RaceEntry = createModelWithData<RaceEntryModel>("RaceEntry", {
     raceId: {

@@ -147,7 +147,7 @@ export default class Discord extends AppModule {
 
         this.app.services.auth.login(user);
       }
-      await handler.handleInteraction(interaction, this.app.context);
+      await handler.handleInteraction(interaction, this.app);
 
     } catch (e) {
 
@@ -206,6 +206,3 @@ export default class Discord extends AppModule {
 
   #interactionHandlerContainer;
 }
-
-AppModule.setModuleName(Discord, "discord");
-module.exports = Discord;

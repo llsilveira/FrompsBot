@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ModalActionRowComponentBuilder, ModalBuilder, ModalSubmitInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
 
 import { type InteractionHandlerOptions } from "../interaction/InteractionHandler";
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 import ModalSubmit from "../interaction/ModalSubmit";
 import {
   GameModel, GAME_MAX_CODE_LENGTH, GAME_MAX_NAME_LENGTH, GAME_MAX_SHORTNAME_LENGTH
@@ -9,7 +9,7 @@ import {
 
 export type GameModalCreateCallback = (
   interaction: ModalSubmitInteraction,
-  context: ContextManager,
+  app: Application,
   code: string,
   name: string,
   shortName?: string
@@ -17,7 +17,7 @@ export type GameModalCreateCallback = (
 
 export type GameModalUpdateCallback = (
   interaction: ModalSubmitInteraction,
-  context: ContextManager,
+  app: Application,
   id: number,
   code: string,
   name: string,
@@ -94,7 +94,7 @@ export default class GameModal extends ModalSubmit<GameModalArguments> {
 
   async handleInteraction(
     interaction: ModalSubmitInteraction,
-    context: ContextManager
+    app: Application
   ) {
 
     const code = interaction.fields.getTextInputValue("code");
@@ -104,9 +104,9 @@ export default class GameModal extends ModalSubmit<GameModalArguments> {
 
     const id = this.getArguments(interaction.customId);
     if (id === undefined) {
-      await this.createCallback(interaction, context, code, name, shortName);
+      await this.createCallback(interaction, app, code, name, shortName);
     } else {
-      await this.updateCallack(interaction, context, id, code, name, shortName);
+      await this.updateCallack(interaction, app, id, code, name, shortName);
     }
   }
 

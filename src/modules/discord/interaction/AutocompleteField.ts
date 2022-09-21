@@ -3,7 +3,7 @@ import {
   AutocompleteInteraction, ChatInputCommandInteraction,
 } from "discord.js";
 
-import ContextManager from "../../ContextManager";
+import Application from "../../../app/Application";
 import InteractionHandler, { type InteractionHandlerOptions } from "./InteractionHandler";
 
 
@@ -33,7 +33,7 @@ export default abstract class AutocompleteField
 
   abstract getValue(
     interaction: AutocompleteInteraction | ChatInputCommandInteraction,
-    context: ContextManager,
+    app: Application,
     options: unknown
   ): unknown;
 
