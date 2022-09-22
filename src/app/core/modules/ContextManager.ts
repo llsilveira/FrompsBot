@@ -3,39 +3,59 @@ import { AsyncLocalStorage } from "async_hooks";
 import Application from "../../Application";
 import AppModule from "../../AppModule";
 
+
+// Any consumer that wants to store values on the context should extend this
+export interface ContextTypeMap {}
+
+
 export default class ContextManager extends AppModule {
   constructor(app: Application) {
     super(app);
-    this.#asyncStorage = new AsyncLocalStorage();
+    this.asyncStorage = new AsyncLocalStorage();
   }
 
-  get(key: unknown, defaultValue?: unknown) {
-    const store = this.#getStore();
-    if (store.has(key)) {
-      return store.get(key);
+
+  run<T extends unknown[], R>(
+    callback: (this: unknown, ...args: T) => R, ...args: T
+  ): R {
+    return this.asyncStorage.run(new Map(), callback, ...args);
+  }
+
+
+  has(key: keyof ContextTypeMap) {
+    return this.getStore().has(key);
+  }
+
+  get<K extends keyof ContextTypeMap>(key: K): ContextTypeMap[K] | undefined
+  get<K extends keyof ContextTypeMap>(
+    key: K, defaultValue: ContextTypeMap[K]
+  ): ContextTypeMap[K]
+  get<K extends keyof ContextTypeMap>(
+    key: K, defaultValue?: ContextTypeMap[K]
+  ): ContextTypeMap[K] | undefined {
+    const store = this.getStore();
+    if (!store.has(key)) {
+      return defaultValue;
     }
-    return defaultValue;
+    return store.get(key) as ContextTypeMap[K];
   }
 
-  set(key: unknown, value: unknown) {
-    this.#getStore().set(key, value);
+  set<K extends keyof ContextTypeMap>(key: K, value: ContextTypeMap[K]) {
+    return this.getStore().set(key, value);
   }
 
-  delete(key: unknown) {
-    return this.#getStore().delete(key);
+  delete<K extends keyof ContextTypeMap>(key: K) {
+    return this.getStore().delete(key);
   }
 
-  #getStore() {
-    const store = this.#asyncStorage.getStore() as Map<unknown, unknown>;
+
+  private getStore() {
+    const store = this.asyncStorage.getStore();
     if (!store) {
       throw new Error("Context store is not available.");
     }
     return store;
   }
 
-  run<T extends unknown[], R>(callback: (this: unknown, ...args: T) => R, ...args: T): R {
-    return this.#asyncStorage.run(new Map(), callback, ...args);
-  }
-
-  #asyncStorage;
+  private asyncStorage: AsyncLocalStorage<Map<keyof ContextTypeMap, unknown>>;
 }
