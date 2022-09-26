@@ -119,6 +119,10 @@ export default abstract class AppRepository<
   protected processOptions(options?: FindOptions) {
     const queryOptions: SequelizeFindOptions<Attributes<M>> = {};
 
+    if (options?.filter) {
+      queryOptions.where = options.filter;
+    }
+
     if (options?.pagination) {
       const { pageSize, pageNumber } = options.pagination;
 
