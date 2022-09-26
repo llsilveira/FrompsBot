@@ -33,7 +33,7 @@ export default class NicknameCommand extends ApplicationCommand {
 
     let user, sameUser;
     if (!discordUser || discordUser.id == interaction.user.id) {
-      user = authService.getLoggedUser();
+      user = authService.getLoggedUser(true).value;
       sameUser = true;
     } else {
       user = await userService.getFromProvider(

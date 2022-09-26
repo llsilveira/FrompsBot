@@ -77,7 +77,7 @@ export default class RaceService extends AppModule {
     (args: [IRaceServiceCreateRaceArgs]) => [args[0].game] as [GameModel]
   )
   async createRace(createOpts: IRaceServiceCreateRaceArgs) {
-    const user = this.app.services.auth.getLoggedUser();
+    const user = this.app.services.auth.getLoggedUser(true).value;
     const { game, gameMode, registrationDeadline, seedUrl, seedHash } = createOpts;
 
     // TODO: validate seedUrl and seedHash

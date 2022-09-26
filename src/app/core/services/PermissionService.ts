@@ -30,65 +30,64 @@ export default class PermissionService extends AppModule implements IPermissionS
   }
 
   [Permissions.bot.listAdmins]() {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isAdmin(user);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isAdmin(user);
   }
 
   [Permissions.bot.addAdmin]() {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isAdmin(user);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isAdmin(user);
   }
 
   [Permissions.bot.removeAdmin]() {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isAdmin(user);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isAdmin(user);
   }
 
   [Permissions.bot.listMonitors](game: GameModel) {
-    const user = this.services.auth.getLoggedUser();
-    return (
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && (
       this.services.bot.isAdmin(user) ||
       this.services.bot.isMonitor(user, game)
     );
   }
 
   [Permissions.bot.addMonitor]() {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isAdmin(user);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isAdmin(user);
   }
 
   [Permissions.bot.removeMonitor]() {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isAdmin(user);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isAdmin(user);
   }
 
   [Permissions.user.changeName](subject: UserModel) {
-    const user = this.services.auth.getLoggedUser();
-    return (
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && (
       (this.services.bot.isAdmin(user)) ||
       user.id === subject.id
     );
   }
 
   [Permissions.game.create]() {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isAdmin(user);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isAdmin(user);
   }
 
   [Permissions.game.update]() {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isAdmin(user);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isAdmin(user);
   }
 
   [Permissions.game.remove]() {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isAdmin(user);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isAdmin(user);
   }
 
   [Permissions.game.createMode](game: GameModel) {
-    return (this.services.bot.isMonitor(
-      this.services.auth.getLoggedUser(), game
-    ));
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isMonitor(user, game);
   }
 
   async [Permissions.game.removeMode](gameMode: GameModeModel) {
@@ -99,24 +98,23 @@ export default class PermissionService extends AppModule implements IPermissionS
       throw new Error(`GameMode with id '${gameMode.id}' does not have  game associated with it`);
     }
 
-    return this.services.bot.isMonitor(
-      this.services.auth.getLoggedUser(), game
-    );
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isMonitor(user, game);
   }
 
   [Permissions.race.create](game: GameModel) {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isMonitor(user, game);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isMonitor(user, game);
   }
 
   [Permissions.race.update](game: GameModel) {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isMonitor(user, game);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isMonitor(user, game);
   }
 
   [Permissions.race.remove](game: GameModel) {
-    const user = this.services.auth.getLoggedUser();
-    return this.services.bot.isMonitor(user, game);
+    const user = this.services.auth.getLoggedUser().value;
+    return !!user && this.services.bot.isMonitor(user, game);
   }
 
   private readonly services;

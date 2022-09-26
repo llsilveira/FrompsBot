@@ -1,5 +1,4 @@
 import { Attributes, FindOptions, WhereOptions } from "sequelize";
-import Application from "../../Application";
 import AppModule from "../../AppModule";
 import hasPermission from "../../../constraints/hasPermission";
 import check from "../../../decorators/check";
@@ -16,9 +15,6 @@ export interface UserServiceOptions {
 }
 
 export default class UserService extends AppModule {
-  constructor(app: Application) {
-    super(app);
-  }
 
   // TODO: change type
   async listUsersFilterByData(

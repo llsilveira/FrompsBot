@@ -1,5 +1,5 @@
 import {
-  Client, GatewayIntentBits, GuildMember, Interaction, InteractionType, Routes
+  Client, GatewayIntentBits, Interaction, InteractionType, Routes
 } from "discord.js";
 import { REST } from "@discordjs/rest";
 
@@ -8,10 +8,11 @@ import Application from "../app/Application";
 import InteractionHandler from "./discord/interaction/InteractionHandler";
 import { UserModel } from "../app/core/models/userModel";
 import AccountProvider from "../constants/AccountProvider";
-import FrompsBotError from "../errors/FrompsBotError";
 import InteractionHandlerContainer from "./discord/InteractionHandlerContainer";
 
 import { SlashCommandName, slashCommands } from "./discord/slash_commands";
+import { UserNotFoundError } from "../app/core/services/AuthService";
+import { ResultError } from "../app/core/logic/error/ResultError";
 
 
 const DISCORD_REST_API_VERSION = "10";
@@ -20,6 +21,13 @@ interface DiscordConfig {
   token: string,
   clientId: string,
   guildId: string
+}
+
+class DiscordUserError extends ResultError {
+  constructor(message: string, readonly cause?: Error) {
+    super(message);
+    this.cause = cause;
+  }
 }
 
 export default class Discord extends AppModule {
@@ -122,30 +130,22 @@ export default class Discord extends AppModule {
     try {
       if (!handler.options.annonymous) {
         const userId = interaction.user.id;
-        let user = await this.app.services.user.getFromProvider(
-          AccountProvider.DISCORD, userId
-        );
+        const result = await this.app.services.auth.authenticate(
+          AccountProvider.DISCORD, userId);
 
-        if (!user) {
-          let name;
-          if (interaction.guild?.id === this.#guildId) {
-            name = (interaction.member as GuildMember).displayName;
+        if (!result.success) {
+          let errorMessage = "";
+          if (result.error instanceof UserNotFoundError) {
+            // TODO: alterar nome do comando dinamicamente
+            errorMessage =
+              "Você deve registrar-se (`/register`) antes de utilizar este comando.";
           } else {
-            const member = await this.getMemberFromId(userId);
-
-            if (member) {
-              name = member.displayName;
-            } else {
-              name = interaction.user.username;
-            }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const _exhaustiveCheck: never = result.error;
           }
-
-          user = await this.app.services.user.register(
-            AccountProvider.DISCORD, userId, name
-          );
+          throw new DiscordUserError(errorMessage);
         }
 
-        this.app.services.auth.login(user);
       }
       await handler.handleInteraction(interaction, this.app);
 
@@ -153,7 +153,7 @@ export default class Discord extends AppModule {
 
       let rethrow, content;
 
-      if (e instanceof FrompsBotError) {
+      if (e instanceof DiscordUserError) {
         content = e.message;
         rethrow = false;
       } else {
@@ -165,8 +165,6 @@ export default class Discord extends AppModule {
 
       // TODO: log if its autocomplete
       if (interaction.type !== InteractionType.ApplicationCommandAutocomplete) {
-
-
         if (interaction.replied || interaction.deferred) {
           await interaction.editReply({
             content,
