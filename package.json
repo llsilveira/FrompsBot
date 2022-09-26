@@ -37,11 +37,13 @@
   },
   "scripts": {
     "build": "yarn tsc -p .",
+    "build_watch": "yarn run build -w",
+    "lint": "yarn eslint ./src",
+
     "start": "node build",
-    "watch": "yarn run build -w",
+    "watch": "yarn nodemon --watch build --exec 'yarn start'",
     "debug": "node --inspect build",
-    "build_watch": "yarn nodemon --watch build --exec 'yarn start'",
-    "clean": "rm -rf build",
-    "lint": "yarn eslint ./src"
+
+    "clean": "rm -rf build"
   }
 }
