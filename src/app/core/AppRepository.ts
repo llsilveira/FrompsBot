@@ -37,6 +37,21 @@ export default abstract class AppRepository<
     } as RepositoryFilter<Md>;
   }
 
+  static strAttrFilter<Md extends Model>(
+    attrName: keyof Attributes<Md>,
+    str: string,
+    caseSensitive: boolean = false
+  ) {
+    const op = caseSensitive ? Op.like : Op.iLike;
+    const attr: Attributes<Md>[typeof attrName] = attrName;
+
+    const filter: RepositoryFilter<Md> = {
+      [attr]: { [op]: `%${str}%` }
+    };
+
+    return filter;
+  }
+
   constructor(
     modelClass: ModelClass<M>
   ) {
