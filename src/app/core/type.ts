@@ -22,3 +22,5 @@ export type OptionalProperties<T, Props extends keyof T> =
 export type MapKey<T> = T extends Map<infer Type, unknown> ? Type : never;
 
 export type MapValue<T> = T extends Map<unknown, infer Type> ? Type : never;
+
+export type IsOptional<T> = T | undefined extends T ? true : false;
