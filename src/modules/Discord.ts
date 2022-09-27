@@ -23,7 +23,7 @@ interface DiscordConfig {
   guildId: string
 }
 
-class DiscordUserError extends ResultError {
+export class DiscordUserError extends ResultError {
   constructor(message: string, readonly cause?: Error) {
     super(message);
     this.cause = cause;
