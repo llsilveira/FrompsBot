@@ -41,7 +41,7 @@
     "lint": "yarn eslint ./src",
 
     "start": "node build",
-    "watch": "yarn nodemon --watch build --exec 'yarn start'",
+    "watch": "yarn nodemon --delay 0.5 --watch build --exec 'yarn start'",
     "debug": "node --inspect build",
 
     "clean": "rm -rf build"
