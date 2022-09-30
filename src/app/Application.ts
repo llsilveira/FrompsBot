@@ -11,15 +11,19 @@ import Services from "./core/modules/Services";
 
 import Discord from "../modules/Discord";
 import Repositories from "./core/modules/Repositories";
+import PermissionManager from "./core/modules/PermissionManager";
 
 export default class Application {
   readonly name: string;
   readonly instancePath: string;
   readonly applicationRoot;
+
   readonly config: ConfigLoader;
   readonly logger: LoggerFactory;
   readonly context: ContextManager;
   readonly db: Database;
+  readonly permissionManager: PermissionManager;
+
   readonly models: Models;
   readonly services: Services;
   readonly repos: Repositories;
@@ -36,6 +40,7 @@ export default class Application {
     this.context = new ContextManager(this);
 
     this.db = new Database(this);
+    this.permissionManager = new PermissionManager(this);
 
     this.models = new Models(this);
     this.services = new Services(this);
