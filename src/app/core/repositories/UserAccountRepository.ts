@@ -1,16 +1,12 @@
+import { Op } from "sequelize";
 import AccountProvider from "../../../constants/AccountProvider";
-import AppRepository, { RepositoryFilter, RepositoryFindOptions } from "../AppRepository";
+import AppRepository, { RepositoryFilter } from "../AppRepository";
 import { UserAccountModel } from "../models/userAccountModel";
 
-interface UserAccountFindOptions
-  extends RepositoryFindOptions<UserAccountModel> {
-  include?: ("user")[]
-}
-
 export default class UserAccountRepository
-  extends AppRepository<UserAccountModel, UserAccountFindOptions> {
+  extends AppRepository<UserAccountModel> {
 
-  static providerFilter(provider: AccountProvider, providerId: string):
+  static providerAccountFilter(provider: AccountProvider, providerId: string):
     RepositoryFilter<UserAccountModel> {
     const filter: RepositoryFilter<UserAccountModel> = {};
 
@@ -20,13 +16,35 @@ export default class UserAccountRepository
     return filter;
   }
 
-  protected processOptions(options?: UserAccountFindOptions) {
-    const queryOptions = super.processOptions(options);
+  static userProvidersFilter(
+    userId: number,
+    providers?: AccountProvider[],
+    providerId?: string
+  ): RepositoryFilter<UserAccountModel> {
+    const userFilter: RepositoryFilter<UserAccountModel> = { userId };
+    const filters = [userFilter];
 
-    if (options?.include) {
-      queryOptions.include = options.include;
+    if (providers) {
+      const providersFilter: RepositoryFilter<UserAccountModel> = {
+        provider: { [Op.in]: providers }
+      };
+      filters.push(providersFilter);
     }
 
-    return queryOptions;
+    if (providerId) {
+      const providerIdFilter: RepositoryFilter<UserAccountModel> = {
+        providerId: providerId
+      };
+      filters.push(providerIdFilter);
+    }
+
+    if (filters.length > 1) {
+      const combined: RepositoryFilter<UserAccountModel> = {
+        [Op.and]: filters
+      };
+      return combined;
+    } else {
+      return filters[0];
+    }
   }
 }
