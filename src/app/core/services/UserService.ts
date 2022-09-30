@@ -1,57 +1,65 @@
-import { Attributes, FindOptions, WhereOptions } from "sequelize";
-import AppModule from "../../AppModule";
 import hasPermission from "../../../constraints/hasPermission";
 import check from "../../../decorators/check";
 import transactional from "../../../decorators/transactional";
 import AccountProvider from "../../../constants/AccountProvider";
 import Permissions from "../../../constants/Permissions";
 import { UserModel } from "../models/userModel";
+import UserAccountRepository from "../repositories/UserAccountRepository";
+import Result, { Fail } from "../logic/Result";
+import { ResultError } from "../logic/error/ResultError";
+import { RepositoryFindOptions } from "../AppRepository";
+import AppService, { IService } from "../AppService";
 
 
-export type UserServiceDataFilter = WhereOptions<Attributes<UserModel>>
-
-export interface UserServiceOptions {
-  ordered?: boolean
+export class UserAlreadyRegisteredError extends ResultError {
+  constructor() {
+    super("Esta conta já foi previamente registrada neste bot.");
+  }
 }
 
-export default class UserService extends AppModule {
 
-  // TODO: change type
-  async listUsersFilterByData(
-    dataFilter: UserServiceDataFilter = {}, options: UserServiceOptions = {}
+export default class UserService
+  extends AppService
+  implements IService<UserService> {
+
+  async list(options?: RepositoryFindOptions<UserModel>) {
+    return Result.success(await this.app.repos.user.findMany(options));
+  }
+
+  async getUserFromId(
+    userId: number,
+    options?: RepositoryFindOptions<UserModel>
   ) {
-    const queryOptions = this.processQueryOptions(options);
-
-    queryOptions.where = dataFilter;
-    return await this.app.models.user.findAll(queryOptions);
+    return Result.success(await this.app.repos.user.findById(userId, options));
   }
 
-  async getFromProvider(provider: AccountProvider, providerId: string) {
-    const accounts = await this.app.models.userAccount.findAll({
-      where: { provider, providerId },
-      include: "user"
+  async getUserFromProvider(provider: AccountProvider, providerId: string) {
+    const userAccount = await this.app.repos.userAccount.findOne({
+      filter: UserAccountRepository.providerAccountFilter(provider, providerId),
+      include: ["user"]
     });
-    return (accounts.length <= 0) ? undefined : accounts[0]?.user;
+
+    if (!userAccount || !userAccount.user) {
+      return Result.success(null);
+    }
+    return Result.success(userAccount.user as UserModel);
   }
 
-  async getFromId(userId: number) {
-    return await this.app.models.user.findByPk(userId);
-  }
+  async getUserAccounts(
+    userId: number,
+    providers?: AccountProvider | AccountProvider[],
+    providerId?: string
+  ) {
+    if (providers && !Array.isArray(providers)) {
+      providers = [providers];
+    }
 
-  async getProvider(user: UserModel, provider: AccountProvider) {
-    return await this.app.models.userAccount.findOne({
-      where: {
-        provider: provider,
-        userId: user.id
-      }
+    const accounts = await this.app.repos.userAccount.findMany({
+      filter: UserAccountRepository.userProvidersFilter(
+        userId, providers, providerId)
     });
-  }
 
-  async searchByName(name: string) {
-    return await this.app.models.user.findAll({
-      where: { name },
-      include: "accounts"
-    });
+    return Result.success(accounts);
   }
 
   @transactional()
@@ -62,7 +70,8 @@ export default class UserService extends AppModule {
   async setName(user: UserModel, name: string) {
     // TODO: filter/escape name
     user.name = name;
-    await user.save();
+    await this.app.repos.user.save(user);
+    return Result.success();
   }
 
   @transactional()
@@ -71,16 +80,17 @@ export default class UserService extends AppModule {
     providerId: string,
     name: string
   ) {
-    if (await this.getFromProvider(provider, providerId)) {
-      throw new Error(`User already registered: ${provider} - ${providerId}`);
+    if ((await this.getUserFromProvider(provider, providerId)).value) {
+      return Result.fail(new UserAlreadyRegisteredError());
     }
+
     const user = await this.app.models.user.create({ name });
     await this.app.models.userAccount.create({
       userId: user.id,
       provider,
       providerId,
     });
-    return user;
+    return Result.success(user);
   }
 
   @transactional()
@@ -89,20 +99,12 @@ export default class UserService extends AppModule {
     providerId: string,
     name: string
   ) {
-    let user = await this.getFromProvider(provider, providerId);
-    if (!user) {
-      user = await this.register(provider, providerId, name);
+    const user = (await this.getUserFromProvider(provider, providerId)).value;
+    if (user) {
+      return Result.success(user);
+    } else {
+      const result = await this.register(provider, providerId, name);
+      return result as Exclude<typeof result, Fail<UserAlreadyRegisteredError>>;
     }
-
-    return user;
-  }
-
-  processQueryOptions(options: UserServiceOptions) {
-    const queryOptions: FindOptions<Attributes<UserModel>> = { where: {} };
-
-    if (options?.ordered) {
-      queryOptions.order = [["name", "ASC"]];
-    }
-    return queryOptions;
   }
 }

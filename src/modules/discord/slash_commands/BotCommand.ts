@@ -81,9 +81,9 @@ export default class BotCommand extends ApplicationCommand {
     const { bot: botService, user: userService } = app.services;
 
     const user = discordUser ?
-      await userService.getOrRegister(
+      (await userService.getOrRegister(
         AccountProvider.DISCORD, discordUser.id, discordUser.displayName
-      ) : null;
+      )).value : null;
 
     const game = await this.#gameField.getValue(interaction, app);
 

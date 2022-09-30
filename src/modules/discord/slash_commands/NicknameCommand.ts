@@ -36,9 +36,9 @@ export default class NicknameCommand extends ApplicationCommand {
       user = authService.getLoggedUser(true).value;
       sameUser = true;
     } else {
-      user = await userService.getFromProvider(
+      user = (await userService.getUserFromProvider(
         AccountProvider.DISCORD, discordUser.id
-      );
+      )).value;
       if (!user) {
         // TODO: change type
         throw new FrompsBotError("Usuário não encontrado!");

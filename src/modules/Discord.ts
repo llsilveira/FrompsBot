@@ -71,9 +71,13 @@ export default class Discord extends AppModule {
   }
 
   async getDiscordId(user: UserModel) {
-    const provider =
-      await this.app.services.user.getProvider(user, AccountProvider.DISCORD);
-    return provider?.providerId || null;
+    const providers = (await this.app.services.user.getUserAccounts(
+      user.id, AccountProvider.DISCORD
+    )).value;
+
+    if (providers.length > 0) {
+      return providers[0].providerId;
+    } else { return null; }
   }
 
   async getGuild(guildId: string) {

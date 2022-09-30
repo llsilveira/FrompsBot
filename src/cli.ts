@@ -48,9 +48,9 @@ async function run(app: Application) {
 }
 
 async function botAddAdmin(app: Application, userDiscordId: string) {
-  const user = await app.services.user.getFromProvider(
+  const user = (await app.services.user.getUserFromProvider(
     AccountProvider.DISCORD, userDiscordId
-  );
+  )).value;
 
   if (!user) {
     console.log("Usuário não encontrado!");

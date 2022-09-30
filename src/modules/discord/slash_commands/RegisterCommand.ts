@@ -31,9 +31,9 @@ export default class RegisterCommand extends ApplicationCommand {
   ) {
     const discordId = interaction.user.id;
 
-    const user = await app.services.user.getFromProvider(
+    const user = (await app.services.user.getUserFromProvider(
       AccountProvider.DISCORD, discordId
-    );
+    )).value;
 
     if (user !== undefined) {
       throw new DiscordUserError("Você já está registrado!");

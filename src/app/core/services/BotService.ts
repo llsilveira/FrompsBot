@@ -6,9 +6,9 @@ import transactional from "../../../decorators/transactional";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import { UserModel } from "../models/userModel";
 import { GameModel } from "../models/gameModel";
-import { UserServiceOptions } from "./UserService";
 import { Op } from "sequelize";
 import Application from "../../Application";
+import UserRepository from "../repositories/UserRepository";
 
 
 type BotUserData = {
@@ -38,19 +38,19 @@ export default class BotService extends AppModule {
   }
 
   @check(hasPermission(Permissions.bot.listAdmins))
-  async listAdmins(options?: UserServiceOptions) {
-    return await this.app.services.user.listUsersFilterByData(
-      { data: { bot: { isAdmin: true } } },
-      options
-    );
+  async listAdmins() {
+    return (await this.app.services.user.list({
+      filter: UserRepository.dataFilter({ "bot": { "isAdmin": true } })
+    })).value;
   }
 
   @check(hasPermission(Permissions.bot.listMonitors))
-  async listMonitors(game: GameModel, options?: UserServiceOptions) {
-    return await this.app.services.user.listUsersFilterByData(
-      { data: { bot: { monitors: { [Op.contains]: JSON.stringify(game.id) } } } },
-      options
-    );
+  async listMonitors(game: GameModel) {
+    return (await this.app.services.user.list({
+      filter: UserRepository.dataFilter(
+        { "bot": { "monitors": { [Op.contains]: JSON.stringify(game.id) } } }
+      )
+    })).value;
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
