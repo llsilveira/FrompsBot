@@ -1,19 +1,22 @@
 import {
-  Attributes, CreationAttributes, FindOptions as SequelizeFindOptions, Model,
+  Attributes, CreationAttributes, FindOptions as SequelizeFindOptions, Includeable,
   Op, WhereOptions
 } from "sequelize";
-import { AppModel, ModelClass } from "./AppModel";
+import { AppModel, AppModelWithData, ModelClass } from "./AppModel";
+import { KeysByValueType } from "./type";
 
 
-export type RepositoryFilter<M extends Model> = WhereOptions<Attributes<M>>
+export type RepositoryFilter<M extends AppModel> = WhereOptions<Attributes<M>>
 
-export interface RepositoryFindOptions<M extends Model> {
+export interface RepositoryFindOptions<M extends AppModel> {
   pagination?: { pageSize: number, pageNumber: number };
 
   // Ignored if 'pagination' is set
   limit?: number;
 
-  filter?: RepositoryFilter<M>
+  filter?: RepositoryFilter<M>;
+
+  include?: Includeable | Includeable[];
 }
 
 
@@ -22,7 +25,7 @@ export default abstract class AppRepository<
   FindOptions extends RepositoryFindOptions<M> = RepositoryFindOptions<M>
 > {
 
-  static combineFilters<Md extends Model>(
+  static combineFilters<Md extends AppModel>(
     filter1?: RepositoryFilter<Md>,
     filter2?: RepositoryFilter<Md>,
     // Combine using 'OR' instead of 'AND'.
@@ -37,18 +40,24 @@ export default abstract class AppRepository<
     } as RepositoryFilter<Md>;
   }
 
-  static strAttrFilter<Md extends Model>(
-    attrName: keyof Attributes<Md>,
+  static strAttrFilter<Md extends AppModel>(
+    attr: KeysByValueType<Attributes<Md>, string>,
     str: string,
     caseSensitive: boolean = false
   ) {
     const op = caseSensitive ? Op.like : Op.iLike;
-    const attr: Attributes<Md>[typeof attrName] = attrName;
 
-    const filter: RepositoryFilter<Md> = {
+    return {
       [attr]: { [op]: `%${str}%` }
-    };
+      // Type coercion necessary because typescript is recognizing 'attr' type
+      // as just 'string' when validating 'WhereOptions' type.
+    } as RepositoryFilter<Md>;
+  }
 
+  static dataFilter<Md extends AppModelWithData>(dataFilter: {}) {
+    const filter: RepositoryFilter<Md> = {
+      data: dataFilter
+    };
     return filter;
   }
 
@@ -121,6 +130,10 @@ export default abstract class AppRepository<
 
     if (options?.filter) {
       queryOptions.where = options.filter;
+    }
+
+    if (options?.include) {
+      queryOptions.include = options.include;
     }
 
     if (options?.pagination) {
