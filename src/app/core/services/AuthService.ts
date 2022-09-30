@@ -1,10 +1,9 @@
-import AppModule from "../../AppModule";
-
 import { UserModel } from "../models/userModel";
 import AccountProvider from "../../../constants/AccountProvider";
 import UserAccountRepository from "../repositories/UserAccountRepository";
 import Result, { Success } from "../logic/Result";
 import { ResultError } from "../logic/error/ResultError";
+import AppService, { IService } from "../AppService";
 
 declare module "../modules/ContextManager" {
   interface ContextTypeMap {
@@ -20,11 +19,13 @@ export class UserNotFoundError extends ResultError {
   }
 }
 
-export default class AuthService extends AppModule {
+export default class AuthService
+  extends AppService
+  implements IService<AuthService> {
 
   async authenticate(provider: AccountProvider, providerId: string) {
     const account = await this.app.repos.userAccount.findOne({
-      filter: UserAccountRepository.providerFilter(provider, providerId),
+      filter: UserAccountRepository.providerAccountFilter(provider, providerId),
       include: ["user"]
     });
 
@@ -37,7 +38,7 @@ export default class AuthService extends AppModule {
     }
 
     this.login(account.user);
-    return Result.success(account.user);
+    return Result.success(account.user as UserModel);
   }
 
   login(user: UserModel) {
