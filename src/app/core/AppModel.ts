@@ -2,7 +2,7 @@ import {
   Attributes, CreationOptional, DataTypes, InferAttributes, InferCreationAttributes,
   Model, ModelAttributes, ModelOptions, ModelStatic, Sequelize
 } from "sequelize";
-import { JSONSerializable, RequiredProperties } from "./type";
+import { JSONSerializable, MakeRequired } from "./type";
 
 import structuredClone from "../../helpers/structuredClone";
 
@@ -54,7 +54,7 @@ export interface AppModelWithData<
 export function createModel<M extends AppModel, TAttributes = Attributes<M>>(
   modelName: string,
   attributes: Omit<ModelAttributes<M, TAttributes>, "id">,
-  options: RequiredProperties<ModelOptions<M>, "tableName">,
+  options: MakeRequired<ModelOptions<M>, "tableName">,
   sequelize: Sequelize,
 ): ModelClass<M> {
 
@@ -77,7 +77,7 @@ export function createModelWithData<
 >(
   modelName: string,
   attributes: Omit<ModelAttributes<M, TAttributes>, "id" | "data">,
-  options: RequiredProperties<ModelOptions<M>, "tableName">,
+  options: MakeRequired<ModelOptions<M>, "tableName">,
   sequelize: Sequelize,
 ): ModelClass<M> {
 
