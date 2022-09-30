@@ -22,7 +22,7 @@ export default class UserService
   extends AppService
   implements IService<UserService> {
 
-  async list(options?: RepositoryFindOptions<UserModel>) {
+  async listUsers(options?: RepositoryFindOptions<UserModel>) {
     return Result.success(await this.app.repos.user.findMany(options));
   }
 

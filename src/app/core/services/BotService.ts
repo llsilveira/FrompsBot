@@ -43,14 +43,14 @@ export default class BotService
 
   @check(hasPermission(Permissions.bot.listAdmins))
   async listAdmins() {
-    return await this.app.services.user.list({
+    return await this.app.services.user.listUsers({
       filter: UserRepository.dataFilter({ "bot": { "isAdmin": true } })
     });
   }
 
   @check(hasPermission(Permissions.bot.listMonitors))
   async listMonitors(game: GameModel) {
-    return await this.app.services.user.list({
+    return await this.app.services.user.listUsers({
       filter: UserRepository.dataFilter(
         { "bot": { "monitors": { [Op.contains]: JSON.stringify(game.id) } } }
       )
