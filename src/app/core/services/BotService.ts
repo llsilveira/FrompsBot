@@ -1,4 +1,3 @@
-import AppModule from "../../AppModule";
 import Permissions from "../../../constants/Permissions";
 import hasPermission from "../../../constraints/hasPermission";
 import check from "../../../decorators/check";
@@ -9,6 +8,8 @@ import { GameModel } from "../models/gameModel";
 import { Op } from "sequelize";
 import Application from "../../Application";
 import UserRepository from "../repositories/UserRepository";
+import AppService, { IService } from "../AppService";
+import Result from "../logic/Result";
 
 
 type BotUserData = {
@@ -22,35 +23,38 @@ declare module "../models/userModel" {
   }
 }
 
-export default class BotService extends AppModule {
+export default class BotService
+  extends AppService
+  implements IService<BotService> {
+
   constructor(app: Application) {
     super(app);
   }
 
   isAdmin(user: UserModel) {
     const data = this.#getBotUserData(user);
-    return (data?.isAdmin === true);
+    return Result.success(data?.isAdmin === true);
   }
 
   isMonitor(user: UserModel, game: GameModel) {
     const data = this.#getBotUserData(user);
-    return (data?.monitors?.includes(game.id) === true);
+    return Result.success(data?.monitors?.includes(game.id) === true);
   }
 
   @check(hasPermission(Permissions.bot.listAdmins))
   async listAdmins() {
-    return (await this.app.services.user.list({
+    return await this.app.services.user.list({
       filter: UserRepository.dataFilter({ "bot": { "isAdmin": true } })
-    })).value;
+    });
   }
 
   @check(hasPermission(Permissions.bot.listMonitors))
   async listMonitors(game: GameModel) {
-    return (await this.app.services.user.list({
+    return await this.app.services.user.list({
       filter: UserRepository.dataFilter(
         { "bot": { "monitors": { [Op.contains]: JSON.stringify(game.id) } } }
       )
-    })).value;
+    });
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -63,7 +67,9 @@ export default class BotService extends AppModule {
         `O usuário ${user.name} já é administrador deste bot!`);
     }
     this.#setBotUserData(user, Object.assign({}, data, { isAdmin: true }));
-    await user.save();
+    await this.app.repos.user.save(user);
+
+    return Result.success();
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -77,7 +83,9 @@ export default class BotService extends AppModule {
     }
     delete data.isAdmin;
     this.#setBotUserData(user, data);
-    await user.save();
+    await this.app.repos.user.save(user);
+
+    return Result.success();
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -96,7 +104,9 @@ export default class BotService extends AppModule {
     }
     newData.monitors.push(game.id);
     this.#setBotUserData(user, newData);
-    await user.save();
+    await this.app.repos.user.save(user);
+
+    return Result.success();
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -114,7 +124,9 @@ export default class BotService extends AppModule {
     );
     data.monitors.splice(index, 1);
     this.#setBotUserData(user, data);
-    await user.save();
+    await this.app.repos.user.save(user);
+
+    return Result.success();
   }
 
   #getBotUserData(modelInstance: UserModel): BotUserData | undefined {

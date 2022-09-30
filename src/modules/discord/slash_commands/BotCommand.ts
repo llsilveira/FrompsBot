@@ -90,7 +90,7 @@ export default class BotCommand extends ApplicationCommand {
     let message;
     switch (command) {
     case "list_admins": {
-      const admins = await botService.listAdmins();
+      const admins = (await botService.listAdmins()).value;
       if (admins.length > 0) {
         message = "Administradores deste bot: ";
         message += admins.map(u => u.name).join(", ");
@@ -125,7 +125,7 @@ export default class BotCommand extends ApplicationCommand {
         throw new FrompsBotError("Jogo não encontrado!");
       }
 
-      const monitors = await botService.listMonitors(game);
+      const monitors = (await botService.listMonitors(game)).value;
       if (monitors.length > 0) {
         message = `Monitores de ${game.shortName}: `;
         message += monitors.map(u => u.name).join(", ");

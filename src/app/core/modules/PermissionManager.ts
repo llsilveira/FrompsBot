@@ -16,63 +16,63 @@ export default class PermissionManager
 
   [Permissions.bot.listAdmins]() {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isAdmin(user);
+    return !!user && this.app.services.bot.isAdmin(user).value;
   }
 
   [Permissions.bot.addAdmin]() {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isAdmin(user);
+    return !!user && this.app.services.bot.isAdmin(user).value;
   }
 
   [Permissions.bot.removeAdmin]() {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isAdmin(user);
+    return !!user && this.app.services.bot.isAdmin(user).value;
   }
 
   [Permissions.bot.listMonitors](game: GameModel) {
     const user = this.app.services.auth.getLoggedUser().value;
     return !!user && (
-      this.app.services.bot.isAdmin(user) ||
-      this.app.services.bot.isMonitor(user, game)
+      this.app.services.bot.isAdmin(user).value ||
+      this.app.services.bot.isMonitor(user, game).value
     );
   }
 
   [Permissions.bot.addMonitor]() {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isAdmin(user);
+    return !!user && this.app.services.bot.isAdmin(user).value;
   }
 
   [Permissions.bot.removeMonitor]() {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isAdmin(user);
+    return !!user && this.app.services.bot.isAdmin(user).value;
   }
 
   [Permissions.user.changeName](subject: UserModel) {
     const user = this.app.services.auth.getLoggedUser().value;
     return !!user && (
-      (this.app.services.bot.isAdmin(user)) ||
+      (this.app.services.bot.isAdmin(user).value) ||
       user.id === subject.id
     );
   }
 
   [Permissions.game.create]() {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isAdmin(user);
+    return !!user && this.app.services.bot.isAdmin(user).value;
   }
 
   [Permissions.game.update]() {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isAdmin(user);
+    return !!user && this.app.services.bot.isAdmin(user).value;
   }
 
   [Permissions.game.remove]() {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isAdmin(user);
+    return !!user && this.app.services.bot.isAdmin(user).value;
   }
 
   [Permissions.game.createMode](game: GameModel) {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isMonitor(user, game);
+    return !!user && this.app.services.bot.isMonitor(user, game).value;
   }
 
   async [Permissions.game.removeMode](gameMode: GameModeModel) {
@@ -84,21 +84,21 @@ export default class PermissionManager
     }
 
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isMonitor(user, game);
+    return !!user && this.app.services.bot.isMonitor(user, game).value;
   }
 
   [Permissions.race.create](game: GameModel) {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isMonitor(user, game);
+    return !!user && this.app.services.bot.isMonitor(user, game).value;
   }
 
   [Permissions.race.update](game: GameModel) {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isMonitor(user, game);
+    return !!user && this.app.services.bot.isMonitor(user, game).value;
   }
 
   [Permissions.race.remove](game: GameModel) {
     const user = this.app.services.auth.getLoggedUser().value;
-    return !!user && this.app.services.bot.isMonitor(user, game);
+    return !!user && this.app.services.bot.isMonitor(user, game).value;
   }
 }
