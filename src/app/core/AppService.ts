@@ -9,7 +9,7 @@ export type IService<S> = {
   [Key in keyof S]: Key extends string
   ? RemovePrefix<Key, "_"> extends never
     ? S[Key] extends (...args: infer Args) => infer Ret
-      ? Ret extends ResultT<unknown, void | ResultError> | Promise<ResultT<unknown, void | ResultError>>
+      ? [Ret] extends [ResultT<unknown, void | ResultError> | Promise<ResultT<unknown, void | ResultError>>]
         ? S[Key]
         : never
       : S[Key]
