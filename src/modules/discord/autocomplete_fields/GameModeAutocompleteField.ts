@@ -1,9 +1,11 @@
 import { AutocompleteInteraction, ChatInputCommandInteraction } from "discord.js";
 import Application from "../../../app/Application";
-import { IGameServiceGameModeOptions } from "../../../app/core/services/GameService";
+import { RepositoryFindOptions } from "../../../app/core/AppRepository";
+import { GameModeModel } from "../../../app/core/models/gameModeModel";
 import ApplicationCommand from "../interaction/ApplicationCommand";
 import AutocompleteField, { AutocompleteFieldParent } from "../interaction/AutocompleteField";
 import GameAutocompleteField from "./GameAutocompleteField";
+
 
 export default class GameModeAutocompleteField extends AutocompleteField {
   constructor(
@@ -33,12 +35,12 @@ export default class GameModeAutocompleteField extends AutocompleteField {
 
     const { game: gameService } = app.services;
 
-    const params: IGameServiceGameModeOptions = { gameId: game.id, ordered: true, limit: 25 };
-    if (currentValue?.length > 0) {
-      params.filter = currentValue;
-    }
+    const params: RepositoryFindOptions<GameModeModel> = {
+      limit: 25,
+      order: ["name"]
+    };
 
-    const modes = await gameService.listGameModes(params);
+    const modes = (await gameService.findGameModeByName(game, currentValue, params)).value;
     if (modes.length > 0) {
       await interaction.respond(modes.map(mode => (
         { name: mode.name, value: mode.id }
@@ -66,7 +68,7 @@ export default class GameModeAutocompleteField extends AutocompleteField {
   async getValue(
     interaction: AutocompleteInteraction | ChatInputCommandInteraction,
     app: Application,
-    options?: IGameServiceGameModeOptions
+    options?: RepositoryFindOptions<GameModeModel>
   ) {
     const game = await this.#gameField.getValue(interaction, app);
     if (!game) {
@@ -83,7 +85,7 @@ export default class GameModeAutocompleteField extends AutocompleteField {
       return null;
     }
 
-    return await gameService.getGameModeById(gameModeId, options);
+    return (await gameService.getGameModeById(gameModeId, options)).value;
   }
 
   #gameField;

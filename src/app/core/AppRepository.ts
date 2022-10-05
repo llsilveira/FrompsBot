@@ -1,6 +1,6 @@
 import {
   Attributes, CreationAttributes, FindOptions as SequelizeFindOptions, Includeable,
-  Op, WhereOptions
+  Op, Order, WhereOptions
 } from "sequelize";
 import { AppModel, AppModelWithData, ModelClass } from "./AppModel";
 import { KeysByValueType } from "./type";
@@ -16,6 +16,8 @@ export interface RepositoryFindOptions<M extends AppModel> {
 
   filter?: RepositoryFilter<M>;
 
+  order?: Order;
+
   include?: Includeable | Includeable[];
 }
 
@@ -26,24 +28,22 @@ export default abstract class AppRepository<
 > {
 
   static combineFilters<Md extends AppModel>(
-    filter1?: RepositoryFilter<Md>,
-    filter2?: RepositoryFilter<Md>,
-    // Combine using 'OR' instead of 'AND'.
-    useOr: boolean = false
-  ): RepositoryFilter<Md> | undefined {
-    if (!filter1) { return filter2; }
-    if (!filter2) { return filter1; }
-
+    filters: RepositoryFilter<Md>[],
+    {
+      // Combine using 'OR' instead of 'AND'.
+      useOr = false
+    }: { useOr?: boolean } = {}
+  ): RepositoryFilter<Md> {
     const op = useOr ? Op.or : Op.and;
-    return {
-      [op]: [filter1, filter2]
-    } as RepositoryFilter<Md>;
+    return { [op]: filters } as RepositoryFilter<Md>;
   }
 
   static strAttrFilter<Md extends AppModel>(
     attr: KeysByValueType<Attributes<Md>, string>,
     str: string,
-    caseSensitive: boolean = false
+    {
+      caseSensitive = false
+    }: { caseSensitive?: boolean } = {}
   ) {
     const op = caseSensitive ? Op.like : Op.iLike;
 
@@ -130,6 +130,10 @@ export default abstract class AppRepository<
 
     if (options?.filter) {
       queryOptions.where = options.filter;
+    }
+
+    if (options?.order) {
+      queryOptions.order = options.order;
     }
 
     if (options?.include) {

@@ -4,7 +4,9 @@ import AutocompleteField, { AutocompleteFieldParent } from "../interaction/Autoc
 import type Application from "../../../app/Application";
 import type ApplicationCommand from "../interaction/ApplicationCommand";
 import { type InteractionHandlerOptions } from "../interaction/InteractionHandler";
-import { IGameServiceGameOptions } from "../../../app/core/services/GameService";
+import { RepositoryFindOptions } from "../../../app/core/AppRepository";
+import { GameModel } from "../../../app/core/models/gameModel";
+import { GameRepository } from "../../../app/core/repositories/GameRepository";
 
 export default class GameAutocompleteField extends AutocompleteField {
 
@@ -23,12 +25,21 @@ export default class GameAutocompleteField extends AutocompleteField {
     const currentValue = interaction.options.getFocused();
     const { game: gameService } = app.services;
 
-    const params: IGameServiceGameOptions = { ordered: true, limit: 25 };
+    const params: RepositoryFindOptions<GameModel> = {
+      limit: 25,
+      order: ["name"]
+    };
+
     if (currentValue?.length > 0) {
-      params.filter = currentValue;
+      params.filter = GameRepository.combineFilters<GameModel>([
+        GameRepository.strAttrFilter("code", currentValue),
+        GameRepository.strAttrFilter("name", currentValue)
+      ], { useOr: true });
     }
 
-    const games = await gameService.listGames(params);
+    const games = (await gameService.listGames(params)).value;
+
+
     await interaction.respond(games.map(game => (
       { name: game.shortName, value: game.id }
     )));
@@ -50,7 +61,7 @@ export default class GameAutocompleteField extends AutocompleteField {
   async getValue(
     interaction: AutocompleteInteraction | ChatInputCommandInteraction,
     app: Application,
-    options?: IGameServiceGameOptions
+    options?: RepositoryFindOptions<GameModel>
   ) {
     const { game: gameService } = app.services;
 
@@ -62,6 +73,6 @@ export default class GameAutocompleteField extends AutocompleteField {
       return null;
     }
 
-    return await gameService.getGameById(gameId, options) || null;
+    return (await gameService.getGameFromId(gameId, options)).value;
   }
 }

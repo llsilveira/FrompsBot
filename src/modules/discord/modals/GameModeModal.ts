@@ -53,7 +53,7 @@ export default class GameModeModal extends ModalSubmit<GameModeModalArguments> {
       .setCustomId("name")
       .setLabel("Nome")
       .setRequired(true)
-      .setMinLength(5)
+      .setMinLength(3)
       .setMaxLength(GAMEMODE_MAX_NAME_LENGTH);
 
     const descriptionInput = new TextInputBuilder()

@@ -4,6 +4,7 @@ import Permissions, { Permission } from "../../../constants/Permissions";
 import { GameModel } from "../models/gameModel";
 import { UserModel } from "../models/userModel";
 import { GameModeModel } from "../models/gameModeModel";
+import { ApplicationError } from "../logic/error/ApplicationError";
 
 
 export type IPermissionManager = {
@@ -76,11 +77,13 @@ export default class PermissionManager
   }
 
   async [Permissions.game.removeMode](gameMode: GameModeModel) {
-    const game = gameMode.game || await this.app.services.game.getGameById(gameMode.gameId);
+    const game = gameMode.game
+      || (await this.app.services.game.getGameFromId(gameMode.gameId)).value;
 
     if (!game) {
-      // Should be impossible
-      throw new Error(`GameMode with id '${gameMode.id}' does not have  game associated with it`);
+      // Should be impossible (TODO: log just in case)
+      throw new ApplicationError(
+        `GameMode with id '${gameMode.id}' does not have  game associated with it`);
     }
 
     const user = this.app.services.auth.getLoggedUser().value;

@@ -68,7 +68,7 @@ export default class GameModal extends ModalSubmit<GameModalArguments> {
 
     if (game) {
       modal.setCustomId(this.generateCustomId(game.id));
-      modal.setTitle(`Alterando o jogo ${game.name}`);
+      modal.setTitle(`Alterando ${game.code}`);
 
       codeInput.setValue(game.code);
       nameInput.setValue(game.name);

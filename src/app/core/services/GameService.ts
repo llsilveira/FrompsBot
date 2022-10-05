@@ -1,15 +1,17 @@
 import check from "../../../decorators/check";
 import Permissions from "../../../constants/Permissions";
-import FrompsBotError from "../../../errors/FrompsBotError";
-import AppModule from "../../AppModule";
-import { GameModel } from "../models/gameModel";
-import { Attributes, FindOptions } from "sequelize";
-import { GameModeModel } from "../models/gameModeModel";
+import { GameModel, GAME_MAX_CODE_LENGTH, GAME_MAX_NAME_LENGTH, GAME_MAX_SHORTNAME_LENGTH } from "../models/gameModel";
+import { GameModeModel, GAMEMODE_MAX_DESCRIPTION_LENGTH, GAMEMODE_MAX_LONGDESCRIPTION_LENGTH, GAMEMODE_MAX_NAME_LENGTH } from "../models/gameModeModel";
 
-import sequelize = require("sequelize");
 import transactional from "../../../decorators/transactional";
 import hasPermission from "../../../constraints/hasPermission";
-import Application from "../../Application";
+import AppService, { IService } from "../AppService";
+import { RepositoryFindOptions } from "../AppRepository";
+import Result, { ResultT, Success } from "../logic/Result";
+import { GameRepository } from "../repositories/GameRepository";
+import { GameModeRepository } from "../repositories/GameModeRepository";
+import { ResultError } from "../logic/error/ResultError";
+import { ApplicationError } from "../logic/error/ApplicationError";
 
 
 declare module "../models/gameModeModel" {
@@ -19,127 +21,324 @@ declare module "../models/gameModeModel" {
 }
 
 
-export interface IGameServiceOptions {
-  ordered?: boolean;
-  pagination?: { pageSize: number, pageNumber: number };
-  limit?: number;
+class GameCodeAlreadyInUseError extends ResultError {
+  constructor(code: string) {
+    super(`Já existe um jogo cadastrado com o código '${code.toUpperCase()}'.`);
+  }
 }
 
-export interface IGameServiceGameOptions extends IGameServiceOptions {
-  includeModes?: boolean;
-  filter?: string;
+class GameNameAlreadyInUseError extends ResultError {
+  constructor(name: string) {
+    super(`Já existe um jogo cadastrado com o nome '${name.toUpperCase()}'.`);
+  }
 }
 
-export interface IGameServiceGameModeOptions extends IGameServiceOptions {
-  includeGame?: boolean;
-  includeAll?: boolean;
-  filter?: string;
-  gameId?: number;
+class GameCodeLengthError extends ResultError {
+  constructor() {
+    super(`O código do jogo deve conter até ${GAME_MAX_CODE_LENGTH} caracteres`);
+  }
+}
+
+class GameNameLengthError extends ResultError {
+  constructor() {
+    super(`O nome do jogo deve conter até ${GAME_MAX_NAME_LENGTH} caracteres`);
+  }
+}
+
+class GameShortNameLengthError extends ResultError {
+  constructor() {
+    super(`O nome curto do jogo deve conter até ${GAME_MAX_SHORTNAME_LENGTH} caracteres`);
+  }
+}
+
+class GameNotFoundError extends ResultError {
+  constructor() {
+    super("O Jogo informado não existe!");
+  }
+}
+
+class GameModeNameLengthError extends ResultError {
+  constructor() {
+    super(`O nome do modo de jogo deve conter até ${GAMEMODE_MAX_NAME_LENGTH} caracteres.`);
+  }
+}
+
+class GameModeDescriptionLengthError extends ResultError {
+  constructor() {
+    super(
+      `A descrição do modo de jogo deve conter até ${GAMEMODE_MAX_DESCRIPTION_LENGTH} caracteres.`
+    );
+  }
+}
+
+class GameModeLongDescriptionLengthError extends ResultError {
+  constructor() {
+    super(
+      "A descrição longa do modo de jogo deve conter até " +
+      `${GAMEMODE_MAX_LONGDESCRIPTION_LENGTH} caracteres.`
+    );
+  }
+}
+
+class GameModeNameAlreadyInUseError extends ResultError {
+  constructor() {
+    super("Já existe um modo com o mesmo nome para este jogo.");
+  }
 }
 
 
-export default class GameService extends AppModule {
-  constructor(app: Application) {
-    super(app);
+export default class GameService
+  extends AppService
+  implements IService<GameService> {
+
+  async listGames(options?: RepositoryFindOptions<GameModel>) {
+    return Result.success(await this.app.repos.game.findMany(options));
   }
 
-  async listGames(options?: IGameServiceGameOptions) {
-    const queryOptions = this.#processGameQueryOptions(options);
-
-    return await this.app.models.game.findAll(queryOptions);
+  async listAndCountGames(options?: RepositoryFindOptions<GameModel>) {
+    return Result.success(await this.app.repos.game.findAndCountMany(options));
   }
 
-  async listAndCountGames(options?: IGameServiceGameOptions) {
-    const queryOptions = this.#processGameQueryOptions(options);
-
-    return await this.app.models.game.findAndCountAll(queryOptions);
+  async getGameFromId(gameId: number, options?: RepositoryFindOptions<GameModel>) {
+    return Result.success(await this.app.repos.game.findById(gameId, options));
   }
 
-  async getGameById(gameId: number, options?: IGameServiceGameOptions) {
-    const queryOptions = this.#processGameQueryOptions(options);
-    return await this.app.models.game.findOne({
-      ...queryOptions,
-      where: { id: gameId }
+  async getGameFromCode(gameCode: string, options: RepositoryFindOptions<GameModel> = {}) {
+    options.filter = GameRepository.codeFilter(gameCode);
+    return Result.success(await this.app.repos.game.findOne(options));
+  }
+
+  async getGameFromIdOrCode(
+    gameIdOrCode: number | string,
+    options?: RepositoryFindOptions<GameModel>
+  ) {
+    if (typeof gameIdOrCode === "number") {
+      return this.getGameFromId(gameIdOrCode, options);
+    }
+    return this.getGameFromCode(gameIdOrCode, options);
+  }
+
+  async findGameByName(nameFilter: string, options: RepositoryFindOptions<GameModel> = {}) {
+    options.filter = GameRepository.strAttrFilter<GameModel>("name", nameFilter);
+    return Result.success(await this.app.repos.game.findMany(options));
+  }
+
+  async findGameByCode(codeFilter: string, options: RepositoryFindOptions<GameModel> = {}) {
+    options.filter = GameRepository.strAttrFilter<GameModel>("code", codeFilter);
+    return Result.success(await this.app.repos.game.findMany(options));
+  }
+
+  async findGameByNameOrCode(strFilter: string, options: RepositoryFindOptions<GameModel> = {}) {
+    options.filter = GameRepository.combineFilters([
+      GameRepository.strAttrFilter<GameModel>("name", strFilter),
+      GameRepository.strAttrFilter<GameModel>("code", strFilter)
+    ], { useOr: true });
+    return Result.success(await this.app.repos.game.findMany(options));
+  }
+
+  validateGameFields(code: string, name: string, shortName?: string) {
+    if (code.length > GAME_MAX_CODE_LENGTH) {
+      return Result.fail(new GameCodeLengthError());
+    }
+
+    if (name.length > GAME_MAX_NAME_LENGTH) {
+      return Result.fail(new GameNameLengthError());
+    }
+
+    if (shortName && shortName.length > GAME_MAX_SHORTNAME_LENGTH) {
+      return Result.fail(new GameShortNameLengthError());
+    }
+
+    return Result.success();
+  }
+
+  async validateGameUniqueFields(code: string, name: string, ignoredId?: number) {
+    const game = await this.app.repos.game.findOne({
+      filter: GameRepository.combineFilters<GameModel>([
+        { code: code.toUpperCase() }, { name }
+      ], { useOr: true })
     });
-  }
 
-  async getGameByCode(gameCode: string, options?: IGameServiceGameOptions) {
-    const queryOptions = this.#processGameQueryOptions(options);
-    return await this.app.models.game.findOne({
-      ...queryOptions,
-      where: { code: gameCode.toUpperCase() }
-    });
-  }
-
-  async listGameModes(options?: IGameServiceGameModeOptions) {
-    const queryOptions = this.#processGameModeQueryOptions(options);
-
-    return await this.app.models.gameMode.findAll(queryOptions);
-  }
-
-  async listAndCountGameModes(options?: IGameServiceGameModeOptions) {
-    const queryOptions = this.#processGameModeQueryOptions(options);
-
-    return await this.app.models.gameMode.findAndCountAll(queryOptions);
-  }
-
-  async getGameModeById(gameModeId: number, options?: IGameServiceGameModeOptions) {
-    const queryOptions = this.#processGameModeQueryOptions(options);
-    return await this.app.models.gameMode.findOne({
-      ...queryOptions,
-      where: { id: gameModeId }
-    });
-  }
-
-  async getGameModeByName(gameId: number, gameModeName: string, options?: IGameServiceGameModeOptions) {
-    const queryOptions = this.#processGameModeQueryOptions(options);
-    return await this.app.models.gameMode.findOne({
-      ...queryOptions,
-      where: {
-        [sequelize.Op.and]: [
-          { gameId },
-          sequelize.where(
-            sequelize.fn("UPPER", sequelize.col("name")),
-            gameModeName.toUpperCase()
-          )
-        ]
+    if (game && (!ignoredId || game.id !== ignoredId)) {
+      if (game.code === code.toUpperCase()) {
+        return Result.fail(new GameCodeAlreadyInUseError(code));
+      } else if (game.name === name) {
+        return Result.fail(new GameNameAlreadyInUseError(name));
+      } else {
+        throw new ApplicationError(
+          "Search for repeated fields while validating game returned non-null value but " +
+          "fields didn't match"
+        );
       }
-    });
+    }
+
+    return Result.success();
   }
 
   @transactional()
   @check(hasPermission(Permissions.game.create))
   async createGame(code: string, name: string, shortName?: string) {
-    const game = await this.getGameByCode(code);
-    if (game) {
-      throw new FrompsBotError(
-        `Já existe um jogo cadastrado com o código '${code.toUpperCase()}'.`);
-    }
-    return await this.app.models.game.create({ code, name, shortName });
+
+    const validationResult = this.validateGameFields(code, name, shortName);
+    if (!validationResult.success) { return validationResult; }
+
+    const uniqueValidationResult = await this.validateGameUniqueFields(code, name);
+    if (!uniqueValidationResult.success) { return uniqueValidationResult; }
+
+    return Result.success(
+      await this.app.repos.game.create({ code, name, shortName }));
   }
 
   @transactional()
   @check(hasPermission(Permissions.game.update))
   async updateGame(game: GameModel, code: string, name: string, shortName?: string) {
-    const otherGame = await this.getGameByCode(code);
-    if (otherGame && otherGame.id !== game.id) {
-      throw new FrompsBotError(
-        `O código ${code} já esta sendo usado no jogo ${otherGame.shortName}.`
-      );
-    }
+
+    const validationResult = this.validateGameFields(code, name, shortName);
+    if (!validationResult.success) { return validationResult; }
+
+    const uniqueValidationResult = await this.validateGameUniqueFields(code, name, game.id);
+    if (!uniqueValidationResult.success) { return uniqueValidationResult; }
 
     game.code = code;
     game.name = name;
-    // TODO: study a way to change this
     game.shortName = shortName as string;
-    await game.save();
+    await this.app.repos.game.save(game);
+
+    return Result.success();
   }
 
   @transactional()
   @check(hasPermission(Permissions.game.remove))
   async removeGame(game: GameModel) {
-    await game.destroy();
-    return game;
+    await this.app.repos.game.delete(game);
+
+    return Result.success();
+  }
+
+
+  async listGameModes(options?: RepositoryFindOptions<GameModeModel>) {
+    return Result.success(await this.app.repos.gameMode.findMany(options));
+  }
+
+  async listAndCountGameModes(options?: RepositoryFindOptions<GameModeModel>) {
+    return Result.success(await this.app.repos.gameMode.findAndCountMany(options));
+  }
+
+
+  async getGameModeById(gameModeId: number, options?: RepositoryFindOptions<GameModeModel>) {
+    return Result.success(await this.app.repos.gameMode.findById(gameModeId, options));
+  }
+
+  async getGameModeByName(
+    game: GameModel,
+    gameModeName: string,
+    options?: RepositoryFindOptions<GameModeModel>
+  ): Promise<Success<GameModeModel | null>>
+  async getGameModeByName(
+    gameIdOrCode: number | string,
+    gameModeName: string,
+    options?: RepositoryFindOptions<GameModeModel>
+  ): Promise<ResultT<GameModeModel | null, GameNotFoundError>>
+  async getGameModeByName(
+    gameSelector: GameModel | number | string,
+    gameModeName: string,
+    options: RepositoryFindOptions<GameModeModel> = {}
+  ): Promise<ResultT<GameModeModel | null, GameNotFoundError>> {
+
+    let game: GameModel | null = null;
+    if (typeof gameSelector === "number" || typeof gameSelector === "string") {
+      game = (await this.getGameFromIdOrCode(gameSelector)).value;
+    } else {
+      game = gameSelector;
+    }
+
+    if (!game) {
+      return Result.fail(new GameNotFoundError());
+    }
+
+    options.filter = GameModeRepository.combineFilters<GameModeModel>([
+      { gameId: game.id },
+      GameModeRepository.nameIgnoreCaseFilter(gameModeName)
+    ]);
+    const mode = await this.app.repos.gameMode.findOne(options);
+
+    return Result.success(mode);
+  }
+
+  async findGameModeByName(
+    game: GameModel,
+    gameModeName: string,
+    options?: RepositoryFindOptions<GameModeModel>
+  ): Promise<Success<GameModeModel[]>>
+  async findGameModeByName(
+    gameIdOrCode: number | string,
+    gameModeName: string,
+    options?: RepositoryFindOptions<GameModeModel>
+    ): Promise<ResultT<GameModeModel[], GameNotFoundError>>
+  async findGameModeByName(
+    gameSelector: GameModel | number | string,
+    gameModeName: string,
+    options: RepositoryFindOptions<GameModeModel> = {}
+  ): Promise<ResultT<GameModeModel[], GameNotFoundError>> {
+
+    let game: GameModel | null = null;
+    if (typeof gameSelector === "number" || typeof gameSelector === "string") {
+      game = (await this.getGameFromIdOrCode(gameSelector)).value;
+    } else {
+      game = gameSelector;
+    }
+
+    if (!game) {
+      return Result.fail(new GameNotFoundError());
+    }
+
+    options.filter = GameModeRepository.combineFilters<GameModeModel>([
+      { gameId: game.id },
+      GameModeRepository.searchNameFilter(gameModeName)
+    ]);
+    const modes = await this.app.repos.gameMode.findMany(options);
+
+    return Result.success(modes);
+  }
+
+  validateGameModeFields(
+    gameModeName: string,
+    gameModeDescription: string,
+    gameModeLongDescription: string
+  ) {
+    if (gameModeName.length > GAMEMODE_MAX_NAME_LENGTH) {
+      return Result.fail(new GameModeNameLengthError());
+    }
+
+    if (gameModeDescription.length > GAMEMODE_MAX_DESCRIPTION_LENGTH) {
+      return Result.fail(new GameModeDescriptionLengthError());
+    }
+
+    if (gameModeLongDescription.length > GAMEMODE_MAX_LONGDESCRIPTION_LENGTH) {
+      return Result.fail(new GameModeLongDescriptionLengthError());
+    }
+
+    return Result.success();
+  }
+
+  async validateGameModeUniqueFields(gameId: number, name: string, ignoredGameModeId?: number) {
+
+    const otherModeResult = (await this.getGameModeByName(gameId, name));
+    if (!otherModeResult.success) { return otherModeResult; }
+
+    const otherMode = otherModeResult.value;
+    if (otherMode && (!ignoredGameModeId || ignoredGameModeId !== otherMode.id)) {
+      if (otherMode.name.toUpperCase() === name.toUpperCase()) {
+        return Result.fail(new GameModeNameAlreadyInUseError());
+      } else {
+        throw new ApplicationError(
+          "Search for repeated fields while validating game mode returned non-null value but " +
+          "fields didn't match"
+        );
+      }
+    }
+
+    return Result.success();
   }
 
   @transactional()
@@ -150,25 +349,23 @@ export default class GameService extends AppModule {
     gameModeDescription: string,
     gameModeLongDescription: string
   ) {
-    if (typeof gameModeDescription !== typeof "" || gameModeDescription.length <= 0) {
-      throw new FrompsBotError("A descrição deve ter até 80 caracteres.");
-    }
 
-    let mode = await this.getGameModeByName(game.id, gameModeName);
-    if (mode) {
-      throw new FrompsBotError(
-        `Já existe um modo com o nome ${gameModeName} para ${game.shortName}.`
-      );
-    }
+    const validationResult = this.validateGameModeFields(
+      gameModeName, gameModeDescription, gameModeLongDescription);
+    if (!validationResult.success) { return validationResult; }
 
-    mode = await this.app.models.gameMode.create({
+    const uniqueValidationResult = await this.validateGameModeUniqueFields(
+      game.id, gameModeName);
+    if (!uniqueValidationResult.success) { return uniqueValidationResult; }
+
+    const mode = await this.app.repos.gameMode.create({
       gameId: game.id,
       name: gameModeName,
       description: gameModeDescription,
       longDescription: gameModeLongDescription
     });
 
-    return mode;
+    return Result.success(mode);
   }
 
   @transactional()
@@ -179,135 +376,28 @@ export default class GameService extends AppModule {
     description: string,
     longDescription: string
   ) {
-    const otherGameMode = await this.getGameModeByName(gameMode.gameId, name);
-    if (otherGameMode && otherGameMode.id !== gameMode.id) {
-      throw new FrompsBotError(
-        `O nome ${name} já esta sendo usado em outro modo do mesmo jogo selecionado.`
-      );
-    }
+
+    const validationResult = this.validateGameModeFields(
+      name, description, longDescription);
+    if (!validationResult.success) { return validationResult; }
+
+    const uniqueValidationResult = await this.validateGameModeUniqueFields(
+      gameMode.gameId, name, gameMode.id);
+    if (!uniqueValidationResult.success) { return uniqueValidationResult; }
 
     gameMode.name = name;
     gameMode.description = description;
     gameMode.longDescription = longDescription;
     await gameMode.save();
+
+    return Result.success();
   }
 
   @transactional()
   @check(hasPermission(Permissions.game.removeMode))
   async removeGameMode(gameMode: GameModeModel) {
-    await gameMode.destroy();
-    return gameMode;
-  }
+    await this.app.repos.gameMode.delete(gameMode);
 
-  #processQueryOptions<T extends GameModel | GameModeModel>(
-    options: IGameServiceOptions = {}
-  ) {
-    const queryOptions: FindOptions<Attributes<T>> = {};
-
-    if (options?.ordered) {
-      queryOptions.order = [["name", "ASC"]];
-    }
-
-    if (options?.pagination) {
-      const { pageSize, pageNumber } = options.pagination;
-
-      queryOptions.limit = pageSize;
-      queryOptions.offset = (pageNumber - 1) * pageSize;
-    } else if (options.limit) {
-      queryOptions.limit = options.limit;
-    }
-
-    return queryOptions;
-  }
-
-  #processGameQueryOptions(options?: IGameServiceGameOptions) {
-    const queryOptions = this.#processQueryOptions<GameModel>(options);
-
-    if (options?.includeModes) {
-      queryOptions.include = ["modes"];
-    }
-
-    if (options?.filter) {
-      const search = `%${options.filter}%`;
-
-      queryOptions.where = {
-        [sequelize.Op.or]: {
-          name: {
-            [sequelize.Op.iLike]: search
-          },
-          shortName: {
-            [sequelize.Op.iLike]: search
-          }
-        }
-      };
-    }
-
-    return queryOptions;
-  }
-
-  #processGameModeQueryOptions(options?: IGameServiceGameModeOptions) {
-    const queryOptions = this.#processQueryOptions<GameModeModel>(options);
-
-    if (options?.includeGame) {
-      queryOptions.include = ["game"];
-    }
-
-    // TODO: create helper for combining query filters
-    if (!(options?.includeAll)) {
-      const old = queryOptions.where;
-
-      if (old) {
-        queryOptions.where = {
-          [sequelize.Op.and]: [
-            old, {
-              "data.disabled": { [sequelize.Op.not]: true }
-            }
-          ]
-        };
-      } else {
-        queryOptions.where = {
-          "data.disabled": { [sequelize.Op.not]: true }
-        };
-      }
-    }
-
-    if (options?.gameId) {
-      const old = queryOptions.where;
-
-      if (old) {
-        queryOptions.where = {
-          [sequelize.Op.and]: [
-            old, {
-              "gameId": options.gameId
-            }
-          ]
-        };
-      } else {
-        queryOptions.where = {
-          "gameId": options.gameId
-        };
-      }
-    }
-
-    if (options?.filter) {
-      const search = `%${options.filter}%`;
-
-      const old = queryOptions.where;
-      if (old) {
-        queryOptions.where = {
-          [sequelize.Op.and]: [
-            old, {
-              "name": { [sequelize.Op.iLike]: search }
-            }
-          ]
-        };
-      } else {
-        queryOptions.where = {
-          "name": { [sequelize.Op.iLike]: search }
-        };
-      }
-    }
-
-    return queryOptions;
+    return Result.success();
   }
 }

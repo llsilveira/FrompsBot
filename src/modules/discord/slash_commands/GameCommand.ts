@@ -4,7 +4,9 @@ import {
 } from "discord.js";
 
 import Application from "../../../app/Application";
-import { IGameServiceGameOptions } from "../../../app/core/services/GameService";
+import { RepositoryFindOptions } from "../../../app/core/AppRepository";
+import { GameModel } from "../../../app/core/models/gameModel";
+import { GameRepository } from "../../../app/core/repositories/GameRepository";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import Discord from "../../Discord";
 import GameAutocompleteField from "../autocomplete_fields/GameAutocompleteField";
@@ -113,6 +115,7 @@ export default class GameCommand extends ApplicationCommand {
     app: Application
   ) {
     const game = await this.gameField.getValue(interaction, app);
+    // TODO: update
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
     }
@@ -126,6 +129,7 @@ export default class GameCommand extends ApplicationCommand {
     app: Application
   ) {
     const game = await this.gameField.getValue(interaction, app);
+    // TODO: update
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
     }
@@ -160,15 +164,20 @@ export default class GameCommand extends ApplicationCommand {
     pageNumber = 1,
     filter = ""
   ): Promise<MessageOptions> {
-    const params: IGameServiceGameOptions = {
-      ordered: true,
-      pagination: { pageSize, pageNumber }
+    const params: RepositoryFindOptions<GameModel> = {
+      pagination: { pageSize, pageNumber },
+      order: ["name"]
     };
 
-    if (filter.length > 0) { params.filter = filter; }
+    if (filter.length > 0) {
+      params.filter = GameRepository.combineFilters([
+        GameRepository.strAttrFilter<GameModel>("name", filter),
+        GameRepository.strAttrFilter<GameModel>("code", filter)
+      ], { useOr: true });
+    }
 
     const { game: gameService } = app.services;
-    const results = await gameService.listAndCountGames(params);
+    const results = (await gameService.listAndCountGames(params)).value;
 
     const games = results.rows;
     let codes = "";
@@ -230,7 +239,7 @@ export default class GameCommand extends ApplicationCommand {
     name: string,
     shortName?: string
   ) {
-    const game = await app.services.game.getGameById(id);
+    const game = (await app.services.game.getGameFromId(id)).value;
     if (!game) {
       throw new FrompsBotError("O jogo selecionado não existe mais.");
     }

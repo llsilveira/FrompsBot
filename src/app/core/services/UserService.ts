@@ -26,11 +26,8 @@ export default class UserService
     return Result.success(await this.app.repos.user.findMany(options));
   }
 
-  async getUserFromId(
-    userId: number,
-    options?: RepositoryFindOptions<UserModel>
-  ) {
-    return Result.success(await this.app.repos.user.findById(userId, options));
+  async getUserFromId(userId: number) {
+    return Result.success(await this.app.repos.user.findById(userId));
   }
 
   async getUserFromProvider(provider: AccountProvider, providerId: string) {

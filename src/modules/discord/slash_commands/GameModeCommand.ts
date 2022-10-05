@@ -5,7 +5,6 @@ import {
 
 import { GameModel } from "../../../app/core/models/gameModel";
 import Application from "../../../app/Application";
-import { IGameServiceGameModeOptions } from "../../../app/core/services/GameService";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import Discord from "../../Discord";
 import GameAutocompleteField from "../autocomplete_fields/GameAutocompleteField";
@@ -13,9 +12,12 @@ import GameModeAutocompleteField from "../autocomplete_fields/GameModeAutocomple
 import ApplicationCommand from "../interaction/ApplicationCommand";
 import MessagePaginator from "../message_components/MessagePaginator";
 import GameModeModal from "../modals/GameModeModal";
+import { RepositoryFindOptions } from "../../../app/core/AppRepository";
+import { GameModeModel } from "../../../app/core/models/gameModeModel";
+import { GameModeRepository } from "../../../app/core/repositories/GameModeRepository";
 
 
-type GameModeCommandPaginatorArgs = [number, string, boolean];
+type GameModeCommandPaginatorArgs = [number, string];
 
 
 export default class GameModeCommand extends ApplicationCommand {
@@ -52,11 +54,7 @@ export default class GameModeCommand extends ApplicationCommand {
           .setDescription(
             "Os resultados serão filtrados utilizando este valor."
           )
-      )
-        .addBooleanOption(option =>
-          option.setName("include_all")
-            .setDescription("Incluir todos os modos (inclusive desativados).")
-        );
+      );
       return subcommand;
     });
 
@@ -138,10 +136,9 @@ export default class GameModeCommand extends ApplicationCommand {
     }
 
     const filter = interaction.options.getString("filter") || "";
-    const includeAll = interaction.options.getBoolean("include_all") || false;
 
     const message = await this.listGameModesMessage(
-      app, 10, 1, game.id, filter, includeAll
+      app, 10, 1, game.id, filter
     );
     await interaction.reply({
       ...(message as InteractionReplyOptions),
@@ -167,7 +164,7 @@ export default class GameModeCommand extends ApplicationCommand {
     app: Application
   ) {
     const gameMode = await this.gameModeField.getValue(
-      interaction, app, { includeGame: true }
+      interaction, app, { include: ["game"] }
     );
     if (!gameMode) {
       const game = await this.gameField.getValue(interaction, app);
@@ -186,7 +183,7 @@ export default class GameModeCommand extends ApplicationCommand {
     app: Application
   ) {
     const gameMode = await this.gameModeField.getValue(
-      interaction, app, { includeGame: true }
+      interaction, app, { include: ["game"] }
     );
     if (!gameMode) {
       const game = await this.gameField.getValue(interaction, app);
@@ -218,7 +215,7 @@ ${gameMode.longDescription}
     app: Application
   ) {
     const gameMode = await this.gameModeField.getValue(
-      interaction, app, { includeGame: true }
+      interaction, app, { include: ["game"] }
     );
     if (!gameMode) {
       const game = await this.gameField.getValue(interaction, app);
@@ -243,9 +240,9 @@ ${gameMode.longDescription}
     pageNumber: number,
     extraParams: GameModeCommandPaginatorArgs
   ) {
-    const [gameId, filter, includeAll] = extraParams;
+    const [gameId, filter] = extraParams;
     const message: MessageOptions = await this.listGameModesMessage(
-      app, pageSize, pageNumber, gameId, filter, includeAll
+      app, pageSize, pageNumber, gameId, filter
     );
 
     await interaction.update(message as InteractionUpdateOptions);
@@ -256,32 +253,31 @@ ${gameMode.longDescription}
     pageSize = 10,
     pageNumber = 1,
     gameId: number = -1,
-    filter = "",
-    includeAll = false
+    filter = ""
   ): Promise<MessageOptions> {
     const { game: gameService } = app.services;
-    const game = await gameService.getGameById(gameId);
+    const game = (await gameService.getGameFromId(gameId)).value;
     if (!game) {
       throw new FrompsBotError("Jogo não encontrado!");
     }
 
-    const params: IGameServiceGameModeOptions = {
-      gameId: game.id,
-      includeAll,
-      ordered: true,
+    const params: RepositoryFindOptions<GameModeModel> = {
+      order: ["name"],
       pagination: { pageSize, pageNumber }
     };
 
-    if (filter.length > 0) { params.filter = filter; }
+    params.filter = GameModeRepository.combineFilters<GameModeModel>([
+      { gameId: game.id },
+      GameModeRepository.searchNameFilter(filter)
+    ]);
 
-    const results = await gameService.listAndCountGameModes(params);
+
+    const results = (await gameService.listAndCountGameModes(params)).value;
     const modes = results.rows;
 
     const embed = new EmbedBuilder().setTitle(`${game.code} - Modos de jogo`);
 
-    let description = `Modos de jogo de ${game.shortName}`;
-    if (includeAll) { description += " (incluindo modos desabilitados)"; }
-    description += ":";
+    let description = `Modos de jogo de ${game.shortName}:`;
 
     if (modes.length > 0) {
       embed.addFields(modes.sort((a, b) => a.name < b.name ? -1 : 1)
@@ -298,7 +294,7 @@ ${gameMode.longDescription}
     const totalPages = Math.ceil(results.count / pageSize);
     if (totalPages > 1) {
       const paginator = this.gamemodePaginator.getButtons(
-        pageSize, pageNumber, totalPages, [gameId, filter, includeAll]
+        pageSize, pageNumber, totalPages, [gameId, filter]
       );
       return { embeds: [embed], components: [paginator] };
     } else {
@@ -316,7 +312,7 @@ ${gameMode.longDescription}
   ) {
     const { game: gameService } = app.services;
 
-    const game = await gameService.getGameById(gameId);
+    const game = (await gameService.getGameFromId(gameId)).value;
     if (!game) {
       throw new FrompsBotError("O jogo informado não está cadastrado neste bot.");
     }
@@ -338,7 +334,7 @@ ${gameMode.longDescription}
   ) {
     const { game: gameService } = app.services;
 
-    const gameMode = await gameService.getGameModeById(gameModeId);
+    const gameMode = (await gameService.getGameModeById(gameModeId)).value;
     if (!gameMode) {
       throw new FrompsBotError("O modo selecionado não existe mais.");
     }
