@@ -8,7 +8,7 @@
  * with it. Also, the message used should be user friendly, for the cases where
  * the best course of action is to present the error to the user.
  */
-export abstract class ResultError extends Error {
+export class ResultError extends Error {
   constructor(message: string) {
     super(message);
     this.name = this.constructor.name;

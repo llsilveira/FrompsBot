@@ -5,17 +5,9 @@ import AccountProvider from "../../../constants/AccountProvider";
 import Permissions from "../../../constants/Permissions";
 import { UserModel } from "../models/userModel";
 import UserAccountRepository from "../repositories/UserAccountRepository";
-import Result, { Fail } from "../logic/Result";
-import { ResultError } from "../logic/error/ResultError";
+import Result from "../logic/Result";
 import { RepositoryFindOptions } from "../AppRepository";
 import AppService, { IService } from "../AppService";
-
-
-export class UserAlreadyRegisteredError extends ResultError {
-  constructor() {
-    super("Esta conta já foi previamente registrada neste bot.");
-  }
-}
 
 
 export default class UserService
@@ -78,7 +70,7 @@ export default class UserService
     name: string
   ) {
     if ((await this.getUserFromProvider(provider, providerId)).value) {
-      return Result.fail(new UserAlreadyRegisteredError());
+      return Result.fail("Esta conta já foi previamente registrada neste bot.");
     }
 
     const user = await this.app.models.user.create({ name });
@@ -100,8 +92,7 @@ export default class UserService
     if (user) {
       return Result.success(user);
     } else {
-      const result = await this.register(provider, providerId, name);
-      return result as Exclude<typeof result, Fail<UserAlreadyRegisteredError>>;
+      return await this.register(provider, providerId, name);
     }
   }
 }

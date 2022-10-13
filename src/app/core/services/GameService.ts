@@ -8,8 +8,8 @@ import hasPermission from "../../../constraints/hasPermission";
 import AppService, { IService } from "../AppService";
 import { RepositoryFindOptions } from "../AppRepository";
 import Result, { ResultT, Success } from "../logic/Result";
-import { GameRepository } from "../repositories/GameRepository";
-import { GameModeRepository } from "../repositories/GameModeRepository";
+import GameRepository from "../repositories/GameRepository";
+import GameModeRepository from "../repositories/GameModeRepository";
 import { ResultError } from "../logic/error/ResultError";
 import { ApplicationError } from "../logic/error/ApplicationError";
 
@@ -17,72 +17,6 @@ import { ApplicationError } from "../logic/error/ApplicationError";
 declare module "../models/gameModeModel" {
   interface GameModeData {
     disabled?: boolean
-  }
-}
-
-
-class GameCodeAlreadyInUseError extends ResultError {
-  constructor(code: string) {
-    super(`Já existe um jogo cadastrado com o código '${code.toUpperCase()}'.`);
-  }
-}
-
-class GameNameAlreadyInUseError extends ResultError {
-  constructor(name: string) {
-    super(`Já existe um jogo cadastrado com o nome '${name.toUpperCase()}'.`);
-  }
-}
-
-class GameCodeLengthError extends ResultError {
-  constructor() {
-    super(`O código do jogo deve conter até ${GAME_MAX_CODE_LENGTH} caracteres`);
-  }
-}
-
-class GameNameLengthError extends ResultError {
-  constructor() {
-    super(`O nome do jogo deve conter até ${GAME_MAX_NAME_LENGTH} caracteres`);
-  }
-}
-
-class GameShortNameLengthError extends ResultError {
-  constructor() {
-    super(`O nome curto do jogo deve conter até ${GAME_MAX_SHORTNAME_LENGTH} caracteres`);
-  }
-}
-
-class GameNotFoundError extends ResultError {
-  constructor() {
-    super("O Jogo informado não existe!");
-  }
-}
-
-class GameModeNameLengthError extends ResultError {
-  constructor() {
-    super(`O nome do modo de jogo deve conter até ${GAMEMODE_MAX_NAME_LENGTH} caracteres.`);
-  }
-}
-
-class GameModeDescriptionLengthError extends ResultError {
-  constructor() {
-    super(
-      `A descrição do modo de jogo deve conter até ${GAMEMODE_MAX_DESCRIPTION_LENGTH} caracteres.`
-    );
-  }
-}
-
-class GameModeLongDescriptionLengthError extends ResultError {
-  constructor() {
-    super(
-      "A descrição longa do modo de jogo deve conter até " +
-      `${GAMEMODE_MAX_LONGDESCRIPTION_LENGTH} caracteres.`
-    );
-  }
-}
-
-class GameModeNameAlreadyInUseError extends ResultError {
-  constructor() {
-    super("Já existe um modo com o mesmo nome para este jogo.");
   }
 }
 
@@ -138,15 +72,15 @@ export default class GameService
 
   validateGameFields(code: string, name: string, shortName?: string) {
     if (code.length > GAME_MAX_CODE_LENGTH) {
-      return Result.fail(new GameCodeLengthError());
+      return Result.fail(`O código do jogo deve conter até ${GAME_MAX_CODE_LENGTH} caracteres`);
     }
 
     if (name.length > GAME_MAX_NAME_LENGTH) {
-      return Result.fail(new GameNameLengthError());
+      return Result.fail(`O nome do jogo deve conter até ${GAME_MAX_NAME_LENGTH} caracteres`);
     }
 
     if (shortName && shortName.length > GAME_MAX_SHORTNAME_LENGTH) {
-      return Result.fail(new GameShortNameLengthError());
+      return Result.fail(`O nome curto do jogo deve conter até ${GAME_MAX_SHORTNAME_LENGTH} caracteres`);
     }
 
     return Result.success();
@@ -161,9 +95,9 @@ export default class GameService
 
     if (game && (!ignoredId || game.id !== ignoredId)) {
       if (game.code === code.toUpperCase()) {
-        return Result.fail(new GameCodeAlreadyInUseError(code));
+        return Result.fail(`Já existe um jogo cadastrado com o código '${code.toUpperCase()}'.`);
       } else if (game.name === name) {
-        return Result.fail(new GameNameAlreadyInUseError(name));
+        return Result.fail(`Já existe um jogo cadastrado com o nome '${name}'.`);
       } else {
         throw new ApplicationError(
           "Search for repeated fields while validating game returned non-null value but " +
@@ -238,12 +172,12 @@ export default class GameService
     gameIdOrCode: number | string,
     gameModeName: string,
     options?: RepositoryFindOptions<GameModeModel>
-  ): Promise<ResultT<GameModeModel | null, GameNotFoundError>>
+  ): Promise<ResultT<GameModeModel | null, ResultError>>
   async getGameModeByName(
     gameSelector: GameModel | number | string,
     gameModeName: string,
     options: RepositoryFindOptions<GameModeModel> = {}
-  ): Promise<ResultT<GameModeModel | null, GameNotFoundError>> {
+  ): Promise<ResultT<GameModeModel | null, ResultError>> {
 
     let game: GameModel | null = null;
     if (typeof gameSelector === "number" || typeof gameSelector === "string") {
@@ -253,7 +187,7 @@ export default class GameService
     }
 
     if (!game) {
-      return Result.fail(new GameNotFoundError());
+      return Result.fail("O Jogo informado não existe!");
     }
 
     options.filter = GameModeRepository.combineFilters<GameModeModel>([
@@ -274,12 +208,12 @@ export default class GameService
     gameIdOrCode: number | string,
     gameModeName: string,
     options?: RepositoryFindOptions<GameModeModel>
-    ): Promise<ResultT<GameModeModel[], GameNotFoundError>>
+    ): Promise<ResultT<GameModeModel[], ResultError>>
   async findGameModeByName(
     gameSelector: GameModel | number | string,
     gameModeName: string,
     options: RepositoryFindOptions<GameModeModel> = {}
-  ): Promise<ResultT<GameModeModel[], GameNotFoundError>> {
+  ): Promise<ResultT<GameModeModel[], ResultError>> {
 
     let game: GameModel | null = null;
     if (typeof gameSelector === "number" || typeof gameSelector === "string") {
@@ -289,7 +223,7 @@ export default class GameService
     }
 
     if (!game) {
-      return Result.fail(new GameNotFoundError());
+      return Result.fail("O Jogo informado não existe!");
     }
 
     options.filter = GameModeRepository.combineFilters<GameModeModel>([
@@ -307,15 +241,22 @@ export default class GameService
     gameModeLongDescription: string
   ) {
     if (gameModeName.length > GAMEMODE_MAX_NAME_LENGTH) {
-      return Result.fail(new GameModeNameLengthError());
+      return Result.fail(
+        `O nome do modo de jogo deve conter até ${GAMEMODE_MAX_NAME_LENGTH} caracteres.`
+      );
     }
 
     if (gameModeDescription.length > GAMEMODE_MAX_DESCRIPTION_LENGTH) {
-      return Result.fail(new GameModeDescriptionLengthError());
+      return Result.fail(
+        `A descrição do modo de jogo deve conter até ${GAMEMODE_MAX_DESCRIPTION_LENGTH} caracteres.`
+      );
     }
 
     if (gameModeLongDescription.length > GAMEMODE_MAX_LONGDESCRIPTION_LENGTH) {
-      return Result.fail(new GameModeLongDescriptionLengthError());
+      return Result.fail(
+        "A descrição longa do modo de jogo deve conter até " +
+        `${GAMEMODE_MAX_LONGDESCRIPTION_LENGTH} caracteres.`
+      );
     }
 
     return Result.success();
@@ -329,7 +270,7 @@ export default class GameService
     const otherMode = otherModeResult.value;
     if (otherMode && (!ignoredGameModeId || ignoredGameModeId !== otherMode.id)) {
       if (otherMode.name.toUpperCase() === name.toUpperCase()) {
-        return Result.fail(new GameModeNameAlreadyInUseError());
+        return Result.fail("Já existe um modo com o mesmo nome para este jogo.");
       } else {
         throw new ApplicationError(
           "Search for repeated fields while validating game mode returned non-null value but " +

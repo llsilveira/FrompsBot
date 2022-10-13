@@ -57,7 +57,6 @@ export default class AuthService
 
   getLoggedUser<B extends false>(required?: B): Success<UserModel | undefined>
   getLoggedUser<B extends true>(required: B): Success<UserModel>
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getLoggedUser<B extends boolean>(required?: B) {
     return Result.success(this.app.context.get(AuthService.loggedUser));

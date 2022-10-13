@@ -4,7 +4,8 @@ export interface Success<T> { success: true, value: T }
 export interface Fail<T extends ResultError> {
   success: false,
   error: T,
-  throwError: () => void
+  message: string,
+  throw: () => void
 }
 
 export type ResultT<V = void, E extends ResultError | void = void> =
@@ -19,8 +20,13 @@ export default class Result {
     return new Result._Success<V>(value as V);
   }
 
-  public static fail<E extends ResultError>(error: E): Fail<E> {
-    return new Result._Failure(error);
+  public static fail(message: string): Fail<ResultError>
+  public static fail<E extends ResultError>(error: E): Fail<E>
+  public static fail<E extends ResultError>(errorOrMessage: E | string): Fail<ResultError> {
+    if (typeof errorOrMessage === "string") {
+      return new Result._Failure(new ResultError(errorOrMessage));
+    }
+    return new Result._Failure(errorOrMessage);
   }
 
   private static _Success =
@@ -42,7 +48,11 @@ export default class Result {
         Object.freeze(this);
       }
 
-      throwError() {
+      get message() {
+        return this.error.message;
+      }
+
+      throw() {
         if (this.error instanceof Error) {
           throw this.error;
         }
