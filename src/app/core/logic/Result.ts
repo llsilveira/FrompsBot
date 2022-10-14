@@ -4,8 +4,7 @@ export interface Success<T> { success: true, value: T }
 export interface Fail<T extends ResultError> {
   success: false,
   error: T,
-  message: string,
-  throw: () => void
+  message: string
 }
 
 export type ResultT<V = void, E extends ResultError | void = void> =
@@ -50,13 +49,6 @@ export default class Result {
 
       get message() {
         return this.error.message;
-      }
-
-      throw() {
-        if (this.error instanceof Error) {
-          throw this.error;
-        }
-        throw this.error;
       }
     };
 }
