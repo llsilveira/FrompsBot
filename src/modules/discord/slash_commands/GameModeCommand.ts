@@ -14,7 +14,7 @@ import MessagePaginator from "../message_components/MessagePaginator";
 import GameModeModal from "../modals/GameModeModal";
 import { RepositoryFindOptions } from "../../../app/core/AppRepository";
 import { GameModeModel } from "../../../app/core/models/gameModeModel";
-import { GameModeRepository } from "../../../app/core/repositories/GameModeRepository";
+import GameModeRepository from "../../../app/core/repositories/GameModeRepository";
 
 
 type GameModeCommandPaginatorArgs = [number, string];

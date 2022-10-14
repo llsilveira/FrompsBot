@@ -6,7 +6,7 @@ import type ApplicationCommand from "../interaction/ApplicationCommand";
 import { type InteractionHandlerOptions } from "../interaction/InteractionHandler";
 import { RepositoryFindOptions } from "../../../app/core/AppRepository";
 import { GameModel } from "../../../app/core/models/gameModel";
-import { GameRepository } from "../../../app/core/repositories/GameRepository";
+import GameRepository from "../../../app/core/repositories/GameRepository";
 
 export default class GameAutocompleteField extends AutocompleteField {
 

@@ -5,6 +5,7 @@ import FrompsBotError from "../../../errors/FrompsBotError";
 import Discord from "../../Discord";
 import GameAutocompleteField from "../autocomplete_fields/GameAutocompleteField";
 import ApplicationCommand from "../interaction/ApplicationCommand";
+import { UserModel } from "../../../app/core/models/userModel";
 
 
 export default class BotCommand extends ApplicationCommand {
@@ -80,10 +81,15 @@ export default class BotCommand extends ApplicationCommand {
 
     const { bot: botService, user: userService } = app.services;
 
-    const user = discordUser ?
-      (await userService.getOrRegister(
-        AccountProvider.DISCORD, discordUser.id, discordUser.displayName
-      )).value : null;
+    let user: UserModel | null = null;
+    if (discordUser) {
+      const userResult = await userService.getOrRegister(
+        AccountProvider.DISCORD, discordUser.id, discordUser.displayName);
+      if (!userResult.success) {
+        throw userResult.error;
+      }
+      user = userResult.value;
+    }
 
     const game = await this.#gameField.getValue(interaction, app);
 

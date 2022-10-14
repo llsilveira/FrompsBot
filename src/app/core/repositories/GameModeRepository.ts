@@ -2,7 +2,7 @@ import { Sequelize } from "sequelize";
 import AppRepository, { RepositoryFilter } from "../AppRepository";
 import { GameModeModel } from "../models/gameModeModel";
 
-export class GameModeRepository extends AppRepository<GameModeModel> {
+export default class GameModeRepository extends AppRepository<GameModeModel> {
   static searchNameFilter(nameFilter: string) {
     return GameModeRepository.strAttrFilter<GameModeModel>(
       "name", nameFilter, { caseSensitive: false }

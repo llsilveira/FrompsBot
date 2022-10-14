@@ -6,7 +6,7 @@ import {
 import Application from "../../../app/Application";
 import { RepositoryFindOptions } from "../../../app/core/AppRepository";
 import { GameModel } from "../../../app/core/models/gameModel";
-import { GameRepository } from "../../../app/core/repositories/GameRepository";
+import GameRepository from "../../../app/core/repositories/GameRepository";
 import FrompsBotError from "../../../errors/FrompsBotError";
 import Discord from "../../Discord";
 import GameAutocompleteField from "../autocomplete_fields/GameAutocompleteField";
