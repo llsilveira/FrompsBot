@@ -70,20 +70,10 @@ export default class GameModeAutocompleteField extends AutocompleteField {
     app: Application,
     options?: RepositoryFindOptions<GameModeModel>
   ) {
-    const game = await this.#gameField.getValue(interaction, app);
-    if (!game) {
-      return null;
-    }
-
     const { game: gameService } = app.services;
 
-    let gameModeId;
-    try {
-      gameModeId = interaction.options.getNumber(this.fieldName);
-      if (!gameModeId) { return null; }
-    } catch (e) {
-      return null;
-    }
+    const gameModeId = interaction.options.getNumber(this.fieldName);
+    if (!gameModeId) { return null; }
 
     return (await gameService.getGameModeById(gameModeId, options)).value;
   }

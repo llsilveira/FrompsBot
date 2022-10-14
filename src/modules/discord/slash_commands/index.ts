@@ -3,6 +3,7 @@ import { default as DatetimeCommand } from "./DatetimeCommand";
 import { default as GameCommand } from "./GameCommand";
 import { default as GameModeCommand } from "./GameModeCommand";
 import { default as NicknameCommand } from "./NicknameCommand";
+import { default as RaceCommand } from "./RaceCommand";
 import { default as RegisterCommand } from "./RegisterCommand";
 
 export type SlashCommandName = keyof typeof slashCommands;
@@ -13,5 +14,6 @@ export const slashCommands = {
   GameCommand,
   GameModeCommand,
   NicknameCommand,
+  RaceCommand,
   RegisterCommand
 };
