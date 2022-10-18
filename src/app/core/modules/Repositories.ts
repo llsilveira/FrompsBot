@@ -7,7 +7,6 @@ import GameRepository from "../repositories/GameRepository";
 import GameModeRepository from "../repositories/GameModeRepository";
 import RaceRepository from "../repositories/RaceRepository";
 import RaceEntryRepository from "../repositories/RaceEntryRepository";
-import RaceGroupRepository from "../repositories/RaceGroupRepository";
 
 
 export default class Repositories extends AppModule {
@@ -17,7 +16,6 @@ export default class Repositories extends AppModule {
   readonly gameMode: GameModeRepository;
   readonly race: RaceRepository;
   readonly raceEntry: RaceEntryRepository;
-  readonly raceGroup: RaceGroupRepository;
 
   constructor(app: Application) {
     super(app);
@@ -28,6 +26,5 @@ export default class Repositories extends AppModule {
     this.gameMode = new GameModeRepository(app.models.gameMode);
     this.race = new RaceRepository(app.models.race);
     this.raceEntry = new RaceEntryRepository(app.models.raceEntry);
-    this.raceGroup = new RaceGroupRepository(app.models.raceGroup);
   }
 }
