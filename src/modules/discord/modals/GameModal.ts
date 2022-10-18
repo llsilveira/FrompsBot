@@ -35,7 +35,7 @@ export default class GameModal extends ModalSubmit<GameModalArguments> {
   ) {
     super(componentName, options);
     this.createCallback = createCallback;
-    this.updateCallack = updateCallback;
+    this.updateCallback = updateCallback;
   }
 
   createModal(
@@ -106,10 +106,10 @@ export default class GameModal extends ModalSubmit<GameModalArguments> {
     if (id === undefined) {
       await this.createCallback(interaction, app, code, name, shortName);
     } else {
-      await this.updateCallack(interaction, app, id, code, name, shortName);
+      await this.updateCallback(interaction, app, id, code, name, shortName);
     }
   }
 
   private readonly createCallback: GameModalCreateCallback;
-  private readonly updateCallack: GameModalUpdateCallback;
+  private readonly updateCallback: GameModalUpdateCallback;
 }
