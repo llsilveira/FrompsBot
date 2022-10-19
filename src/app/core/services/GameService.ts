@@ -1,6 +1,6 @@
 import check from "../../../decorators/check";
 import Permissions from "../../../constants/Permissions";
-import { GameModel, GAME_MAX_CODE_LENGTH, GAME_MAX_NAME_LENGTH, GAME_MAX_SHORTNAME_LENGTH } from "../models/gameModel";
+import { GameData, GameModel, GAME_MAX_CODE_LENGTH, GAME_MAX_NAME_LENGTH, GAME_MAX_SHORTNAME_LENGTH } from "../models/gameModel";
 import { GameModeModel, GAMEMODE_MAX_DESCRIPTION_LENGTH, GAMEMODE_MAX_LONGDESCRIPTION_LENGTH, GAMEMODE_MAX_NAME_LENGTH } from "../models/gameModeModel";
 
 import transactional from "../../../decorators/transactional";
@@ -16,6 +16,7 @@ import { ApplicationError } from "../logic/error/ApplicationError";
 
 declare module "../models/gameModeModel" {
   interface GameModeData {
+    // WIP
     disabled?: boolean
   }
 }
@@ -119,8 +120,13 @@ export default class GameService
     const uniqueValidationResult = await this.validateGameUniqueFields(code, name);
     if (!uniqueValidationResult.success) { return uniqueValidationResult; }
 
+    // All games are randomizers by default
+    const data: GameData = {
+      isRandomizer: true
+    };
+
     return Result.success(
-      await this.app.repos.game.create({ code, name, shortName }));
+      await this.app.repos.game.create({ code, name, shortName, data }));
   }
 
   @transactional()

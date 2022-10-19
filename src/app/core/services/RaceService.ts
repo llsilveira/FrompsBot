@@ -4,7 +4,6 @@ import transactional from "../../../decorators/transactional";
 import hasPermission from "../../../constraints/hasPermission";
 import { RaceModel } from "../models/raceModel";
 import { GameModel } from "../models/gameModel";
-import RaceStatus from "../../../constants/RaceStatus";
 import AppService, { IService } from "../AppService";
 import { RepositoryFindOptions } from "../AppRepository";
 import Result, { ResultT } from "../logic/Result";
@@ -13,8 +12,8 @@ import { GameModeModel } from "../models/gameModeModel";
 
 
 export type RandomizerRaceData = {
-  seedUrl: string,
-  seedHash: string
+  seed: string,
+  seedVerifier: string
 }
 
 declare module "../models/raceModel" {
@@ -23,12 +22,17 @@ declare module "../models/raceModel" {
   }
 }
 
+declare module "../models/gameModel" {
+  interface GameData {
+    isRandomizer?: boolean
+  }
+}
+
 export interface RaceCreateParams {
   game: GameModel;
   gameMode: GameModeModel;
-  seedUrl: string;
-  seedHash: string;
-  registrationDeadline?: Date
+  seed: string;
+  seedVerifier: string;
 }
 
 
@@ -82,18 +86,14 @@ export default class RaceService
   )
   async createRace(createOpts: RaceCreateParams) {
     const user = this.app.services.auth.getLoggedUser(true).value;
-    const { game, gameMode, registrationDeadline, seedUrl, seedHash } = createOpts;
-
-    // TODO: validate seedUrl and seedHash
+    const { game, gameMode, seed, seedVerifier } = createOpts;
 
     return Result.success(await this.app.models.race.create({
       gameId: game.id,
       gameModeId: gameMode.id,
       creatorId: user.id,
-      status: RaceStatus.OPEN,
-      registrationDeadline: registrationDeadline ? registrationDeadline : new Date(),
       data: {
-        randomizer: { seedUrl, seedHash }
+        randomizer: { seed, seedVerifier }
       }
     }));
   }
