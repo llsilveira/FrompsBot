@@ -35,7 +35,7 @@ export default class RegisterCommand extends ApplicationCommand {
       AccountProvider.DISCORD, discordId
     )).value;
 
-    if (user !== undefined) {
+    if (user) {
       throw new DiscordUserError("Você já está registrado!");
     }
 
